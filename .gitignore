@@ -1,0 +1,64 @@
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib64
+__pycache__
+
+# Various common editor backups
+*.orig
+.*.swp
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+htmlcov
+coverage.xml
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Sass/Codekit
+.sass-cache/
+config.codekit
+
+# some mac thing
+.DS_Store
+
+# PyCharm
+.idea
+
+# node
+node_modules
+npm-debug.log
+coverage
+
+# tim-specific
+ora2db
+storage/*
+openassessment/xblock/static/js/fixtures/*.html
+
+# logging
+logs/*/*.log*
+
+# Vagrant
+.vagrant
