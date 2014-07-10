@@ -1,80 +1,72 @@
 """
-Django models for videos for Video Abstration Layer (VAL)
+Django models for videos for Video Abstraction Layer (VAL)
 """
 
 from django.db import models
-import django.utils.timezone as timezone
 
-class AutoDateTimeField(models.DateTimeField):
-    """
-    Custom field for datetime creation/modification
-
-    """
-    def pre_save(self, model_instance, add):
-        return timezone.now()
 
 class Video(models.Model):
     """
-    A single version of a video file
+    Model for a Video group with the same content.
 
-    A video can have multiple versions (mobile, HQ, LQ, ...). Each version has
-    its own edx_uid.
+    A video can have multiple formats. This model is the collection of those
+    videos with fields that do not change across formats.
 
     """
-    edx_uid = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=255, db_index=True)
-    created = models.DateTimeField(default=timezone.now())
-    updated = AutoDateTimeField(default=timezone.now())
+    duration = models.FloatField()
+    edx_video_id = models.CharField(max_length=50, unique=True)
 
-    print timezone.now()
 
     def __repr__(self):
         return (
-            "Video(edx_uid={0.edx_uid}, title={0.title}, "
-            "created={0.created}, updated={0.created}"
+            u"Video(title={0.title}, duration={0.duration})"
         ).format(self)
 
     def __unicode__(self):
         return repr(self)
+
 
 class Profile(models.Model):
     """
     Details for pre-defined encoding format
     """
-    title = models.CharField(max_length=50, unique=True)
-    name = models.CharField(max_length=50, unique=True)
+    profile_id = models.CharField(max_length=50, unique=True)
+    profile_name = models.CharField(max_length=50, unique=True)
     extension = models.CharField(max_length=50)
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
     bitrate = models.PositiveIntegerField()
 
-    def get_resolution(self):
-        return str(self.width) + "x" + str(self.height)
-
     def __repr__(self):
         return (
-            "Profile(title={0.title}, name={0.name}, "
-            "extension={0.extension}, width={0.width}, "
-            "height={0.height}, bitrate={0.bitrate})"
+            u"Profile(title={0.profile_id}, "
+            u"profile_name={0.profile_name}, "
+            u"extension={0.extension}, width={0.width}, "
+            u"height={0.height}, bitrate={0.bitrate})"
         ).format(self)
 
     def __unicode__(self):
         return repr(self)
 
 
-class Encoding(models.Model):
+class EncodedVideo(models.Model):
     """
-    Video and encoding profile pair
+    Unique video/encoding pair
     """
-    video = models.ForeignKey(Video)
-    profile = models.ForeignKey(Profile)
+    title = models.CharField(max_length=255, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    url = models.URLField(max_length=200)
     file_size = models.PositiveIntegerField()
-    duration = models.FloatField()
+    profile = models.ForeignKey(Profile)
+    video = models.ForeignKey(Video)
 
     def __repr__(self):
         return (
-            "Encoding(video={0.video}, profile={0.profile}, "
-            "file_size={0.file_size}, duration={0.duration})"
+            u"EncodedVideo(video={0.video.title}, "
+            u"profile={0.profile.profile_id} "
+            u"title={0.title})"
         ).format(self)
 
     def __unicode__(self):
