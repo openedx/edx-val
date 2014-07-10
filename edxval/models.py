@@ -79,4 +79,3 @@ class Encoding(models.Model):
 
     def __unicode__(self):
         return repr(self)
-
