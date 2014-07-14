@@ -16,22 +16,25 @@ class ModelTest(TestCase):
             extension="mp4",
             width=2880,
             height=1800,
-            bitrate=64440,
         )
         Video.objects.create(
-            title="sample",
+            client_title="sample",
             duration=1000,
-            edx_video_id='example',
+            video_prefix='example',
         )
         EncodedVideo.objects.create(
-            title="ev",
+            edx_video_id="ev",
             url="meow.com",
             file_size=123345,
-            video=Video.objects.get(title="sample"),
+            video=Video.objects.get(client_title="sample"),
             profile=Profile.objects.get(profile_name="sample"),
+            bitrate=64440,
         )
 
     def test_time_modified(self):
-        ev = EncodedVideo.objects.get(title="ev")
+        """
+        Tests to see if the time updated when the object is updated
+        """
+        ev = EncodedVideo.objects.get(edx_video_id="ev")
         ev.url = "woof.com"
         self.assertNotEqual(ev.created, ev.modified)

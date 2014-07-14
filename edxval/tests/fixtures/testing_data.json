@@ -3,9 +3,9 @@
         "pk": 1,
         "model": "edxval.video",
         "fields": {
-            "duration": 100.0,
-            "title": "cs101",
-            "edx_video_id": "sample1"
+            "duration": 101.0,
+            "title": "moot",
+            "edx_video_id_prefix": "cs101234"
         }
     },
     {
@@ -51,7 +51,7 @@
             "profile": 3,
             "created": "2014-07-14T15:32:59.273Z",
             "url": "meow.cs101.com/meow",
-            "title": "cs101",
+            "edx_video_id": "cs101234_mobile",
             "modified": "2014-07-14T15:32:59.273Z",
             "video": 1,
             "file_size": 25555
@@ -64,7 +64,7 @@
             "profile": 1,
             "created": "2014-07-14T15:33:25.813Z",
             "url": "incorrect_url",
-            "title": "cs101",
+            "edx_video_id": "cs101234_desktop",
             "modified": "2014-07-14T15:33:25.813Z",
             "video": 1,
             "file_size": 11
