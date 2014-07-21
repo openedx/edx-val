@@ -4,10 +4,6 @@ The internal API for VAL
 
 from edxval.models import Video, Profile, EncodedVideo
 from edxval.serializers import (
-    EncodedVideoSerializer,
-    OnlyEncodedVideoSerializer,
-    VideoSerializer,
-    ProfileSerializer,
     deserialize_video_upload
 )
 
@@ -76,7 +72,7 @@ class ValInvalidParametersError(ValError):
     """
 
 
-def update_create_ev(video_dict, encoded_dict, profile_info):
+def update_create_encoded_video(video_dict, encoded_dict, profile_info):
     """
     Updates or creates an EncodedVideo that with the given arguments.
 
@@ -85,7 +81,7 @@ def update_create_ev(video_dict, encoded_dict, profile_info):
 
     Args:
         video (dict):
-        endcoded_video (dict):
+        encoded_video (dict):
         profile (dict):
 
     Returns:
@@ -112,8 +108,11 @@ def update_create_ev(video_dict, encoded_dict, profile_info):
 
     """
 
-    print deserialize_video_upload(video_dict, encoded_dict, profile_info)
-
+    try:
+        return deserialize_video_upload(video_dict, encoded_dict, profile_info)
+    except ValInternalError:
+        error_message = "Unknown internal error when creating EncodedVideo"
+        raise ValInternalError(error_message)
 
 
 def get_video_info(edx_video_query, location=None):
@@ -149,116 +148,8 @@ def get_video_info(edx_video_query, location=None):
         }
 
     """
+    raise NotImplementedError
 
-    if _check_edx_video_id(edx_video_query) is False:
-        error_message = u"edx_video_id: {0} is not valid".format(edx_video_query)
-        raise ValRequestError(error_message)
-
-    print EncodedVideo.objects.all()
-    print Profile.objects.all()
-    print Video.objects.all()
-
-    videos = EncodedVideo.objects.filter(edx_video_id__startswith=edx_video_query)
-
-    print videos
-    if not videos:
-        error_message = u"Error finding video {0}".format(edx_video_query)
-        raise ValVideoNotFoundError(error_message)
-
-    result = getattr(videos, "url")
-
-    return {
-        'url': result
-    }
-
-def update_or_create_encoded_video(video_dict):
-    """
-    Updates or creates an EncodedVideo that with the given values.
-
-    Attempts to update the specified EncodedVideo. If it does not exist,
-    the video_dict, if valid, will be used to create a new EncodedVideo.
-
-    Args:
-        video (dict): A dict containing all the fields needed to create an
-            EncodedVideo which includes Profile and Video.
-
-    Returns:
-        boolean
-
-    Raises:
-        ValRequestError: Raised when parameters are invalid for updating
-            or creating an EncodedVideo.
-
-    Examples:
-        >>> video_dict = dict(
-        >>>    edx_video_id="thisis12char-thisis7_mob",
-        >>>    url="www.meowmix.com",
-        >>>    file_size=25556,
-        >>>    duration=300,
-        >>>    bitrate=9600,
-        >>>    profile_id="mobilelq",
-        >>>    video=dict(
-        >>>         client_title="Thunder Cats",
-        >>>         edx_video_prefix="thisis12char-thisis7_mob",
-        >>>         duration=1234,
-        >>>     )
-        >>> )
-        >>> update_or_create_encoded_video(video_dict)
-        returns True
-
-    """
-    try:
-        _check_edx_video_id(video_dict.get('video').get('edx_video_id_prefix'))
-        _check_edx_video_id(video_dict.get('edx_video_id'))
-    except ValRequestError:
-        error_message = u"Invalid edx_video_id: {0}".format(
-            video_dict.get('video').get('edx_video_id_prefix'))
-        raise ValRequestError(error_message)
-
-
-
-
-
-
-
-    try:
-        p = Profile.objects.get(profile_id=video_dict.get('profile_id'))
-    except Profile.DoesNotExist:
-        error_message = u"No such profile_id: {0}".format(video_dict.get('profile_id'))
-        raise ValRequestError(error_message)
-
-
-
-
-
-
-
-
-    if not OnlyEncodedVideoSerializer(data=video_dict).is_valid():
-        error_message = u"Invalid encoded video parameters: {0}".format(video_dict)
-        raise ValRequestError(error_message)
-
-    if not VideoSerializer(data=video_dict.get('video')).is_valid():
-        error_message = u"Invalid video parameters: {0}".format(
-            VideoSerializer(data=video_dict.get('video')).errors
-        )
-        raise ValRequestError(error_message)
-    else:
-        v = Video.objects.get_or_create(**video_dict.get('video'))
-
-    video_dict['video'] = v[0].pk
-    video_dict['profile'] = p.pk
-
-    result = EncodedVideoDeserializer(data=video_dict)
-
-    if result.is_valid():
-        result.save()
-        return EncodedVideoSerializer(EncodedVideo.objects.get(
-            edx_video_id=video_dict.get("edx_video_id"))).data
-    else:
-        error_message = \
-            u"Unknown error, could not update or create {0}".format(video_dict)
-        raise ValInternalError(error_message)
 
 def get_duration(course_id, section=None, subsection=None):
     """
@@ -281,12 +172,11 @@ def get_duration(course_id, section=None, subsection=None):
     """
     raise NotImplementedError
 
+
 def _check_edx_video_id(the_id):
     """
-    Checks if the of the edx_video_id is a valid
+    Checks if the edx_video_id or video_prefix is a valid
     """
-
-    #TODO Consider move the ValRequestError here since it is used multiple times
     if len(the_id) == 20 or len(the_id) == 24:
         if the_id[12] == "-":
             if len(the_id) == 24 and the_id[20] == "_":

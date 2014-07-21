@@ -1,66 +1,16 @@
-
-VIDEO_QUERY = dict(
-    edx_video_query="thisis12char-thisis7"
-)
-
-EV_DICT = dict(
-    edx_video_id="thisis12char-thisis7_mob",
-    url="http://www.meowmix.com",
-    file_size=25556,
-    bitrate=9600,
-    video=dict(
-        client_title="Thunder Cats S01E01",
-        duration=111,
-        video_prefix="thisis12char-thisis7",
-    ),
-    profile_id="mobile",
-)
-JUST_EV_DICT = dict(
+EV_DICT_CREATE = dict(
     edx_video_id="thisis12char-thisis7_mob",
     url="http://www.meowmix.com",
     file_size=25556,
     bitrate=9600,
 )
 
-EV_DICT2 = dict(
-    edx_video_id="thisis12char-thisis7_des",
-    url="http://www.meowmaxer.com",
-    file_size=25556,
-    bitrate=9600,
-    duration=1234,
-    video=dict(
-        client_title="Thunder Cats S01E01",
-        duration=111,
-        video_prefix="thisis12char-thisis7",
-    ),
-    profile_id="desktop",
-)
 
-EV_DICTA = dict(
-    edx_video_id="thisis12char-dogpoop_des",
-    url="http://www.dogwoofer.com",
+EV_DICT_UPDATE = dict(
+    edx_video_id="thisis12char-thisis7_mob",
+    url="http://www.thundercows.com",
     file_size=25556,
     bitrate=9600,
-    duration=1234,
-    video=dict(
-        client_title="Lightning Dogs S01E01",
-        duration=111,
-        video_prefix="thisis12char-dogpoop",
-    ),
-    profile_id="desktop",
-)
-EV_DICTB = dict(
-    edx_video_id="thisis12char-dogpoop_mob",
-    url="http://www.dogwoofer.com",
-    file_size=25556,
-    bitrate=9600,
-    duration=1234,
-    video=dict(
-        client_title="Lightning Dogs S01E01",
-        duration=111,
-        video_prefix="thisis12char-dogpoop",
-    ),
-    profile_id="mobile",
 )
 
 P_DICT = dict(

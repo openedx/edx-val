@@ -1,18 +1,18 @@
 """
 """
-import json
+from django.db import transaction
 from rest_framework import serializers
 from edxval.models import Video, Profile, EncodedVideo
 
 
 class ValidationError(Exception):
     """
-    Error validating inputs
+    Error validating dict
     """
     pass
 
 
-class InvalidFieldsError(ValidationError):
+class KeyValueError(ValidationError):
     """
     The fields are invalid
     """
@@ -21,7 +21,7 @@ class InvalidFieldsError(ValidationError):
 
 class InternalError(ValidationError):
     """
-    Inputs cannot be deserialized
+    Dict cannot be deserialized
     """
     pass
 
@@ -60,10 +60,11 @@ class OnlyEncodedVideoSerializer(serializers.ModelSerializer):
     """
     Used to validate non foreign key fields.
     """
+    edx_video_id = serializers.CharField(max_length=50)
+
     class Meta:
         model = EncodedVideo
         fields = (
-            "edx_video_id",
             "created",
             "modified",
             "url",
@@ -142,18 +143,18 @@ def validate_video_upload_fields(video_dict, encoded_dict, profile_info):
         profile = Profile.objects.get(profile_id=profile_info)
     except Profile.DoesNotExist:
         error_message = u"No profile found for: {0}".format(profile_info)
-        raise InvalidFieldsError(error_message)
+        raise KeyValueError(error_message)
     if not VideoSerializer(data=video_dict).is_valid():
         error_message = u"Invalid video fields: {0}".format(
             VideoSerializer(data=video_dict).errors)
-        raise InvalidFieldsError(error_message)
+        raise KeyValueError(error_message)
     if not OnlyEncodedVideoSerializer(data=encoded_dict).is_valid():
         error_message = u"Invalid encoded video fields: {0}".format(
             OnlyEncodedVideoSerializer(data=encoded_dict).errors)
-        raise InvalidFieldsError(error_message)
+        raise KeyValueError(error_message)
     return True
 
-
+@transaction.commit_on_success
 def deserialize_video_upload(video_dict, encoded_dict, profile_info):
     """
     Deserializes given parameters into an EncodedVideo object
@@ -162,9 +163,12 @@ def deserialize_video_upload(video_dict, encoded_dict, profile_info):
         video_dict (dict): serialized video object
         encoded_dict (dict): serialized encoded video object without foreign keys
         profile_info (str): name of the profile
-    Returns:
 
+    Returns:
+        A tuple of (action, result), where action is a string, and result is a
+        serialized object.
     """
+    action = None
     is_valid, errors = validate_video_upload_types(
         video_dict, encoded_dict, profile_info)
     if not is_valid:
@@ -176,18 +180,21 @@ def deserialize_video_upload(video_dict, encoded_dict, profile_info):
         except Video.DoesNotExist:
             v = Video.objects.create(**video_dict)
         try:
-            e = EncodedVideo.objects.get(edx_video_id=encoded_dict.get('edx_video_id'))
+            EncodedVideo.objects.get(edx_video_id=encoded_dict.get('edx_video_id'))
             try:
-                e.update(video=v, profile=p, **encoded_dict)
+                EncodedVideo.objects.update(video=v, profile=p, **encoded_dict)
+                action = "updated"
+                e = EncodedVideo.objects.get(edx_video_id=encoded_dict.get('edx_video_id'))
             except:
                 raise InternalError("Unable to update.")
         except EncodedVideo.DoesNotExist:
             try:
                 e = EncodedVideo.objects.create(video=v, profile=p, **encoded_dict)
+                action = "created"
             except:
                 raise InternalError("Unable to deserialize.")
     result = EncodedVideoSerializer(e).data
-    return result
+    return action, result
 
 
 
