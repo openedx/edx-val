@@ -1,0 +1,73 @@
+[
+    {
+        "pk": 1,
+        "model": "edxval.video",
+        "fields": {
+            "duration": 101.0,
+            "title": "moot",
+            "edx_video_id_prefix": "cs101234"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "edxval.profile",
+        "fields": {
+            "extension": "avi",
+            "profile_id": "bhqavi",
+            "height": 1200,
+            "width": 1000,
+            "profile_name": "browser high quality avi",
+            "bitrate": 3000
+        }
+    },
+    {
+        "pk": 2,
+        "model": "edxval.profile",
+        "fields": {
+            "extension": "mp4",
+            "profile_id": "blqmp4",
+            "height": 500,
+            "width": 400,
+            "profile_name": "browser low quality mp4",
+            "bitrate": 500
+        }
+    },
+    {
+        "pk": 3,
+        "model": "edxval.profile",
+        "fields": {
+            "extension": "3gp",
+            "profile_id": "mhq3gp",
+            "height": 500,
+            "width": 400,
+            "profile_name": "mobile high quality 3gp",
+            "bitrate": 111
+        }
+    },
+    {
+        "pk": 1,
+        "model": "edxval.encodedvideo",
+        "fields": {
+            "profile": 3,
+            "created": "2014-07-14T15:32:59.273Z",
+            "url": "meow.cs101.com/meow",
+            "edx_video_id": "cs101234_mobile",
+            "modified": "2014-07-14T15:32:59.273Z",
+            "video": 1,
+            "file_size": 25555
+        }
+    },
+    {
+        "pk": 2,
+        "model": "edxval.encodedvideo",
+        "fields": {
+            "profile": 1,
+            "created": "2014-07-14T15:33:25.813Z",
+            "url": "incorrect_url",
+            "edx_video_id": "cs101234_desktop",
+            "modified": "2014-07-14T15:33:25.813Z",
+            "video": 1,
+            "file_size": 11
+        }
+    }
+]
