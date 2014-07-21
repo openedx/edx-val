@@ -1,54 +1,22 @@
 """
+Serializers for Video Abstraction Layer
 """
-import json
 from rest_framework import serializers
-from edxval.models import Video, Profile, EncodedVideo
+from django.core.validators import MinValueValidator
+
+from edxval.models import Profile
 
 
-class ValidationError(Exception):
-    """
-    Error validating inputs
-    """
-    pass
-
-
-class InvalidFieldsError(ValidationError):
-    """
-    The fields are invalid
-    """
-    pass
-
-
-class InternalError(ValidationError):
-    """
-    Inputs cannot be deserialized
-    """
-    pass
-
-
-class VideoSerializer(serializers.ModelSerializer):
-    video_prefix = serializers.CharField(max_length=50)
-
-    class Meta:
-        model = Video
-        fields = (
-            "client_title",
-            "duration",
-        )
-
-    def validate_video_prefix(self, attrs, source):
-        value = attrs[source]
-        if len(value) == 20:
-            if value[12] == "-":
-                return True
-        raise serializers.ValidationError("Invalid video id: {0}".format(value))
+class VideoSerializer(serializers.Serializer):
+    edx_video_id = serializers.CharField(required=True, max_length=50)
+    duration = serializers.FloatField()
+    client_title = serializers.CharField(max_length=255)
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = (
-            "profile_id",
             "profile_name",
             "extension",
             "width",
@@ -56,139 +24,24 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
 
 
-class OnlyEncodedVideoSerializer(serializers.ModelSerializer):
+class OnlyEncodedVideoSerializer(serializers.Serializer):
     """
-    Used to validate non foreign key fields.
+    Used to serialize the EncodedVideo fir the EncodedVideoSetSerializer
     """
-    class Meta:
-        model = EncodedVideo
-        fields = (
-            "edx_video_id",
-            "created",
-            "modified",
-            "url",
-            "file_size",
-            "bitrate",
-        )
-
-
-class EncodedVideoSerializer(serializers.ModelSerializer):
-
+    url = serializers.URLField(max_length=200)
+    file_size = serializers.IntegerField(validators=[MinValueValidator(1)])
+    bitrate = serializers.IntegerField(validators=[MinValueValidator(1)])
     profile = ProfileSerializer()
-    video = VideoSerializer()
-
-    class Meta:
-        model = EncodedVideo
-        fields = (
-            "edx_video_id",
-            "created",
-            "modified",
-            "url",
-            "file_size",
-            "bitrate",
-            "profile",
-            "video"
-        )
-        depth = 1
-
-    def validate_video_id(self, attrs, source):
-        value = attrs[source]
-        if len(value) == 24:
-            if value[12] == "-":
-                if value[20] == "_":
-                    return True
-        raise serializers.ValidationError("Invalid video id: {0}".format(value))
 
 
-def validate_video_upload_types(video_dict, encoded_dict, profile_info):
+class EncodedVideoSetSerializer(serializers.Serializer):
     """
-    Checks the parameters for correct types
-
-    Args:
-        video_dict (dict): serialized video object
-        encoded_dict (dict): serialized encoded video object without foreign keys
-        profile_info (str): name of the profile
-    Returns:
-       tuple of (is_valid, errors), where `is_valid` is a bool
-        and `errors` is a list of error messages.
+    Used to serialize a list of EncodedVideo objects it's foreign key Video Object.
     """
-    errors = []
-
-    if not isinstance(video_dict, dict):
-        errors.append(u"video_dict must be a dictionary.")
-    if not isinstance(encoded_dict, dict):
-        errors.append(u"encoded_dict must be a dictionary.")
-    if not isinstance(profile_info, str):
-        errors.append(u"profile_info must be a string.")
-
-    is_valid = (len(errors) == 0)
-    return is_valid, errors
-
-
-def validate_video_upload_fields(video_dict, encoded_dict, profile_info):
-    """
-    Checks the fields with serializers
-
-    Args:
-        video_dict (dict): serialized video object
-        encoded_dict (dict): serialized encoded video object without foreign keys
-        profile_info (str): name of the profile
-    Returns:
-       boolean: True if successful
-    Raises:
-        InvalidFieldsError
-    """
-    try:
-        profile = Profile.objects.get(profile_id=profile_info)
-    except Profile.DoesNotExist:
-        error_message = u"No profile found for: {0}".format(profile_info)
-        raise InvalidFieldsError(error_message)
-    if not VideoSerializer(data=video_dict).is_valid():
-        error_message = u"Invalid video fields: {0}".format(
-            VideoSerializer(data=video_dict).errors)
-        raise InvalidFieldsError(error_message)
-    if not OnlyEncodedVideoSerializer(data=encoded_dict).is_valid():
-        error_message = u"Invalid encoded video fields: {0}".format(
-            OnlyEncodedVideoSerializer(data=encoded_dict).errors)
-        raise InvalidFieldsError(error_message)
-    return True
-
-
-def deserialize_video_upload(video_dict, encoded_dict, profile_info):
-    """
-    Deserializes given parameters into an EncodedVideo object
-
-    Args:
-        video_dict (dict): serialized video object
-        encoded_dict (dict): serialized encoded video object without foreign keys
-        profile_info (str): name of the profile
-    Returns:
-
-    """
-    is_valid, errors = validate_video_upload_types(
-        video_dict, encoded_dict, profile_info)
-    if not is_valid:
-        raise ValidationError("; ".join(errors))
-    if validate_video_upload_fields(video_dict, encoded_dict, profile_info):
-        p = Profile.objects.get(profile_id=profile_info)
-        try:
-            v = Video.objects.get(video_prefix=video_dict.get("video_prefix"))
-        except Video.DoesNotExist:
-            v = Video.objects.create(**video_dict)
-        try:
-            e = EncodedVideo.objects.get(edx_video_id=encoded_dict.get('edx_video_id'))
-            try:
-                e.update(video=v, profile=p, **encoded_dict)
-            except:
-                raise InternalError("Unable to update.")
-        except EncodedVideo.DoesNotExist:
-            try:
-                e = EncodedVideo.objects.create(video=v, profile=p, **encoded_dict)
-            except:
-                raise InternalError("Unable to deserialize.")
-    result = EncodedVideoSerializer(e).data
-    return result
-
+    edx_video_id = serializers.CharField(max_length=50)
+    client_title = serializers.CharField(max_length=255)
+    duration = serializers.FloatField(validators=[MinValueValidator(1)])
+    encoded_videos = OnlyEncodedVideoSerializer()
 
 
 
