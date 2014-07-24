@@ -1,2 +1,2 @@
 django>=1.4,<1.5
-djangorestframework==2.3.5
+djangorestframework==2.3.14
