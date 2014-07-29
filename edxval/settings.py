@@ -124,6 +124,7 @@ INSTALLED_APPS = (
     'rest_framework',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
+    'debug_toolbar'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )

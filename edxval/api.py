@@ -60,6 +60,7 @@ def get_video_info(edx_video_id, location=None):
                 edx_video_id: ID of the video
                 duration: Length of video in seconds
                 client_video_id: human readable ID
+
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
                     file_size: size of the video in bytes

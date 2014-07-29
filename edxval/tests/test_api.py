@@ -25,17 +25,17 @@ class GetVideoInfoTest(TestCase):
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
-        Video.objects.create(**constants.VIDEO_DICT_CATS)
+        Video.objects.create(**constants.VIDEO_DICT_COAT)
         EncodedVideo.objects.create(
             video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_CATS.get("edx_video_id")
+                edx_video_id=constants.VIDEO_DICT_COAT.get("edx_video_id")
             ),
             profile=Profile.objects.get(profile_name="mobile"),
             **constants.ENCODED_VIDEO_DICT_MOBILE
         )
         EncodedVideo.objects.create(
             video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_CATS.get("edx_video_id")
+                edx_video_id=constants.VIDEO_DICT_COAT.get("edx_video_id")
             ),
             profile=Profile.objects.get(profile_name="desktop"),
             **constants.ENCODED_VIDEO_DICT_DESKTOP

@@ -4,12 +4,13 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 
 from edxval.models import Video
-from edxval.serializers import VideoSerializer
+from edxval.serializers import VideoSerializer, EncodedVideoSetDeserializer, EncodedVideoSetSerializer
+
 
 
 class VideoList(APIView):
     """
-    HTTP API for Video objects
+    HTTP API for Video and EncodedVideo objects
     """
 
     def get(self, request, format=None):
@@ -17,44 +18,29 @@ class VideoList(APIView):
         Gets all videos
         """
         video = Video.objects.all()
-        serializer = VideoSerializer(video, many=True)
+        serializer = EncodedVideoSetSerializer(video, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
         """
-        Takes an object (where we get our list of dict) and creates the objects
-
-        Request.DATA is a list of dictionaries. Each item is individually validated
-        and if valid, saved. All invalid dicts are returned in the error message.
+        Takes a Video dict of a list of EncodedVideo dicts and creates the objects
 
         Args:
             request (object): Object where we get our information for POST
-            format (str): format of our data (JSON, XML, etc.)
+            data_format (str): format of our data (JSON, XML, etc.)
+
 
         Returns:
             Response(message, HTTP status)
 
         """
-        if not isinstance(request.DATA, list):
-            error_message = "Not a list: {0}".format(type(request.DATA))
-            return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
-        invalid_videos = []
-        for item in request.DATA:
-            try:
-                instance = Video.objects.get(
-                    edx_video_id=item.get("edx_video_id")
-                )
-            except Video.DoesNotExist:
-                instance = None
-            serializer = VideoSerializer(instance, data=item)
-            if serializer.is_valid():
-                serializer.save()
-            else:
-                invalid_videos.append(item)
-        if invalid_videos:
-            return Response(invalid_videos, status=status.HTTP_400_BAD_REQUEST)
+        serializer = EncodedVideoSetDeserializer(data=request.DATA)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("Success", status=status.HTTP_201_CREATED)
         else:
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class VideoDetail(generics.RetrieveUpdateDestroyAPIView):

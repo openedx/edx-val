@@ -6,12 +6,13 @@ Tests the serializers for the Video Abstraction Layer
 from django.test import TestCase
 
 from edxval.serializers import (
-    OnlyEncodedVideoSerializer,
+    EncodedVideoSerializer,
     EncodedVideoSetSerializer,
     ProfileSerializer,
-    VideoSerializer
+    VideoSerializer,
+    DisplayProfileName
 )
-from edxval.models import Profile
+from edxval.models import Profile, Video, EncodedVideo
 from edxval.tests import constants
 
 
@@ -24,6 +25,7 @@ class SerializerTests(TestCase):
         Creates EncodedVideo objects in database
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
         Profile.objects.create(**constants.PROFILE_DICT_NON_LATIN)
 
     def test_negative_fields_only_encoded_video(self):
@@ -32,11 +34,12 @@ class SerializerTests(TestCase):
 
         Tests negative inputs for bitrate, file_size in EncodedVideo
         """
-        a = OnlyEncodedVideoSerializer(
+        a = EncodedVideoSerializer(
             data=constants.ENCODED_VIDEO_DICT_NEGATIVE_BITRATE).errors
         self.assertEqual(a.get('bitrate')[0],
                          u"Ensure this value is greater than or equal to 0.")
-        b = OnlyEncodedVideoSerializer(
+        b = EncodedVideoSerializer(
+
             data=constants.ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE).errors
         self.assertEqual(b.get('file_size')[0],
                          u"Ensure this value is greater than or equal to 0.")
@@ -56,6 +59,7 @@ class SerializerTests(TestCase):
         """
         Tests if the serializers can accept non-latin chars
         """
+        #TODO not the best test. Need to understand what result we want
         self.assertIsNotNone(
             ProfileSerializer(Profile.objects.get(profile_name="배고파"))
         )
@@ -69,3 +73,29 @@ class SerializerTests(TestCase):
         self.assertEqual(
             message,
             u"edx_video_id has invalid characters")
+
+    # def test_encoded_video_set_output(self):
+    #     """
+    #     Tests for basic structure of EncodedVideoSetSerializer
+    #     """
+    #     video = Video.objects.create(**constants.VIDEO_DICT_CATS)
+    #     EncodedVideo.objects.create(
+    #         video=video,
+    #         profile=Profile.objects.get(profile_name="desktop"),
+    #         **constants.ENCODED_VIDEO_DICT_DESKTOP
+    #         )
+    #     EncodedVideo.objects.create(
+    #         video=video,
+    #         profile=Profile.objects.get(profile_name="mobile"),
+    #         **constants.ENCODED_VIDEO_DICT_MOBILE
+    #         )
+    #     result = EncodedVideoSetSerializer(video).data
+    #     self.assertEqual(len(result.get("encoded_videos")), 2)
+
+    # def test_profile_name_serializer(self):
+    #     """
+    #     Tests to see if ProfileName serializer returns a string
+    #     """
+    #     profile = Profile.objects.get(profile_name="mobile")
+    #     name = DisplayProfileName(profile).attributes()
+    #     self.assertEqual(name, "mobile")
