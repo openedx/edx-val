@@ -3,6 +3,7 @@ Django models for videos for Video Abstraction Layer (VAL)
 """
 
 from django.db import models
+from django.core.validators import MinValueValidator, RegexValidator
 
 
 class Profile(models.Model):
@@ -30,13 +31,23 @@ class Video(models.Model):
     A video can have multiple formats. This model is the collection of those
     videos with fields that do not change across formats.
     """
-    edx_video_id = models.CharField(max_length=50, unique=True)
-    client_title = models.CharField(max_length=255, db_index=True)
-    duration = models.FloatField()
+    edx_video_id = models.CharField(
+        max_length=50,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex='^[a-zA-Z0-9\-]*$',
+                message='edx_video_id has invalid characters',
+                code='invalid edx_video_id'
+            ),
+        ]
+    )
+    client_video_id = models.CharField(max_length=255, db_index=True)
+    duration = models.FloatField(validators=[MinValueValidator(0)])
 
     def __repr__(self):
         return (
-            u"Video(client_title={0.client_title}, duration={0.duration})"
+            u"Video(client_video_id={0.client_video_id}, duration={0.duration})"
         ).format(self)
 
     def __unicode__(self):
@@ -72,7 +83,7 @@ class EncodedVideo(models.Model):
 
     def __repr__(self):
         return (
-            u"EncodedVideo(video={0.video.client_title}, "
+            u"EncodedVideo(video={0.video.client_video_id}, "
             u"profile={0.profile.profile_name})"
         ).format(self)
 
