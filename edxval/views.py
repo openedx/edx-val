@@ -8,8 +8,10 @@ from edxval.serializers import VideoSerializer, EncodedVideoSetDeserializer, Enc
 
 
 
+
 class VideoList(APIView):
     """
+<<<<<<< HEAD
     HTTP API for Video and EncodedVideo objects
     """
 
@@ -29,7 +31,6 @@ class VideoList(APIView):
             request (object): Object where we get our information for POST
             data_format (str): format of our data (JSON, XML, etc.)
 
-
         Returns:
             Response(message, HTTP status)
 
@@ -40,7 +41,6 @@ class VideoList(APIView):
             return Response("Success", status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class VideoDetail(generics.RetrieveUpdateDestroyAPIView):

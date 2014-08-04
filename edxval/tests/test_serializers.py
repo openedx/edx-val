@@ -11,6 +11,7 @@ from edxval.serializers import (
     ProfileSerializer,
     VideoSerializer,
     DisplayProfileName
+
 )
 from edxval.models import Profile, Video, EncodedVideo
 from edxval.tests import constants

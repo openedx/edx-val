@@ -4,6 +4,7 @@ Serializers for Video Abstraction Layer
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 
+
 from edxval.models import Profile, Video, EncodedVideo
 
 
@@ -127,6 +128,7 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
             "bitrate",
             "profile",
             "video"
+
         )
 
 
@@ -136,6 +138,7 @@ class EncodedVideoSetSerializer(serializers.ModelSerializer):
     """
     edx_video_id = serializers.CharField(max_length=50)
     encoded_videos = EncodedVideoSerializer(required=False)
+
 
     class Meta:
         model = Video

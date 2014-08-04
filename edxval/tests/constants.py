@@ -210,13 +210,11 @@ VIDEO_DICT_BEE_INVALID = dict(
     edx_video_id="wa/sps",
 )
 
-
 VIDEO_DICT_INVALID_ID = dict(
     client_video_id="SuperSloth",
     duration=42,
     edx_video_id="sloppy/sloth!!"
 )
-
 
 VIDEO_DICT_DUPLICATES = [
     VIDEO_DICT_CRAYFISH,

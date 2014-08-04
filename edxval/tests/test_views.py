@@ -7,7 +7,6 @@ from edxval.models import Profile, Video
 from edxval.serializers import EncodedVideoSetSerializer
 
 
-
 class VideoListTest(APITestCase):
     """
     Tests the creations of Videos via POST/GET
