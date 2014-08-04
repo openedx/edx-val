@@ -10,7 +10,10 @@ class Profile(models.Model):
     """
     Details for pre-defined encoding format
     """
-    profile_name = models.CharField(max_length=50, unique=True)
+    profile_name = models.CharField(
+        max_length=50,
+        unique=True,
+        )
     extension = models.CharField(max_length=10)
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
