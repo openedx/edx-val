@@ -4,4 +4,3 @@ from .models import Video, Profile, EncodedVideo
 admin.site.register(Video)
 admin.site.register(Profile)
 admin.site.register(EncodedVideo)
-
