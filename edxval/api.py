@@ -59,7 +59,7 @@ def get_video_info(edx_video_id, location=None):
             {
                 edx_video_id: ID of the video
                 duration: Length of video in seconds
-                client_title: human readable ID
+                client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
                     file_size: size of the video in bytes
@@ -82,7 +82,7 @@ def get_video_info(edx_video_id, location=None):
         >>>{
         >>>    'edx_video_id': u'thisis12char-thisis7',
         >>>    'duration': 111.0,
-        >>>    'client_title': u'Thunder Cats S01E01',
+        >>>    'client_video_id': u'Thunder Cats S01E01',
         >>>    'encoded_video': [
         >>>    {
         >>>        'url': u'http://www.meowmix.com',

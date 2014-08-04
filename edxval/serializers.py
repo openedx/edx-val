@@ -2,16 +2,37 @@
 Serializers for Video Abstraction Layer
 """
 from rest_framework import serializers
-from django.core.validators import MinValueValidator
 
-from edxval.models import Profile
+from edxval.models import Profile, Video, EncodedVideo
 
 
-class VideoSerializer(serializers.Serializer):
-    edx_video_id = serializers.CharField(required=True, max_length=50)
-    duration = serializers.FloatField()
-    client_title = serializers.CharField(max_length=255)
+class VideoSerializer(serializers.ModelSerializer):
 
+    def restore_object(self, attrs, instance=None):
+        """
+        Given a dictionary of deserialized field values, either update
+        an existing model instance, or create a new model instance.
+        """
+        if instance is not None:
+            instance.edx_video_id = attrs.get(
+                'edx_video_id', instance.edx_video_id
+            )
+            instance.duration = attrs.get(
+                'duration', instance.duration
+            )
+            instance.client_video_id = attrs.get(
+                'client_video_id', instance.client_video_id
+            )
+            return instance
+        return Video(**attrs)
+
+    class Meta:
+        model = Video
+        fields = (
+            "client_video_id",
+            "duration",
+            "edx_video_id"
+        )
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,21 +45,31 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
 
 
-class OnlyEncodedVideoSerializer(serializers.Serializer):
+class OnlyEncodedVideoSerializer(serializers.ModelSerializer):
     """
-    Used to serialize the EncodedVideo fir the EncodedVideoSetSerializer
+    Used to serialize the EncodedVideo for the EncodedVideoSetSerializer
     """
-    url = serializers.URLField(max_length=200)
-    file_size = serializers.IntegerField(validators=[MinValueValidator(1)])
-    bitrate = serializers.IntegerField(validators=[MinValueValidator(1)])
-    profile = ProfileSerializer()
+    profile = ProfileSerializer(required=False)
+    class Meta:
+        model = EncodedVideo
+        fields = (
+            "url",
+            "file_size",
+            "bitrate"
+        )
 
 
-class EncodedVideoSetSerializer(serializers.Serializer):
+class EncodedVideoSetSerializer(serializers.ModelSerializer):
     """
     Used to serialize a list of EncodedVideo objects it's foreign key Video Object.
     """
     edx_video_id = serializers.CharField(max_length=50)
-    client_title = serializers.CharField(max_length=255)
-    duration = serializers.FloatField(validators=[MinValueValidator(1)])
     encoded_videos = OnlyEncodedVideoSerializer()
+
+    class Meta:
+        model = Video
+        fields = (
+            "duration",
+            "client_video_id"
+        )
+

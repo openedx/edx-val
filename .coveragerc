@@ -1,0 +1,9 @@
+[run]
+branch = True
+
+[report]
+include = edxval/*
+omit =
+    **/__init__.py
+    **/tests/*
+    **/settings.py
