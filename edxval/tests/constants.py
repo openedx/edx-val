@@ -36,6 +36,7 @@ VIDEO_DICT_NEGATIVE_DURATION = dict(
     client_video_id="Thunder Cats S01E01",
     duration=-111,
     edx_video_id="thisis12char-thisis7",
+    encoded_videos=[]
 )
 ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE = dict(
     url="http://www.meowmix.com",
@@ -47,18 +48,32 @@ ENCODED_VIDEO_DICT_NEGATIVE_BITRATE = dict(
     file_size=25556,
     bitrate=-9600,
 )
+VIDEO_DICT_BEE_INVALID = dict(
+    client_video_id="Barking Bee",
+    duration=111.00,
+    edx_video_id="wa/sps",
+)
+
+VIDEO_DICT_INVALID_ID = dict(
+    client_video_id="SuperSloth",
+    duration=42,
+    edx_video_id="sloppy/sloth!!",
+    encoded_videos=[]
+)
 """
-Non-latin
+Non-latin/invalid
 """
 VIDEO_DICT_NON_LATIN_TITLE = dict(
-    client_video_id="배고픈 햄스터",
+    client_video_id=u"배고픈 햄스터",
     duration=42,
-    edx_video_id="ID"
+    edx_video_id="ID",
+    encoded_videos=[]
 )
 VIDEO_DICT_NON_LATIN_ID = dict(
     client_video_id="Hungry Hamster",
     duration=42,
-    edx_video_id="밥줘"
+    edx_video_id="밥줘",
+    encoded_videos=[]
 )
 PROFILE_DICT_NON_LATIN = dict(
     profile_name=u"배고파",
@@ -173,8 +188,8 @@ COMPLETE_SET_EXTRA_VIDEO_FIELD = dict(
             url="https://www.vulturevideos.com",
             file_size=101010,
             bitrate=1234,
-            profile=1,
-            video="This should be overridden by parent videofield"
+            profile="mobile",
+            video="This should be overridden by parent video field"
         )
     ],
     **VIDEO_DICT_STAR
@@ -185,14 +200,21 @@ Unsorted
 VIDEO_DICT_COAT = dict(
     client_video_id="Callous Coat",
     duration=111.00,
-    edx_video_id="itchyjacket",
+    edx_video_id="itchyjacket"
 )
-VIDEO_DICT_AVERAGE = dict(
+VIDEO_DICT_ANIMAL = dict(
     client_video_id="Average Animal",
     duration=111.00,
     edx_video_id="mediocrity",
+    encoded_videos=[]
 )
-VIDEO_DICT_AVERAGE2 = dict(
+VIDEO_DICT_ZEBRA = dict(
+    client_video_id="Zesty Zebra",
+    duration=111.00,
+    edx_video_id="zestttt",
+    encoded_videos=[]
+)
+VIDEO_DICT_UPDATE_ANIMAL = dict(
     client_video_id="Lolcat",
     duration=122.00,
     edx_video_id="mediocrity",
@@ -202,18 +224,6 @@ VIDEO_DICT_CRAYFISH = dict(
     client_video_id="Crazy Crayfish",
     duration=111.00,
     edx_video_id="craycray",
-)
-
-VIDEO_DICT_BEE_INVALID = dict(
-    client_video_id="Barking Bee",
-    duration=111.00,
-    edx_video_id="wa/sps",
-)
-
-VIDEO_DICT_INVALID_ID = dict(
-    client_video_id="SuperSloth",
-    duration=42,
-    edx_video_id="sloppy/sloth!!"
 )
 
 VIDEO_DICT_DUPLICATES = [
@@ -234,7 +244,7 @@ COMPLETE_SETS_ONE_INVALID = [
 
 VIDEO_DICT_SET_OF_THREE = [
     VIDEO_DICT_COAT,
-    VIDEO_DICT_AVERAGE,
+    VIDEO_DICT_ANIMAL,
     VIDEO_DICT_CRAYFISH
 ]
 
