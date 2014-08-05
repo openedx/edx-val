@@ -7,6 +7,39 @@ from rest_framework.serializers import ValidationError
 
 from edxval.models import Profile, Video, EncodedVideo
 
+class ProfileSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = (
+            "profile_name",
+            "extension",
+            "width",
+            "height"
+        )
+
+
+class EncodedVideoSerializer2(serializers.ModelSerializer):
+    profile = serializers.SlugRelatedField(slug_field="profile_name")
+    class Meta:
+        model = EncodedVideo
+        fields = (
+            "created",
+            "modified",
+            "url",
+            "file_size",
+            "bitrate",
+            "profile",
+        )
+
+
+class VideoSerializer2(serializers.HyperlinkedModelSerializer):
+    encoded_videos = EncodedVideoSerializer2(many=True)
+
+    class Meta:
+        model = Video
+        lookup_field = "edx_video_id"
+
+
 
 class DisplayProfileName(serializers.WritableField):
     """
