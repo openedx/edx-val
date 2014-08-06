@@ -10,7 +10,7 @@ from django.db import DatabaseError
 
 from edxval.models import Profile, Video, EncodedVideo
 from edxval import api as api
-from edxval.serializers import EncodedVideoSetSerializer
+from edxval.serializers import VideoSerializer
 from edxval.tests import constants
 
 
@@ -25,17 +25,17 @@ class GetVideoInfoTest(TestCase):
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
-        Video.objects.create(**constants.VIDEO_DICT_CATS)
+        Video.objects.create(**constants.VIDEO_DICT_COAT)
         EncodedVideo.objects.create(
             video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_CATS.get("edx_video_id")
+                edx_video_id=constants.VIDEO_DICT_COAT.get("edx_video_id")
             ),
             profile=Profile.objects.get(profile_name="mobile"),
             **constants.ENCODED_VIDEO_DICT_MOBILE
         )
         EncodedVideo.objects.create(
             video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_CATS.get("edx_video_id")
+                edx_video_id=constants.VIDEO_DICT_COAT.get("edx_video_id")
             ),
             profile=Profile.objects.get(profile_name="desktop"),
             **constants.ENCODED_VIDEO_DICT_DESKTOP
@@ -51,8 +51,11 @@ class GetVideoInfoTest(TestCase):
         """
         Tests searching for a video that does not exist
         """
+
         with self.assertRaises(api.ValVideoNotFoundError):
-            api.get_video_info("non_existing-video__")
+            api.get_video_info("non_existant-video__")
+        with self.assertRaises(api.ValVideoNotFoundError):
+            api.get_video_info("")
 
     def test_unicode_input(self):
         """
@@ -61,7 +64,7 @@ class GetVideoInfoTest(TestCase):
         with self.assertRaises(api.ValVideoNotFoundError):
             api.get_video_info(u"๓ﻉѻฝ๓ٱซ")
 
-    @mock.patch.object(EncodedVideoSetSerializer, '__init__')
+    @mock.patch.object(VideoSerializer, '__init__')
     def test_force_internal_error(self, mock_init):
         """
         Tests to see if an unknown error will be handled

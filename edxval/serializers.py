@@ -6,34 +6,6 @@ from rest_framework import serializers
 from edxval.models import Profile, Video, EncodedVideo
 
 
-class VideoSerializer(serializers.ModelSerializer):
-
-    def restore_object(self, attrs, instance=None):
-        """
-        Given a dictionary of deserialized field values, either update
-        an existing model instance, or create a new model instance.
-        """
-        if instance is not None:
-            instance.edx_video_id = attrs.get(
-                'edx_video_id', instance.edx_video_id
-            )
-            instance.duration = attrs.get(
-                'duration', instance.duration
-            )
-            instance.client_video_id = attrs.get(
-                'client_video_id', instance.client_video_id
-            )
-            return instance
-        return Video(**attrs)
-
-    class Meta:
-        model = Video
-        fields = (
-            "client_video_id",
-            "duration",
-            "edx_video_id"
-        )
-
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
@@ -45,31 +17,24 @@ class ProfileSerializer(serializers.ModelSerializer):
         )
 
 
-class OnlyEncodedVideoSerializer(serializers.ModelSerializer):
-    """
-    Used to serialize the EncodedVideo for the EncodedVideoSetSerializer
-    """
-    profile = ProfileSerializer(required=False)
+class EncodedVideoSerializer(serializers.ModelSerializer):
+    profile = serializers.SlugRelatedField(slug_field="profile_name")
+
     class Meta:
         model = EncodedVideo
         fields = (
+            "created",
+            "modified",
             "url",
             "file_size",
-            "bitrate"
+            "bitrate",
+            "profile",
         )
 
 
-class EncodedVideoSetSerializer(serializers.ModelSerializer):
-    """
-    Used to serialize a list of EncodedVideo objects it's foreign key Video Object.
-    """
-    edx_video_id = serializers.CharField(max_length=50)
-    encoded_videos = OnlyEncodedVideoSerializer()
+class VideoSerializer(serializers.HyperlinkedModelSerializer):
+    encoded_videos = EncodedVideoSerializer(many=True, allow_add_remove=True)
 
     class Meta:
         model = Video
-        fields = (
-            "duration",
-            "client_video_id"
-        )
-
+        lookup_field = "edx_video_id"
