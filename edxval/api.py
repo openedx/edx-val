@@ -5,7 +5,7 @@ The internal API for VAL
 import logging
 
 from edxval.models import Video
-from edxval.serializers import EncodedVideoSetSerializer
+from edxval.serializers import VideoSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +57,7 @@ def get_video_info(edx_video_id, location=None):
             Returns all the Video object fields, and it's related EncodedVideo
             objects in a list.
             {
+                url: api url to the video
                 edx_video_id: ID of the video
                 duration: Length of video in seconds
                 client_video_id: client ID of video
@@ -75,32 +76,27 @@ def get_video_info(edx_video_id, location=None):
         ValInternalError: Raised for unknown errors
 
     Example:
-        Given one EncodedVideo with edx_video_id "thisis12char-thisis7"
-        >>>
-        >>> get_video_info("thisis12char-thisis7",location)
+        Given one EncodedVideo with edx_video_id "example"
+        >>> get_video_info("example")
         Returns (dict):
-        >>>{
-        >>>    'edx_video_id': u'thisis12char-thisis7',
-        >>>    'duration': 111.0,
-        >>>    'client_video_id': u'Thunder Cats S01E01',
-        >>>    'encoded_video': [
-        >>>    {
-        >>>        'url': u'http://www.meowmix.com',
-        >>>        'file_size': 25556,
-        >>>        'bitrate': 9600,
-        >>>        'profile': {
-        >>>            'profile_name': u'mobile',
-        >>>            'extension': u'avi',
-        >>>            'width': 100,
-        >>>            'height': 101
-        >>>        }
-        >>>     },
-        >>>    ]
-        >>>}
+        {
+            'url' : '/edxval/video/example'
+            'edx_video_id': u'example',
+            'duration': 111.0,
+            'client_video_id': u'The example video',
+            'encoded_video': [
+                {
+                    'url': u'http://www.meowmix.com',
+                    'file_size': 25556,
+                    'bitrate': 9600,
+                    'profile': u'mobile'
+                 }
+            ]
+        }
     """
     try:
         v = Video.objects.get(edx_video_id=edx_video_id)
-        result = EncodedVideoSetSerializer(v)
+        result = VideoSerializer(v)
     except Video.DoesNotExist:
         error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
         raise ValVideoNotFoundError(error_message)

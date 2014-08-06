@@ -14,5 +14,3 @@ urlpatterns = patterns('',
         name="video_detail_view"),
     url(r'^admin/', include(admin.site.urls)),
 )
-
-urlpatterns = format_suffix_patterns(urlpatterns)
