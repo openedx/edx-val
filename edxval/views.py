@@ -1,3 +1,7 @@
+"""
+Views file for django app edxval.
+"""
+
 from rest_framework import generics
 
 from edxval.models import Video, Profile

@@ -1,3 +1,7 @@
+ # pylint: disable=E1103, W0106
+"""
+Tests for Video Abstraction Layer views
+"""
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -18,11 +22,8 @@ class VideoDetail(APITestCase):
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
 
-    """
-    Tests for successful PUT requests.
+    #Tests for successful PUT requests.
 
-    These tests should be returning HTTP_200_OK responses.
-    """
     def test_update_video(self):
         """
         Tests PUTting a single video with no encoded videos.
@@ -90,7 +91,7 @@ class VideoDetail(APITestCase):
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
         )
-        response = self.client.patch(
+        response = self.client.patch( # pylint: disable=E1101
             path=url,
             data=constants.COMPLETE_SET_UPDATE_FISH,
             format='json'
@@ -215,11 +216,7 @@ class VideoDetail(APITestCase):
             constants.ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP.get("url")
         )
 
-    """
-    Tests for bad PUT requests.
-
-    These tests should be returning HTTP_400_BAD_REQUEST responses.
-    """
+    #Tests for bad PUT requests.
 
     def test_update_an_invalid_encoded_videos(self):
         """
@@ -303,15 +300,11 @@ class VideoListTest(APITestCase):
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
 
-    """
-    Tests for successful POST requests.
-
-    These tests should be returning HTTP_201_CREATED responses.
-    """
+    # Tests for successful POST 201 requests.
     def test_complete_set_two_encoded_video_post(self):
         """
         Tests POSTing Video and EncodedVideo pair
-        """
+        """ #pylint: disable=R0801
         url = reverse('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
@@ -357,25 +350,8 @@ class VideoListTest(APITestCase):
         response = self.client.post(url, constants.VIDEO_DICT_NON_LATIN_TITLE, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_post_video_with_duplicate_encoded_videos(self):
-        """
-        Tests POSTing a single video with duplicate EncodedVideos
-        """
-        url = reverse('video-list')
-        response = self.client.post(url, constants.COMPLETE_SET_TWO_MOBILE_FISH, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        video = self.client.get("/edxval/video/").data
-        self.assertEqual(len(video), 0)
-        self.assertEqual(
-            response.data.get("non_field_errors")[0],
-            "Invalid data: duplicate profiles"
-        )
+    # Tests for 400_bad_request POSTs
 
-    """
-    Tests for POSTing invalid data
-
-    These tests should be returning HTTP_400_BAD_REQUEST
-    """
     def test_post_videos(self):
         """
         Tests POSTing same video.
@@ -451,9 +427,8 @@ class VideoListTest(APITestCase):
             errors.get("edx_video_id")[0],
             "edx_video_id has invalid characters"
         )
-    """
-    Tests for number of queries
-    """
+    # Tests for POST queries to database
+
     def test_queries_for_only_video(self):
         """
         Tests number of queries for a Video with no Encoded Videos
@@ -478,6 +453,30 @@ class VideoListTest(APITestCase):
         with self.assertNumQueries(7):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
+
+class VideoDetailTest(APITestCase):
+    """
+    Tests for GET
+    """
+    def setUp(self):
+        """
+        Used for manually creating profile objects which EncodedVideos require.
+        """
+        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+
+    def test_get_all_videos(self):
+        """
+        Tests getting all Video objects
+        """
+        url = reverse('video-list')
+        response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        videos = self.client.get("/edxval/video/").data
+        self.assertEqual(len(videos), 2)
+
     def test_queries_for_get(self):
         """
         Tests number of queries when GETting all videos
@@ -497,20 +496,3 @@ class VideoListTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         with self.assertNumQueries(5):
             self.client.get("/edxval/video/").data
-    """
-    Tests for GET
-    """
-    def test_get_all_videos(self):
-        """
-        Tests getting all Video objects
-        """
-        url = reverse('video-list')
-        response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        videos = self.client.get("/edxval/video/").data
-        self.assertEqual(len(videos), 2)
-
-
-

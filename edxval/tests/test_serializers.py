@@ -32,14 +32,13 @@ class SerializerTests(TestCase):
 
         Tests negative inputs for bitrate, file_size in EncodedVideo
         """
-        a = EncodedVideoSerializer(
+        errors = EncodedVideoSerializer( # pylint: disable=E1101
             data=constants.ENCODED_VIDEO_DICT_NEGATIVE_BITRATE).errors
-        self.assertEqual(a.get('bitrate')[0],
+        self.assertEqual(errors.get('bitrate')[0],
                          u"Ensure this value is greater than or equal to 0.")
-        b = EncodedVideoSerializer(
-
+        errors = EncodedVideoSerializer( # pylint: disable=E1101
             data=constants.ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE).errors
-        self.assertEqual(b.get('file_size')[0],
+        self.assertEqual(errors.get('file_size')[0],
                          u"Ensure this value is greater than or equal to 0.")
 
     def test_negative_fields_for_video_serializer(self):
@@ -48,9 +47,9 @@ class SerializerTests(TestCase):
 
         Tests negative inputs for duration in model Video
         """
-        c = VideoSerializer(
+        errors = VideoSerializer( # pylint: disable=E1101
             data=constants.VIDEO_DICT_NEGATIVE_DURATION).errors
-        self.assertEqual(c.get('duration')[0],
+        self.assertEqual(errors.get('duration')[0],
                          u"Ensure this value is greater than or equal to 0.")
 
     def test_non_latin_serialization(self):
@@ -67,7 +66,7 @@ class SerializerTests(TestCase):
         """
         Test the Video model regex validation for edx_video_id field
         """
-        error = VideoSerializer(data=constants.VIDEO_DICT_INVALID_ID).errors
+        error = VideoSerializer(data=constants.VIDEO_DICT_INVALID_ID).errors # pylint: disable=E1101
         message = error.get("edx_video_id")[0]
         self.assertEqual(
             message,
@@ -88,7 +87,7 @@ class SerializerTests(TestCase):
             profile=Profile.objects.get(profile_name="mobile"),
             **constants.ENCODED_VIDEO_DICT_MOBILE
         )
-        result = VideoSerializer(video).data
+        result = VideoSerializer(video).data # pylint: disable=E1101
         # Check for 2 EncodedVideo entries
         self.assertEqual(len(result.get("encoded_videos")), 2)
         # Check for original Video data

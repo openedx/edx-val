@@ -1,3 +1,7 @@
+"""
+Admin file for django app edxval.
+"""
+
 from django.contrib import admin
 from .models import Video, Profile, EncodedVideo
 

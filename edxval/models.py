@@ -31,7 +31,7 @@ class Video(models.Model):
         unique=True,
         validators=[
             RegexValidator(
-                regex='^[a-zA-Z0-9\-]*$',
+                regex=r'^[a-zA-Z0-9\-]*$',
                 message='edx_video_id has invalid characters',
                 code='invalid edx_video_id'
             ),
@@ -51,7 +51,10 @@ class CourseVideos(models.Model):
     course_id = models.CharField(max_length=255)
     video = models.ForeignKey(Video)
 
-    class Meta:
+    class Meta: # pylint: disable=C1001
+        """
+        course_id is listed first in this composite index
+        """
         unique_together = ("course_id", "video")
 
 

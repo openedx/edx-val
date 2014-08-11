@@ -1,12 +1,16 @@
+"""
+Url file for django app edxval.
+"""
+
 from django.conf.urls import patterns, include, url
-from rest_framework.urlpatterns import format_suffix_patterns
 
 from edxval import views
 
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^edxval/video/$', views.VideoList.as_view(),
         name="video-list"),
     url(r'^edxval/video/(?P<edx_video_id>[-\w]+)',

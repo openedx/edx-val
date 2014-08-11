@@ -7,7 +7,7 @@ import logging
 from edxval.models import Video
 from edxval.serializers import VideoSerializer
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) # pylint: disable=C0103
 
 
 class ValError(Exception):
@@ -44,7 +44,7 @@ class ValVideoNotFoundError(ValError):
     pass
 
 
-def get_video_info(edx_video_id, location=None):
+def get_video_info(edx_video_id, location=None): # pylint: disable=W0613
     """
     Retrieves all encoded videos of a video found with given video edx_video_id
 
@@ -95,8 +95,8 @@ def get_video_info(edx_video_id, location=None):
         }
     """
     try:
-        v = Video.objects.get(edx_video_id=edx_video_id)
-        result = VideoSerializer(v)
+        video = Video.objects.get(edx_video_id=edx_video_id)
+        result = VideoSerializer(video)
     except Video.DoesNotExist:
         error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
@@ -104,4 +104,4 @@ def get_video_info(edx_video_id, location=None):
         error_message = u"Could not get edx_video_id: {0}".format(edx_video_id)
         logger.exception(error_message)
         raise ValInternalError(error_message)
-    return result.data
+    return result.data # pylint: disable=E1101
