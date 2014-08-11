@@ -18,6 +18,9 @@ from edxval.tests import constants
 
 
 class GetVideoInfoTest(TestCase):
+    """
+    Tests for our get_video_indo function in api.py
+    """
 
     def setUp(self):
         """
@@ -45,8 +48,10 @@ class GetVideoInfoTest(TestCase):
         """
         Tests for successful video request
         """
-        self.assertIsNotNone(api.get_video_info(
-            constants.VIDEO_DICT_FISH.get("edx_video_id"))
+        self.assertIsNotNone(
+            api.get_video_info(
+                constants.VIDEO_DICT_FISH.get("edx_video_id")
+            )
         )
 
     def test_no_such_video(self):
@@ -90,6 +95,9 @@ class GetVideoInfoTest(TestCase):
 
 
 class GetVideoInfoTestWithHttpCalls(APITestCase):
+    """
+    Tests for the get_info_video, using the HTTP requests to populate database
+    """
 
     def setUp(self):
         """
@@ -113,7 +121,7 @@ class GetVideoInfoTestWithHttpCalls(APITestCase):
         """
         self.assertIsNotNone(
             api.get_video_info(
-            constants.COMPLETE_SET_FISH.get("edx_video_id")
+                constants.COMPLETE_SET_FISH.get("edx_video_id")
             )
         )
 

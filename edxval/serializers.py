@@ -8,7 +8,10 @@ from edxval.models import Profile, Video, EncodedVideo
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
+    """
+    Serializer for Profile object.
+    """
+    class Meta: # pylint: disable=C1001, C0111
         model = Profile
         fields = (
             "profile_name",
@@ -19,9 +22,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
+    """
+    Serializer for EncodedVideo object.
+
+    Uses the profile_name as it's profile value instead of a Profile object.
+    """
     profile = serializers.SlugRelatedField(slug_field="profile_name")
 
-    class Meta:
+    class Meta: # pylint: disable=C1001, C0111
         model = EncodedVideo
         fields = (
             "created",
@@ -41,12 +49,14 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
 
 
 class VideoSerializer(serializers.HyperlinkedModelSerializer):
-    encoded_videos = EncodedVideoSerializer(
-        many=True,
-        allow_add_remove=True
-    )
+    """
+    Serializer for Video object
 
-    class Meta:
+    encoded_videos takes a list of dicts EncodedVideo data.
+    """
+    encoded_videos = EncodedVideoSerializer(many=True, allow_add_remove=True)
+
+    class Meta: # pylint: disable=C1001,C0111
         model = Video
         lookup_field = "edx_video_id"
 

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Constants used for tests.
+"""
 EDX_VIDEO_ID = "itchyjacket"
 """
 Generic Profiles for manually creating profile objects

@@ -1,4 +1,6 @@
-# Django settings for edxval project.
+"""
+Settings file for django app edxval.
+"""
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -78,7 +80,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -88,7 +90,7 @@ SECRET_KEY = ')5n@d^*763&amp;##4c(vtzg6&amp;%d7^yiee@5zk-n$rw7djcmz+4u4n'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    # 'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
