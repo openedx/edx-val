@@ -63,13 +63,6 @@ class SerializerTests(TestCase):
             ProfileSerializer
         )
 
-    def test_non_latin_deserialization(self):
-        """
-        Tests deserialization of non-latin data
-        """
-        #TODO write a test for this when we understand what we want
-        pass
-
     def test_invalid_edx_video_id(self):
         """
         Test the Video model regex validation for edx_video_id field
@@ -84,7 +77,7 @@ class SerializerTests(TestCase):
         """
         Tests for basic structure of EncodedVideoSetSerializer
         """
-        video = Video.objects.create(**constants.VIDEO_DICT_COAT)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
             video=video,
             profile=Profile.objects.get(profile_name="desktop"),
@@ -99,4 +92,4 @@ class SerializerTests(TestCase):
         # Check for 2 EncodedVideo entries
         self.assertEqual(len(result.get("encoded_videos")), 2)
         # Check for original Video data
-        self.assertDictContainsSubset(constants.VIDEO_DICT_COAT, result)
+        self.assertDictContainsSubset(constants.VIDEO_DICT_FISH, result)

@@ -13,26 +13,18 @@ class Profile(models.Model):
     profile_name = models.CharField(
         max_length=50,
         unique=True,
-        )
+    )
     extension = models.CharField(max_length=10)
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
-
-    def __repr__(self):
-        return (
-            u"Profile(profile_name={0.profile_name})"
-        ).format(self)
-
-    def __unicode__(self):
-        return repr(self)
 
 
 class Video(models.Model):
     """
     Model for a Video group with the same content.
 
-    A video can have multiple formats. This model is the collection of those
-    videos with fields that do not change across formats.
+    A video can have multiple formats. This model are the fields that represent
+    the collection of those videos that do not change across formats.
     """
     edx_video_id = models.CharField(
         max_length=50,
@@ -47,14 +39,6 @@ class Video(models.Model):
     )
     client_video_id = models.CharField(max_length=255, db_index=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
-
-    def __repr__(self):
-        return (
-            u"Video(client_video_id={0.client_video_id}, duration={0.duration})"
-        ).format(self)
-
-    def __unicode__(self):
-        return repr(self)
 
 
 class CourseVideos(models.Model):
@@ -83,12 +67,3 @@ class EncodedVideo(models.Model):
 
     profile = models.ForeignKey(Profile, related_name="+")
     video = models.ForeignKey(Video, related_name="encoded_videos")
-
-    def __repr__(self):
-        return (
-            u"EncodedVideo(video={0.video.client_video_id}, "
-            u"profile={0.profile.profile_name})"
-        ).format(self)
-
-    def __unicode__(self):
-        return repr(self)
