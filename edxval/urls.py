@@ -18,4 +18,13 @@ urlpatterns = patterns(
         views.VideoDetail.as_view(),
         name="video-detail"
     ),
+    url(
+    	r'^edxval/subtitle/(?P<id>[\d]+)$',
+        views.SubtitleDetail.as_view(),
+        name="subtitle-detail"
+    ),
+    url(r'^edxval/subtitle/(?P<subtitle_id>[\d]+)/content$',
+        views.get_subtitle,
+        name="subtitle-content"
+    ),
 )
