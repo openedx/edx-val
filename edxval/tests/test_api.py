@@ -225,7 +225,7 @@ class GetVideoInfoTestWithHttpCalls(APITestCase):
         """
         Tests number of queries for a Video/EncodedVideo(1) pair
         """
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(5):
             api.get_video_info(constants.COMPLETE_SET_FISH.get("edx_video_id"))
 
     def test_get_info_queries_for_one_encoded_video(self):
@@ -237,7 +237,7 @@ class GetVideoInfoTestWithHttpCalls(APITestCase):
             url, constants.COMPLETE_SET_STAR, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             api.get_video_info(constants.COMPLETE_SET_STAR.get("edx_video_id"))
 
     def test_get_info_queries_for_only_video(self):
@@ -249,6 +249,6 @@ class GetVideoInfoTestWithHttpCalls(APITestCase):
             url, constants.VIDEO_DICT_ZEBRA, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(3):
             api.get_video_info(constants.VIDEO_DICT_ZEBRA.get("edx_video_id"))
 

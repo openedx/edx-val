@@ -34,11 +34,11 @@ class SerializerTests(TestCase):
 
         Tests negative inputs for bitrate, file_size in EncodedVideo
         """
-        errors = EncodedVideoSerializer( # pylint: disable=E1101
+        errors = EncodedVideoSerializer(  # pylint: disable=E1101
             data=constants.ENCODED_VIDEO_DICT_NEGATIVE_BITRATE).errors
         self.assertEqual(errors.get('bitrate')[0],
                          u"Ensure this value is greater than or equal to 0.")
-        errors = EncodedVideoSerializer( # pylint: disable=E1101
+        errors = EncodedVideoSerializer(  # pylint: disable=E1101
             data=constants.ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE).errors
         self.assertEqual(errors.get('file_size')[0],
                          u"Ensure this value is greater than or equal to 0.")
@@ -49,7 +49,7 @@ class SerializerTests(TestCase):
 
         Tests negative inputs for duration in model Video
         """
-        errors = VideoSerializer( # pylint: disable=E1101
+        errors = VideoSerializer(  # pylint: disable=E1101
             data=constants.VIDEO_DICT_NEGATIVE_DURATION).errors
         self.assertEqual(errors.get('duration')[0],
                          u"Ensure this value is greater than or equal to 0.")
@@ -58,7 +58,7 @@ class SerializerTests(TestCase):
         """
         Tests if the serializers can accept non-latin chars
         """
-        #TODO not the best test. Need to understand what result we want
+        # TODO not the best test. Need to understand what result we want
         self.assertIsInstance(
             ProfileSerializer(Profile.objects.get(profile_name="배고파")),
             ProfileSerializer
@@ -68,7 +68,7 @@ class SerializerTests(TestCase):
         """
         Test the Video model regex validation for edx_video_id field
         """
-        error = VideoSerializer(data=constants.VIDEO_DICT_INVALID_ID).errors # pylint: disable=E1101
+        error = VideoSerializer(data=constants.VIDEO_DICT_INVALID_ID).errors  # pylint: disable=E1101
         message = error.get("edx_video_id")[0]
         self.assertEqual(
             message,
@@ -89,7 +89,7 @@ class SerializerTests(TestCase):
             profile=Profile.objects.get(profile_name="mobile"),
             **constants.ENCODED_VIDEO_DICT_MOBILE
         )
-        result = VideoSerializer(video).data # pylint: disable=E1101
+        result = VideoSerializer(video).data  # pylint: disable=E1101
         # Check for 2 EncodedVideo entries
         self.assertEqual(len(result.get("encoded_videos")), 2)
         # Check for original Video data
