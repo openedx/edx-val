@@ -129,13 +129,13 @@ class Subtitle(models.Model):
     video = models.ForeignKey(Video, related_name="subtitles")
     fmt = models.CharField(max_length=20, db_index=True, choices=SUBTITLE_FORMATS)
     language = models.CharField(max_length=8, db_index=True)
-    content = models.TextField()
+    content = models.TextField(default='')
 
     def __str__(self):
         return '%s Subtitle for %s' % (self.language, self.video)
 
     def get_absolute_url(self):
-        return reverse('subtitle-content', args=[str(self.id)])
+        return reverse('subtitle-content', args=[self.video.edx_video_id, self.language])
 
     @property
     def content_type(self):

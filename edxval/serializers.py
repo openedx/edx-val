@@ -51,7 +51,7 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
         return data.get('profile', None)
 
 
-class SubtitleSerializer(serializers.HyperlinkedModelSerializer):
+class SubtitleSerializer(serializers.ModelSerializer):
     """
     Serializer for Subtitle objects
     """
@@ -79,10 +79,8 @@ class SubtitleSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             "fmt",
             "language",
-            "id",
             "content_url",
-            "url",
-            "content"
+            "content",
         )
 
 
@@ -93,7 +91,7 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
     encoded_videos takes a list of dicts EncodedVideo data.
     """
     encoded_videos = EncodedVideoSerializer(many=True, allow_add_remove=True)
-    subtitles = SubtitleSerializer(many=True, allow_add_remove=True)
+    subtitles = SubtitleSerializer(many=True, allow_add_remove=True, required=False)
 
     class Meta:  # pylint: disable=C0111
         model = Video

@@ -140,6 +140,7 @@ class VideoDetail(APITestCase):
         Tests PUTting one of two EncodedVideo(s) and then a single EncodedVideo PUT back.
         """
         url = reverse('video-list')
+
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         url = reverse(
@@ -442,7 +443,7 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
         url = reverse('video-list')
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(16):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
     def test_queries_for_single_encoded_videos(self):
@@ -450,7 +451,7 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
         url = reverse('video-list')
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(10):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
 
@@ -490,11 +491,11 @@ class VideoDetailTest(APITestCase):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(9):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(12):
             self.client.get("/edxval/video/").data
 
 
@@ -540,7 +541,7 @@ class SubtitleDetailTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         video = response.data
         st = video['subtitles'][0]
-        url = reverse('subtitle-detail', kwargs={'id': st['id']})
+        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': st['language']})
 
         st['content'] = 'testing 123'
         response = self.client.put(
@@ -561,7 +562,7 @@ class SubtitleDetailTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         video = response.data
         st = video['subtitles'][1]
-        url = reverse('subtitle-detail', kwargs={'id': st['id']})
+        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': st['language']})
 
         st['content'] = 'testing 123'
         response = self.client.put(

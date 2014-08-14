@@ -14,16 +14,17 @@ urlpatterns = patterns(
         name="video-list"
     ),
     url(
-        r'^edxval/video/(?P<edx_video_id>[-\w]+)',
+        r'^edxval/video/(?P<edx_video_id>[-\w]+)$',
         views.VideoDetail.as_view(),
         name="video-detail"
     ),
     url(
-    	r'^edxval/subtitle/(?P<id>[\d]+)$',
+    	r'^edxval/video/(?P<video__edx_video_id>[-\w]+)/(?P<language>[-_\w]+)$',
         views.SubtitleDetail.as_view(),
         name="subtitle-detail"
     ),
-    url(r'^edxval/subtitle/(?P<subtitle_id>[\d]+)/content$',
+    url(
+    	r'^edxval/video/(?P<edx_video_id>[-\w]+)/(?P<language>[-_\w]+)/subtitle$',
         views.get_subtitle,
         name="subtitle-content"
     ),
