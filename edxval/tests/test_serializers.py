@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 # -*- coding: utf-8 -*-
 """
 Tests the serializers for the Video Abstraction Layer
@@ -9,6 +10,7 @@ from edxval.serializers import (
     EncodedVideoSerializer,
     ProfileSerializer,
     VideoSerializer,
+    ValidationError,
 )
 from edxval.models import Profile, Video, EncodedVideo
 from edxval.tests import constants
@@ -92,3 +94,29 @@ class SerializerTests(TestCase):
         self.assertEqual(len(result.get("encoded_videos")), 2)
         # Check for original Video data
         self.assertDictContainsSubset(constants.VIDEO_DICT_FISH, result)
+
+    def test_no_profile_validation(self):
+        """
+        Tests when there are no profiles to validation when deserializing
+        """
+
+        data = dict(
+            encoded_videos=[
+                constants.ENCODED_VIDEO_DICT_MOBILE
+            ],
+            **constants.VIDEO_DICT_FISH
+        )
+        serializer = VideoSerializer(data=data)
+        with self.assertRaises(ValidationError):
+            serializer.is_valid()
+
+    def test_wrong_input_type(self):
+        """
+        Tests an non dict input in the VideoSerializer
+        """
+        data = "hello"
+        serializer = VideoSerializer(data=data)
+        self.assertEqual(
+            serializer.errors.get("non_field_errors")[0],
+            "Invalid data"
+        )

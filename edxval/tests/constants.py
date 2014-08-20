@@ -1,3 +1,4 @@
+ # pylint: disable=E1103, W0105
 # -*- coding: utf-8 -*-
 """
 Constants used for tests.
@@ -81,6 +82,34 @@ PROFILE_DICT_NON_LATIN = dict(
     extension="mew",
     width=100,
     height=300
+)
+PROFILE_DICT_INVALID_NAME = dict(
+    profile_name="lo/lol",
+    extension="mew",
+    width=100,
+    height=300
+)
+PROFILE_DICT_NEGATIVE_WIDTH = dict(
+    profile_name="mobile",
+    extension="mew",
+    width=-100,
+    height=300
+)
+PROFILE_DICT_NEGATIVE_HEIGHT = dict(
+    profile_name="mobile",
+    extension="mew",
+    width=100,
+    height=-300
+)
+PROFILE_DICT_MISSING_EXTENSION = dict(
+    profile_name="mobile",
+    width=100,
+    height=300
+)
+PROFILE_DICT_MANY_INVALID = dict(
+    profile_name="hh/ff",
+    width=-100,
+    height="lol",
 )
 """
 Fish

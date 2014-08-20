@@ -19,6 +19,7 @@ class VideoList(generics.ListCreateAPIView):
     lookup_field = "edx_video_id"
     serializer_class = VideoSerializer
 
+
 class ProfileList(generics.ListCreateAPIView):
     """
     GETs or POST video objects
