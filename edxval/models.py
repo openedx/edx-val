@@ -29,6 +29,7 @@ invalid profile_name will be returned.
 
 from django.db import models
 from django.core.validators import MinValueValidator, RegexValidator
+from django.core.urlresolvers import reverse
 
 
 url_regex = r'^[a-zA-Z0-9\-]*$'
@@ -78,6 +79,9 @@ class Video(models.Model):
     client_video_id = models.CharField(max_length=255, db_index=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
 
+    def __str__(self):
+        return self.edx_video_id
+
 
 class CourseVideos(models.Model):
     """
@@ -89,7 +93,7 @@ class CourseVideos(models.Model):
     course_id = models.CharField(max_length=255)
     video = models.ForeignKey(Video)
 
-    class Meta:
+    class Meta:  # pylint: disable=C1001
         """
         course_id is listed first in this composite index
         """
@@ -108,3 +112,34 @@ class EncodedVideo(models.Model):
 
     profile = models.ForeignKey(Profile, related_name="+")
     video = models.ForeignKey(Video, related_name="encoded_videos")
+
+
+SUBTITLE_FORMATS = (
+    ('srt', 'SubRip'),
+    ('sjson', 'SRT JSON')
+)
+
+
+class Subtitle(models.Model):
+    """
+    Subtitle for video
+    """
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    video = models.ForeignKey(Video, related_name="subtitles")
+    fmt = models.CharField(max_length=20, db_index=True, choices=SUBTITLE_FORMATS)
+    language = models.CharField(max_length=8, db_index=True)
+    content = models.TextField(default='')
+
+    def __str__(self):
+        return '%s Subtitle for %s' % (self.language, self.video)
+
+    def get_absolute_url(self):
+        return reverse('subtitle-content', args=[self.video.edx_video_id, self.language])
+
+    @property
+    def content_type(self):
+        if self.fmt == 'sjson':
+            return 'application/json'
+        else:
+            return 'text/plain'

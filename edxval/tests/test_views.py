@@ -1,4 +1,4 @@
- # pylint: disable=E1103, W0106
+# pylint: disable=E1103, W0106
 """
 Tests for Video Abstraction Layer views
 """
@@ -22,7 +22,7 @@ class VideoDetail(APITestCase):
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
 
-    #Tests for successful PUT requests.
+    # Tests for successful PUT requests.
 
     def test_update_video(self):
         """
@@ -91,7 +91,7 @@ class VideoDetail(APITestCase):
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
         )
-        response = self.client.patch( # pylint: disable=E1101
+        response = self.client.patch(  # pylint: disable=E1101
             path=url,
             data=constants.COMPLETE_SET_UPDATE_FISH,
             format='json'
@@ -140,6 +140,7 @@ class VideoDetail(APITestCase):
         Tests PUTting one of two EncodedVideo(s) and then a single EncodedVideo PUT back.
         """
         url = reverse('video-list')
+
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         url = reverse(
@@ -216,7 +217,7 @@ class VideoDetail(APITestCase):
             constants.ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP.get("url")
         )
 
-    #Tests for bad PUT requests.
+    # Tests for bad PUT requests.
 
     def test_update_an_invalid_encoded_videos(self):
         """
@@ -304,7 +305,7 @@ class VideoListTest(APITestCase):
     def test_complete_set_two_encoded_video_post(self):
         """
         Tests POSTing Video and EncodedVideo pair
-        """ #pylint: disable=R0801
+        """  # pylint: disable=R0801
         url = reverse('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
@@ -434,7 +435,7 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video with no Encoded Videos
         """
         url = reverse('video-list')
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
 
     def test_queries_for_two_encoded_video(self):
@@ -442,7 +443,7 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
         url = reverse('video-list')
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(16):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
     def test_queries_for_single_encoded_videos(self):
@@ -450,7 +451,7 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
         url = reverse('video-list')
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(10):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
 
@@ -486,13 +487,94 @@ class VideoDetailTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(4):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(9):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(5):
+        with self.assertNumQueries(12):
             self.client.get("/edxval/video/").data
+
+
+class SubtitleDetailTest(APITestCase):
+    """
+    Tests for subtitle API
+    """
+    def setUp(self):
+        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+
+    def test_get_subtitle_content(self):
+        """
+        Get subtitle content
+        """
+        url = reverse('video-list')
+        response = self.client.post(
+            url, constants.COMPLETE_SET_FISH, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        video = self.client.get("/edxval/video/").data
+        self.assertEqual(len(video), 1)
+        self.assertEqual(len(video[0].get("subtitles")), 2)
+
+        st = video[0]['subtitles'][0]
+        response = self.client.get(st['content_url'])
+        self.assertEqual(response.content, constants.SUBTITLE_DICT_SRT['content'])
+        self.assertEqual(response['Content-Type'], 'text/plain')
+
+        st = video[0]['subtitles'][1]
+        response = self.client.get(st['content_url'])
+        self.assertEqual(response.content, constants.SUBTITLE_DICT_SJSON['content'])
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+    def test_update_subtitle(self):
+        """
+        Update an SRT subtitle
+        """
+        url = reverse('video-list')
+        response = self.client.post(
+            url, constants.COMPLETE_SET_FISH, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        video = response.data
+        st = video['subtitles'][0]
+        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': st['language']})
+
+        st['content'] = 'testing 123'
+        response = self.client.put(
+            url, st, format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get(st['content_url']).content, 'testing 123')
+
+    def test_update_json_subtitle(self):
+        """
+        Update a JSON subtitle
+        """
+        url = reverse('video-list')
+        response = self.client.post(
+            url, constants.COMPLETE_SET_FISH, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        video = response.data
+        st = video['subtitles'][1]
+        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': st['language']})
+
+        st['content'] = 'testing 123'
+        response = self.client.put(
+            url, st, format='json'
+        )
+        # not in json format
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        st['content'] = """{"start": "00:00:00"
+
+        }"""
+        response = self.client.put(
+            url, st, format='json'
+        )
+        self.assertEqual(self.client.get(st['content_url']).content, '{"start": "00:00:00"}')

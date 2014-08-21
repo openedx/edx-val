@@ -139,6 +139,11 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
                         extension: 3 letter extension of video
                         width: horizontal pixel resolution
                         height: vertical pixel resolution
+                subtitles: a list of Subtitle dicts
+                    fmt: file format (SRT or SJSON)
+                    language: language code
+                    content_url: url of file
+                    url: api url to subtitle
             }
 
     Raises:
@@ -174,4 +179,4 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
         error_message = u"Could not get edx_video_id: {0}".format(edx_video_id)
         logger.exception(error_message)
         raise ValInternalError(error_message)
-    return result.data # pylint: disable=E1101
+    return result.data  # pylint: disable=E1101

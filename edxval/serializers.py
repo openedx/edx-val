@@ -7,7 +7,7 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-from edxval.models import Profile, Video, EncodedVideo
+from edxval.models import Profile, Video, EncodedVideo, Subtitle
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -51,6 +51,39 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
         return data.get('profile', None)
 
 
+class SubtitleSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Subtitle objects
+    """
+    content_url = serializers.CharField(source='get_absolute_url', read_only=True)
+    content = serializers.CharField(write_only=True)
+
+    def validate_content(self, attrs, source):
+        """
+        Validate that the subtitle is in the correct format
+        """
+        value = attrs[source]
+        if attrs.get('fmt') == 'sjson':
+            import json
+            try:
+                loaded = json.loads(value)
+            except ValueError:
+                raise serializers.ValidationError("Not in JSON format")
+            else:
+                attrs[source] = json.dumps(loaded)
+        return attrs
+
+    class Meta:  # pylint: disable=C1001, C0111
+        model = Subtitle
+        lookup_field = "id"
+        fields = (
+            "fmt",
+            "language",
+            "content_url",
+            "content",
+        )
+
+
 class VideoSerializer(serializers.HyperlinkedModelSerializer):
     """
     Serializer for Video object
@@ -58,6 +91,7 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
     encoded_videos takes a list of dicts EncodedVideo data.
     """
     encoded_videos = EncodedVideoSerializer(many=True, allow_add_remove=True)
+    subtitles = SubtitleSerializer(many=True, allow_add_remove=True, required=False)
 
     class Meta:  # pylint: disable=C0111
         model = Video
