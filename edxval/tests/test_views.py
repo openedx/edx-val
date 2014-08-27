@@ -4,13 +4,12 @@ Tests for Video Abstraction Layer views
 """
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 
-from edxval.tests import constants
+from edxval.tests import constants, APIAuthTestCase
 from edxval.models import Profile, Video
 
 
-class VideoDetail(APITestCase):
+class VideoDetail(APIAuthTestCase):
     """
     Tests Retrieve, Update and Destroy requests
     """
@@ -21,8 +20,28 @@ class VideoDetail(APITestCase):
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        super(VideoDetail, self).setUp()
 
     # Tests for successful PUT requests.
+
+    def test_anonymous_readonly(self):
+        """
+        Tests that writing checks model permissions.
+        """
+        self._logout()
+        url = reverse('video-list')
+        response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_no_perms(self):
+        """
+        Tests that writing checks model permissions, even for logged in users.
+        """
+        self._logout()
+        self._login(readonly=True)
+        url = reverse('video-list')
+        response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_video(self):
         """
@@ -290,7 +309,7 @@ class VideoDetail(APITestCase):
         )
 
 
-class VideoListTest(APITestCase):
+class VideoListTest(APIAuthTestCase):
     """
     Tests the creations of Videos via POST/GET
     """
@@ -300,6 +319,7 @@ class VideoListTest(APITestCase):
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        super(VideoListTest, self).setUp()
 
     # Tests for successful POST 201 requests.
     def test_complete_set_two_encoded_video_post(self):
@@ -310,6 +330,8 @@ class VideoListTest(APITestCase):
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
         )
+        # we can log out here, to test read-only
+        self._logout()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         video = self.client.get("/edxval/video/").data
         self.assertEqual(len(video), 1)
@@ -435,7 +457,7 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video with no Encoded Videos
         """
         url = reverse('video-list')
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(8):
             self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
 
     def test_queries_for_two_encoded_video(self):
@@ -443,7 +465,7 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
         url = reverse('video-list')
-        with self.assertNumQueries(16):
+        with self.assertNumQueries(20):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
     def test_queries_for_single_encoded_videos(self):
@@ -451,11 +473,11 @@ class VideoListTest(APITestCase):
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
         url = reverse('video-list')
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(14):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
 
-class VideoDetailTest(APITestCase):
+class VideoDetailTest(APIAuthTestCase):
     """
     Tests for GET
     """
@@ -465,6 +487,7 @@ class VideoDetailTest(APITestCase):
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        super(VideoDetailTest, self).setUp()
 
     def test_get_all_videos(self):
         """
@@ -487,25 +510,26 @@ class VideoDetailTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(6):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(11):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(14):
             self.client.get("/edxval/video/").data
 
 
-class SubtitleDetailTest(APITestCase):
+class SubtitleDetailTest(APIAuthTestCase):
     """
     Tests for subtitle API
     """
     def setUp(self):
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        super(SubtitleDetailTest, self).setUp()
 
     def test_get_subtitle_content(self):
         """
