@@ -24,13 +24,15 @@ class VideoDetail(APIAuthTestCase):
 
     # Tests for successful PUT requests.
 
-    def test_anonymous_readonly(self):
+    def test_anonymous_denied(self):
         """
         Tests that writing checks model permissions.
         """
         self._logout()
         url = reverse('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_no_perms(self):
@@ -41,6 +43,8 @@ class VideoDetail(APIAuthTestCase):
         self._login(readonly=True)
         url = reverse('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_video(self):
@@ -330,8 +334,6 @@ class VideoListTest(APIAuthTestCase):
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
         )
-        # we can log out here, to test read-only
-        self._logout()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         video = self.client.get("/edxval/video/").data
         self.assertEqual(len(video), 1)

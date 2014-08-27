@@ -3,7 +3,7 @@ Views file for django app edxval.
 """
 
 from rest_framework import generics
-from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly
+from rest_framework.permissions import DjangoModelPermissions
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import last_modified
@@ -33,7 +33,7 @@ class VideoList(generics.ListCreateAPIView):
     """
     GETs or POST video objects
     """
-    permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
+    permission_classes = (DjangoModelPermissions,)
     queryset = Video.objects.all().prefetch_related("encoded_videos")
     lookup_field = "edx_video_id"
     serializer_class = VideoSerializer
@@ -43,7 +43,7 @@ class ProfileList(generics.ListCreateAPIView):
     """
     GETs or POST video objects
     """
-    permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
+    permission_classes = (DjangoModelPermissions,)
     queryset = Profile.objects.all()
     lookup_field = "profile_name"
     serializer_class = ProfileSerializer
@@ -53,7 +53,7 @@ class VideoDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Gets a video instance given its edx_video_id
     """
-    permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
+    permission_classes = (DjangoModelPermissions,)
     lookup_field = "edx_video_id"
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
@@ -63,7 +63,7 @@ class SubtitleDetail(MultipleFieldLookupMixin, generics.RetrieveUpdateDestroyAPI
     """
     Gets a subtitle instance given its id
     """
-    permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
+    permission_classes = (DjangoModelPermissions,)
     lookup_fields = ("video__edx_video_id", "language")
     queryset = Subtitle.objects.all()
     serializer_class = SubtitleSerializer
