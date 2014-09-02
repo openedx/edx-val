@@ -10,14 +10,13 @@ from django.db import DatabaseError
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from rest_framework import status
-from rest_framework.test import APITestCase
 from ddt import ddt, data
 
 from edxval.models import Profile, Video, EncodedVideo
 from edxval import api as api
 from edxval.api import ValCannotCreateError
 from edxval.serializers import VideoSerializer
-from edxval.tests import constants
+from edxval.tests import constants, APIAuthTestCase
 
 @ddt
 class CreateVideoTest(TestCase):
@@ -190,7 +189,7 @@ class GetVideoInfoTest(TestCase):
             )
 
 
-class GetVideoInfoTestWithHttpCalls(APITestCase):
+class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
     """
     Tests for the get_info_video, using the HTTP requests to populate database
     """
@@ -200,9 +199,10 @@ class GetVideoInfoTestWithHttpCalls(APITestCase):
         Creates EncodedVideo objects in database with HTTP requests.
 
         The tests are similar to the GetVideoInfoTest class. This class
-        is to tests that we have the same results, using a populated
+        is to test that we have the same results, using a populated
         database via HTTP uploads.
         """
+        super(GetVideoInfoTestWithHttpCalls, self).setUp()
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
         url = reverse('video-list')
