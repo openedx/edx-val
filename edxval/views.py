@@ -34,9 +34,19 @@ class VideoList(generics.ListCreateAPIView):
     GETs or POST video objects
     """
     permission_classes = (DjangoModelPermissions,)
-    queryset = Video.objects.all().prefetch_related("encoded_videos")
+    queryset = Video.objects.all().prefetch_related("encoded_videos", "courses")
     lookup_field = "edx_video_id"
     serializer_class = VideoSerializer
+
+
+class CourseVideoList(generics.ListAPIView):
+    permission_classes = (DjangoModelPermissions,)
+    queryset = Video.objects.all().prefetch_related("encoded_videos")
+    lookup_field = "course_id"
+    serializer_class = VideoSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(courses__course_id=self.kwargs['course_id'])
 
 
 class ProfileList(generics.ListCreateAPIView):

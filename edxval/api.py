@@ -170,7 +170,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
         }
     """
     try:
-        video = Video.objects.get(edx_video_id=edx_video_id)
+        video = Video.objects.prefetch_related("encoded_videos", "courses").get(edx_video_id=edx_video_id)
         result = VideoSerializer(video)
     except Video.DoesNotExist:
         error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
@@ -180,3 +180,10 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
         logger.exception(error_message)
         raise ValInternalError(error_message)
     return result.data  # pylint: disable=E1101
+
+def get_videos_for_course(course_id):
+    """
+    Returns an iterator of videos for the given course id
+    """
+    videos = Video.objects.filter(courses__course_id=course_id)
+    return (VideoSerializer(video).data for video in videos)

@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 from ddt import ddt, data
 
-from edxval.models import Profile, Video, EncodedVideo
+from edxval.models import Profile, Video, EncodedVideo, CourseVideos
 from edxval import api as api
 from edxval.api import ValCannotCreateError
 from edxval.serializers import VideoSerializer
@@ -123,7 +123,7 @@ class GetVideoInfoTest(TestCase):
         """
         Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
-        Video.objects.create(**constants.VIDEO_DICT_FISH)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
             video=Video.objects.get(
                 edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
@@ -138,6 +138,8 @@ class GetVideoInfoTest(TestCase):
             profile=Profile.objects.get(profile_name="desktop"),
             **constants.ENCODED_VIDEO_DICT_DESKTOP
         )
+        self.course_id = 'test-course'
+        CourseVideos.objects.create(video=video, course_id=self.course_id)
 
     def test_get_video_found(self):
         """
@@ -148,6 +150,16 @@ class GetVideoInfoTest(TestCase):
                 constants.VIDEO_DICT_FISH.get("edx_video_id")
             )
         )
+
+    def test_get_videos_for_course(self):
+        """
+        Tests retrieving videos for a course id
+        """
+        videos = list(api.get_videos_for_course(self.course_id))
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(videos[0]['edx_video_id'], constants.VIDEO_DICT_FISH['edx_video_id'])
+        videos = list(api.get_videos_for_course('unknown'))
+        self.assertEqual(len(videos), 0)
 
     def test_no_such_video(self):
         """
@@ -177,7 +189,7 @@ class GetVideoInfoTest(TestCase):
                 constants.VIDEO_DICT_FISH.get("edx_video_id")
             )
 
-    @mock.patch.object(Video.objects, 'get')
+    @mock.patch.object(Video, '__init__')
     def test_force_database_error(self, mock_get):
         """
         Tests to see if an database error will be handled
@@ -225,7 +237,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         """
         Tests number of queries for a Video/EncodedVideo(1) pair
         """
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             api.get_video_info(constants.COMPLETE_SET_FISH.get("edx_video_id"))
 
     def test_get_info_queries_for_one_encoded_video(self):
@@ -237,7 +249,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
             url, constants.COMPLETE_SET_STAR, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(5):
+        with self.assertNumQueries(6):
             api.get_video_info(constants.COMPLETE_SET_STAR.get("edx_video_id"))
 
     def test_get_info_queries_for_only_video(self):
@@ -249,6 +261,6 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
             url, constants.VIDEO_DICT_ZEBRA, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(4):
             api.get_video_info(constants.VIDEO_DICT_ZEBRA.get("edx_video_id"))
 

@@ -28,4 +28,10 @@ urlpatterns = patterns(
         views.get_subtitle,
         name="subtitle-content"
     ),
+    url(
+        r'^edxval/course/(?P<course_id>[-\w/]+)$',
+        views.CourseVideoList.as_view(),
+        name="course-video-list"
+    ),
+
 )
