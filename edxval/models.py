@@ -79,6 +79,9 @@ class Video(models.Model):
     client_video_id = models.CharField(max_length=255, db_index=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
 
+    def get_absolute_url(self):
+        return reverse('video-detail', args=[self.edx_video_id])
+
     def __str__(self):
         return self.edx_video_id
 
@@ -91,13 +94,16 @@ class CourseVideos(models.Model):
     course_id's but each pair is unique together.
     """
     course_id = models.CharField(max_length=255)
-    video = models.ForeignKey(Video)
+    video = models.ForeignKey(Video, related_name='courses')
 
     class Meta:  # pylint: disable=C1001
         """
         course_id is listed first in this composite index
         """
         unique_together = ("course_id", "video")
+
+    def __str__(self):
+        return '%s for %s' % (self.video, self.course_id)
 
 
 class EncodedVideo(models.Model):

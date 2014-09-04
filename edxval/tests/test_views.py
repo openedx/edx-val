@@ -452,6 +452,35 @@ class VideoListTest(APIAuthTestCase):
             errors.get("edx_video_id")[0],
             "edx_video_id has invalid characters"
         )
+
+    def test_add_course(self):
+        """
+        Test adding a video with a course.
+        Test retrieving videos from course list view.
+        """
+        url = reverse('video-list')
+        video = dict(**constants.VIDEO_DICT_ANIMAL)
+        course1 = 'animals/fish'
+        course2 = 'animals/birds'
+        video['courses'] = [course1, course2]
+
+        response = self.client.post(
+            url, video, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        videos = self.client.get("/edxval/video/").data
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(videos[0]['courses'], [course1, course2])
+
+        url = reverse('course-video-list', kwargs={'course_id': course1})
+        videos = self.client.get(url).data
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(videos[0]['edx_video_id'], constants.VIDEO_DICT_ANIMAL['edx_video_id'])
+
+        url = reverse('course-video-list', kwargs={'course_id': course1 + '/bad'})
+        response = self.client.get(url).data
+        self.assertEqual(len(response), 0)
+
     # Tests for POST queries to database
 
     def test_queries_for_only_video(self):
@@ -459,7 +488,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video with no Encoded Videos
         """
         url = reverse('video-list')
-        with self.assertNumQueries(8):
+        with self.assertNumQueries(9):
             self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
 
     def test_queries_for_two_encoded_video(self):
@@ -467,7 +496,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
         url = reverse('video-list')
-        with self.assertNumQueries(20):
+        with self.assertNumQueries(21):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
     def test_queries_for_single_encoded_videos(self):
@@ -475,7 +504,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
         url = reverse('video-list')
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(15):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
 
@@ -512,15 +541,15 @@ class VideoDetailTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(12):
             self.client.get("/edxval/video/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(15):
             self.client.get("/edxval/video/").data
 
 

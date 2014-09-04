@@ -7,7 +7,7 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-from edxval.models import Profile, Video, EncodedVideo, Subtitle
+from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideos
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -84,6 +84,18 @@ class SubtitleSerializer(serializers.ModelSerializer):
         )
 
 
+class CourseSerializer(serializers.RelatedField):
+    """
+    Field for CourseVideos
+    """
+    def to_native(self, value):
+        return value.course_id
+
+    def from_native(self, data):
+        if data:
+            return CourseVideos(course_id=data)
+
+
 class VideoSerializer(serializers.ModelSerializer):
     """
     Serializer for Video object
@@ -92,11 +104,19 @@ class VideoSerializer(serializers.ModelSerializer):
     """
     encoded_videos = EncodedVideoSerializer(many=True, allow_add_remove=True)
     subtitles = SubtitleSerializer(many=True, allow_add_remove=True, required=False)
+    courses = CourseSerializer(many=True, read_only=False)
+    url = serializers.SerializerMethodField('get_url')
 
     class Meta:  # pylint: disable=C0111
         model = Video
         lookup_field = "edx_video_id"
         exclude = ('id',)
+
+    def get_url(self, obj):
+        """
+        Return relative url for the object
+        """
+        return obj.get_absolute_url()
 
     def restore_fields(self, data, files):
         """
@@ -111,6 +131,7 @@ class VideoSerializer(serializers.ModelSerializer):
         if data is not None and not isinstance(data, dict):
             self._errors['non_field_errors'] = ['Invalid data']
             return None
+
         try:
             profiles = [ev["profile"] for ev in data.get("encoded_videos", [])]
             if len(profiles) != len(set(profiles)):
