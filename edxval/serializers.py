@@ -84,7 +84,7 @@ class SubtitleSerializer(serializers.ModelSerializer):
         )
 
 
-class VideoSerializer(serializers.HyperlinkedModelSerializer):
+class VideoSerializer(serializers.ModelSerializer):
     """
     Serializer for Video object
 
@@ -96,6 +96,7 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:  # pylint: disable=C0111
         model = Video
         lookup_field = "edx_video_id"
+        exclude = ('id',)
 
     def restore_fields(self, data, files):
         """
