@@ -3,6 +3,7 @@ Url file for django app edxval.
 """
 
 from django.conf.urls import patterns, url
+from django.conf import settings
 
 from edxval import views
 
@@ -29,7 +30,7 @@ urlpatterns = patterns(
         name="subtitle-content"
     ),
     url(
-        r'^edxval/course/(?P<course_id>[-\w/]+)$',
+        r'^edxval/course/{}$'.format(settings.COURSE_ID_PATTERN),
         views.CourseVideoList.as_view(),
         name="course-video-list"
     ),

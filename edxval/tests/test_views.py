@@ -460,8 +460,8 @@ class VideoListTest(APIAuthTestCase):
         """
         url = reverse('video-list')
         video = dict(**constants.VIDEO_DICT_ANIMAL)
-        course1 = 'animals/fish'
-        course2 = 'animals/birds'
+        course1 = 'animals/fish/carp'
+        course2 = 'animals/birds/cardinal'
         video['courses'] = [course1, course2]
 
         response = self.client.post(
@@ -477,7 +477,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['edx_video_id'], constants.VIDEO_DICT_ANIMAL['edx_video_id'])
 
-        url = reverse('course-video-list', kwargs={'course_id': course1 + '/bad'})
+        url = reverse('course-video-list', kwargs={'course_id': 'animals/fish/salmon'})
         response = self.client.get(url).data
         self.assertEqual(len(response), 0)
 
