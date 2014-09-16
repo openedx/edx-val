@@ -404,7 +404,6 @@ class VideoListTest(APIAuthTestCase):
         Test that youtube is a valid profile.
         """
         url = reverse('video-list')
-        Profile.objects.create(**constants.PROFILE_DICT_YOUTUBE)
 
         video_data = dict(
             encoded_videos=[

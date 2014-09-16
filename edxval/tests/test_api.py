@@ -88,13 +88,13 @@ class CreateProfileTest(TestCase):
         Tests the creation of a profile
         """
         result = api.create_profile(constants.PROFILE_DICT_DESKTOP)
-        profiles = Profile.objects.all()
-        self.assertEqual(len(profiles), 1)
+        profiles = list(Profile.objects.all())
+        self.assertEqual(len(profiles), 6)
         self.assertEqual(
-            profiles[0].profile_name,
+            profiles[-1].profile_name,
             constants.PROFILE_DICT_DESKTOP.get('profile_name')
         )
-        self.assertEqual(len(profiles), 1)
+        self.assertEqual(len(profiles), 6)
         self.assertEqual("desktop", result)
 
     @data(
