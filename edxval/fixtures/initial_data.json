@@ -1,0 +1,52 @@
+[
+    {
+        "pk": 1, 
+        "model": "edxval.profile", 
+        "fields": {
+            "width": 1920, 
+            "profile_name": "youtube", 
+            "extension": "mp4", 
+            "height": 1080
+        }
+    },
+    {
+        "pk": 2, 
+        "model": "edxval.profile", 
+        "fields": {
+            "width": 1280, 
+            "profile_name": "desktop_mp4", 
+            "extension": "mp4", 
+            "height": 720
+        }
+    },
+    {
+        "pk": 3, 
+        "model": "edxval.profile", 
+        "fields": {
+            "width": 1280, 
+            "profile_name": "desktop_webm", 
+            "extension": "webm", 
+            "height": 720
+        }
+    },
+    {
+        "pk": 4, 
+        "model": "edxval.profile", 
+        "fields": {
+            "width": 960, 
+            "profile_name": "mobile_high", 
+            "extension": "mp4", 
+            "height": 540
+        }
+    },
+    {
+        "pk": 5, 
+        "model": "edxval.profile", 
+        "fields": {
+            "width": 640, 
+            "profile_name": "mobile_low", 
+            "extension": "mp4", 
+            "height": 360
+        }
+    }
+]
