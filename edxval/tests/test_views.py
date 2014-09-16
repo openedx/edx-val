@@ -399,6 +399,28 @@ class VideoListTest(APIAuthTestCase):
         videos = len(self.client.get("/edxval/video/").data)
         self.assertEqual(videos, 1)
 
+    def test_post_with_youtube(self):
+        """
+        Test that youtube is a valid profile.
+        """
+        url = reverse('video-list')
+
+        video_data = dict(
+            encoded_videos=[
+                constants.ENCODED_VIDEO_DICT_FISH_MOBILE,
+                constants.ENCODED_VIDEO_DICT_FISH_YOUTUBE
+            ],
+            **constants.VIDEO_DICT_FISH
+        )
+        response = self.client.post(
+            url, video_data, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        videos = self.client.get("/edxval/video/").data
+        self.assertEqual(len(videos), 1)
+        self.assertIn('youtube.com', videos[0]['encoded_videos'][1]['url'])
+
     def test_complete_set_invalid_encoded_video_post(self):
         """
         Tests POSTing valid Video and partial valid EncodedVideos.

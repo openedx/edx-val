@@ -19,6 +19,12 @@ PROFILE_DICT_DESKTOP = dict(
     width=200,
     height=2001
 )
+PROFILE_DICT_YOUTUBE = dict(
+    profile_name="youtube",
+    extension="mp4",
+    width=1280,
+    height=720
+)
 """
 Encoded_videos for test_api, does not have profile.
 """
@@ -146,6 +152,12 @@ ENCODED_VIDEO_DICT_FISH_MOBILE = dict(
     file_size=9000,
     bitrate=42,
     profile="mobile",
+)
+ENCODED_VIDEO_DICT_FISH_YOUTUBE = dict(
+    url="https://www.youtube.com/watch?v=OscRe3pSP80",
+    file_size=0,
+    bitrate=42,
+    profile="youtube",
 )
 ENCODED_VIDEO_DICT_FISH_DESKTOP = dict(
     url="https://www.swordsplints.com",
