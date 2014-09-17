@@ -335,7 +335,7 @@ class VideoListTest(APIAuthTestCase):
             url, constants.COMPLETE_SET_FISH, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        video = self.client.get("/edxval/video/").data
+        video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 1)
         self.assertEqual(len(video[0].get("encoded_videos")), 2)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -349,7 +349,7 @@ class VideoListTest(APIAuthTestCase):
             url, constants.COMPLETE_SET_EXTRA_VIDEO_FIELD, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        video = self.client.get("/edxval/video/").data
+        video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 1)
         edx_video_id = constants.VIDEO_DICT_STAR.get("edx_video_id")
         self.assertEqual(video[0].get("edx_video_id"), edx_video_id)
@@ -363,7 +363,7 @@ class VideoListTest(APIAuthTestCase):
             url, constants.VIDEO_DICT_ANIMAL, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        video = self.client.get("/edxval/video/").data
+        video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 1)
         self.assertEqual(len(video[0].get("encoded_videos")), 0)
 
@@ -386,7 +386,7 @@ class VideoListTest(APIAuthTestCase):
             url, constants.VIDEO_DICT_ANIMAL, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        videos = len(self.client.get("/edxval/video/").data)
+        videos = len(self.client.get("/edxval/videos/").data)
         self.assertEqual(videos, 1)
         response = self.client.post(
             url, constants.VIDEO_DICT_ANIMAL, format='json'
@@ -396,7 +396,7 @@ class VideoListTest(APIAuthTestCase):
             response.data.get("edx_video_id")[0],
             "Video with this Edx video id already exists."
         )
-        videos = len(self.client.get("/edxval/video/").data)
+        videos = len(self.client.get("/edxval/videos/").data)
         self.assertEqual(videos, 1)
 
     def test_post_with_youtube(self):
@@ -417,7 +417,7 @@ class VideoListTest(APIAuthTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        videos = self.client.get("/edxval/video/").data
+        videos = self.client.get("/edxval/videos/").data
         self.assertEqual(len(videos), 1)
         self.assertIn('youtube.com', videos[0]['encoded_videos'][1]['url'])
 
@@ -430,7 +430,7 @@ class VideoListTest(APIAuthTestCase):
             url, constants.COMPLETE_SET_INVALID_ENCODED_VIDEO_FISH, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        video = self.client.get("/edxval/video/").data
+        video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 0)
 
     def test_complete_set_invalid_video_post(self):
@@ -442,7 +442,7 @@ class VideoListTest(APIAuthTestCase):
             url, constants.COMPLETE_SET_INVALID_VIDEO_FISH, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        video = self.client.get("/edxval/video/").data
+        video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 0)
         self.assertEqual(
             response.data.get("edx_video_id")[0],
@@ -490,7 +490,7 @@ class VideoListTest(APIAuthTestCase):
             url, video, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        videos = self.client.get("/edxval/video/").data
+        videos = self.client.get("/edxval/videos/").data
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['courses'], [course1, course2])
 
@@ -551,7 +551,7 @@ class VideoDetailTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        videos = self.client.get("/edxval/video/").data
+        videos = self.client.get("/edxval/videos/").data
         self.assertEqual(len(videos), 2)
 
     def test_queries_for_get(self):
@@ -564,15 +564,15 @@ class VideoDetailTest(APIAuthTestCase):
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         with self.assertNumQueries(7):
-            self.client.get("/edxval/video/").data
+            self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         with self.assertNumQueries(12):
-            self.client.get("/edxval/video/").data
+            self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         with self.assertNumQueries(15):
-            self.client.get("/edxval/video/").data
+            self.client.get("/edxval/videos/").data
 
 
 class SubtitleDetailTest(APIAuthTestCase):
@@ -593,7 +593,7 @@ class SubtitleDetailTest(APIAuthTestCase):
             url, constants.COMPLETE_SET_FISH, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        video = self.client.get("/edxval/video/").data
+        video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 1)
         self.assertEqual(len(video[0].get("subtitles")), 2)
 

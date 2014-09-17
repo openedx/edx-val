@@ -10,27 +10,27 @@ from edxval import views
 urlpatterns = patterns(
     '',
     url(
-        r'^edxval/video/$',
+        r'^videos/$',
         views.VideoList.as_view(),
         name="video-list"
     ),
     url(
-        r'^edxval/video/(?P<edx_video_id>[-\w]+)$',
+        r'^videos/(?P<edx_video_id>[-\w]+)$',
         views.VideoDetail.as_view(),
         name="video-detail"
     ),
     url(
-    	r'^edxval/video/(?P<video__edx_video_id>[-\w]+)/(?P<language>[-_\w]+)$',
+        r'^videos/(?P<video__edx_video_id>[-\w]+)/(?P<language>[-_\w]+)$',
         views.SubtitleDetail.as_view(),
         name="subtitle-detail"
     ),
     url(
-    	r'^edxval/video/(?P<edx_video_id>[-\w]+)/(?P<language>[-_\w]+)/subtitle$',
+        r'^videos/(?P<edx_video_id>[-\w]+)/(?P<language>[-_\w]+)/subtitle$',
         views.get_subtitle,
         name="subtitle-content"
     ),
     url(
-        r'^edxval/course/{}$'.format(settings.COURSE_ID_PATTERN),
+        r'^courses/{}$'.format(settings.COURSE_ID_PATTERN),
         views.CourseVideoList.as_view(),
         name="course-video-list"
     ),
