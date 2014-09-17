@@ -121,14 +121,21 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'edxval',
-    'django_nose',
-    'rest_framework',
+
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
-    'debug_toolbar'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+
+    # Third Party
+    'south',
+    'django_nose',
+    'rest_framework',
+    'debug_toolbar',
+
+    # Our App
+    'edxval',
+
 )
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
