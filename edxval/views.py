@@ -77,7 +77,8 @@ class YoutubeVideoList(generics.ListAPIView):
     """
     Get a list of videos for the given youtube id
     """
-    permission_classes = (DjangoModelPermissions,)
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    permission_classes = (ReadRestrictedDjangoModelPermissions,)
     serializer_class = VideoSerializer
     queryset = Video.objects.all()
 
