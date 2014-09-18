@@ -26,21 +26,21 @@ class VideoDetail(APIAuthTestCase):
 
     def test_anonymous_denied(self):
         """
-        Tests that writing checks model permissions.
+        Tests that reading/writing is not allowed for anonymous users.
         """
         self._logout()
         url = reverse('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_no_perms(self):
         """
-        Tests that writing checks model permissions, even for logged in users.
+        Tests that reading/writing checks model permissions for logged in users.
         """
         self._logout()
-        self._login(readonly=True)
+        self._login(unauthorized=True)
         url = reverse('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -563,15 +563,15 @@ class VideoDetailTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(9):
             self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(14):
             self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(15):
+        with self.assertNumQueries(17):
             self.client.get("/edxval/videos/").data
 
 
