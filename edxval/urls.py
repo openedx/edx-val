@@ -29,15 +29,4 @@ urlpatterns = patterns(
         views.get_subtitle,
         name="subtitle-content"
     ),
-    url(
-        r'^courses/{}$'.format(settings.COURSE_ID_PATTERN),
-        views.CourseVideoList.as_view(),
-        name="course-video-list"
-    ),
-    url(
-        r'^youtube/(?P<youtube_id>[-_\w]+)$',
-        views.YoutubeVideoList.as_view(),
-        name="youtube-video-list"
-    ),
-
 )

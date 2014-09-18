@@ -325,6 +325,10 @@ class VideoListTest(APIAuthTestCase):
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
         super(VideoListTest, self).setUp()
 
+    def tearDown(self):
+        super(VideoListTest, self).tearDown()
+        Video.objects.all().delete()
+
     # Tests for successful POST 201 requests.
     def test_complete_set_two_encoded_video_post(self):
         """
@@ -494,12 +498,12 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['courses'], [course1, course2])
 
-        url = reverse('course-video-list', kwargs={'course_id': course1})
+        url = reverse('video-list') + '?course=%s' % course1
         videos = self.client.get(url).data
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['edx_video_id'], constants.VIDEO_DICT_ANIMAL['edx_video_id'])
 
-        url = reverse('course-video-list', kwargs={'course_id': 'animals/fish/salmon'})
+        url = reverse('video-list') + '?course=animals/fish/salmon'
         response = self.client.get(url).data
         self.assertEqual(len(response), 0)
 
@@ -527,7 +531,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # now look up the vid by youtube id
-        url = reverse('youtube-video-list', kwargs={'youtube_id': 'AbcDef'})
+        url = reverse('video-list') + '?youtube=AbcDef'
         response = self.client.get(url).data
         self.assertEqual(len(response), 1)
         self.assertEqual(response[0]['edx_video_id'], video['edx_video_id'])
