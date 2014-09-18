@@ -34,5 +34,10 @@ urlpatterns = patterns(
         views.CourseVideoList.as_view(),
         name="course-video-list"
     ),
+    url(
+        r'^youtube/(?P<youtube_id>[\w]+)$',
+        views.YoutubeVideoList.as_view(),
+        name="youtube-video-list"
+    ),
 
 )

@@ -60,6 +60,9 @@ class VideoList(generics.ListCreateAPIView):
 
 
 class CourseVideoList(generics.ListAPIView):
+    """
+    GET a list of videos for a course
+    """
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
     permission_classes = (ReadRestrictedDjangoModelPermissions,)
     queryset = Video.objects.all().prefetch_related("encoded_videos")
@@ -68,6 +71,18 @@ class CourseVideoList(generics.ListAPIView):
 
     def get_queryset(self):
         return self.queryset.filter(courses__course_id=self.kwargs['course_id'])
+
+
+class YoutubeVideoList(generics.ListAPIView):
+    """
+    Get a list of videos for the given youtube id
+    """
+    permission_classes = (DjangoModelPermissions,)
+    serializer_class = VideoSerializer
+    queryset = Video.objects.all()
+
+    def get_queryset(self):
+        return Video.by_youtube_id(self.kwargs['youtube_id'])
 
 
 class ProfileList(generics.ListCreateAPIView):
