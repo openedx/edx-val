@@ -503,6 +503,36 @@ class VideoListTest(APIAuthTestCase):
         response = self.client.get(url).data
         self.assertEqual(len(response), 0)
 
+    def test_lookup_youtube(self):
+        """
+        Test looking up by youtube id
+        """
+        video = {
+            'edx_video_id': 'testing-youtube',
+            'encoded_videos': [
+                {
+                    'profile': 'youtube',
+                    'url': 'https://youtu.be/AbcDef',
+                    'file_size': 4545,
+                    'bitrate': 6767,
+                }
+                ],
+            'subtitles': [],
+            'courses': ['youtube'],
+            'client_video_id': "Funny Cats",
+            'duration': 122
+        }
+
+        response = self.client.post(reverse('video-list'), video, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # now look up the vid by youtube id
+        url = reverse('youtube-video-list', kwargs={'youtube_id': 'AbcDef'})
+        response = self.client.get(url).data
+        self.assertEqual(len(response), 1)
+        self.assertEqual(response[0]['edx_video_id'], video['edx_video_id'])
+
+
     # Tests for POST queries to database
 
     def test_queries_for_only_video(self):
