@@ -57,6 +57,8 @@ class Profile(models.Model):
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
 
+    def __unicode__(self):
+        return self.profile_name
 
 class Video(models.Model):
     """
@@ -102,8 +104,8 @@ class CourseVideo(models.Model):
         """
         unique_together = ("course_id", "video")
 
-    def __str__(self):
-        return '%s for %s' % (self.video, self.course_id)
+    def __unicode__(self):
+        return self.course_id
 
 
 class EncodedVideo(models.Model):

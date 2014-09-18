@@ -5,8 +5,31 @@ Admin file for django app edxval.
 from django.contrib import admin
 from .models import Video, Profile, EncodedVideo, Subtitle, CourseVideo
 
-admin.site.register(Video)
-admin.site.register(Profile)
-admin.site.register(EncodedVideo)
+
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'profile_name', 'extension', 'width', 'height')
+    list_display_links = ('id', 'profile_name')
+    admin_order_field = 'profile_name'
+
+class EncodedVideoInline(admin.TabularInline):
+    model = EncodedVideo
+
+class CourseVideoInline(admin.TabularInline):
+    model = CourseVideo
+    extra = 0
+    verbose_name = "Course"
+    verbose_name_plural = "Courses"
+
+class VideoAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'edx_video_id', 'client_video_id', 'duration'
+    )
+    list_display_links = ('id', 'edx_video_id')
+    search_fields = ('id', 'edx_video_id', 'client_video_id')
+    list_per_page = 50
+    admin_order_field = 'edx_video_id'
+    inlines = [CourseVideoInline, EncodedVideoInline]
+
+admin.site.register(Profile, ProfileAdmin)
+admin.site.register(Video, VideoAdmin)
 admin.site.register(Subtitle)
-admin.site.register(CourseVideo)
