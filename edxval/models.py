@@ -86,7 +86,7 @@ class Video(models.Model):
         return self.edx_video_id
 
 
-class CourseVideos(models.Model):
+class CourseVideo(models.Model):
     """
     Model for the course_id associated with the video content.
 

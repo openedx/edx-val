@@ -27,16 +27,16 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('edxval', ['Video'])
 
-        # Adding model 'CourseVideos'
-        db.create_table('edxval_coursevideos', (
+        # Adding model 'CourseVideo'
+        db.create_table('edxval_coursevideo', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('course_id', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('video', self.gf('django.db.models.fields.related.ForeignKey')(related_name='courses', to=orm['edxval.Video'])),
         ))
-        db.send_create_signal('edxval', ['CourseVideos'])
+        db.send_create_signal('edxval', ['CourseVideo'])
 
-        # Adding unique constraint on 'CourseVideos', fields ['course_id', 'video']
-        db.create_unique('edxval_coursevideos', ['course_id', 'video_id'])
+        # Adding unique constraint on 'CourseVideo', fields ['course_id', 'video']
+        db.create_unique('edxval_coursevideo', ['course_id', 'video_id'])
 
         # Adding model 'EncodedVideo'
         db.create_table('edxval_encodedvideo', (
@@ -65,8 +65,8 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'CourseVideos', fields ['course_id', 'video']
-        db.delete_unique('edxval_coursevideos', ['course_id', 'video_id'])
+        # Removing unique constraint on 'CourseVideo', fields ['course_id', 'video']
+        db.delete_unique('edxval_coursevideo', ['course_id', 'video_id'])
 
         # Deleting model 'Profile'
         db.delete_table('edxval_profile')
@@ -74,8 +74,8 @@ class Migration(SchemaMigration):
         # Deleting model 'Video'
         db.delete_table('edxval_video')
 
-        # Deleting model 'CourseVideos'
-        db.delete_table('edxval_coursevideos')
+        # Deleting model 'CourseVideo'
+        db.delete_table('edxval_coursevideo')
 
         # Deleting model 'EncodedVideo'
         db.delete_table('edxval_encodedvideo')
@@ -86,7 +86,7 @@ class Migration(SchemaMigration):
 
     models = {
         'edxval.coursevideos': {
-            'Meta': {'unique_together': "(('course_id', 'video'),)", 'object_name': 'CourseVideos'},
+            'Meta': {'unique_together': "(('course_id', 'video'),)", 'object_name': 'CourseVideo'},
             'course_id': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'video': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'courses'", 'to': "orm['edxval.Video']"})
