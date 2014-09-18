@@ -7,7 +7,7 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
-from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideos
+from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -86,14 +86,14 @@ class SubtitleSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.RelatedField):
     """
-    Field for CourseVideos
+    Field for CourseVideo
     """
     def to_native(self, value):
         return value.course_id
 
     def from_native(self, data):
         if data:
-            return CourseVideos(course_id=data)
+            return CourseVideo(course_id=data)
 
 
 class VideoSerializer(serializers.ModelSerializer):

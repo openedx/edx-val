@@ -25,7 +25,7 @@ class Migration(DataMigration):
 
     models = {
         'edxval.coursevideos': {
-            'Meta': {'unique_together': "(('course_id', 'video'),)", 'object_name': 'CourseVideos'},
+            'Meta': {'unique_together': "(('course_id', 'video'),)", 'object_name': 'CourseVideo'},
             'course_id': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'video': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'courses'", 'to': "orm['edxval.Video']"})

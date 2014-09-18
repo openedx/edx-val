@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 from ddt import ddt, data
 
-from edxval.models import Profile, Video, EncodedVideo, CourseVideos
+from edxval.models import Profile, Video, EncodedVideo, CourseVideo
 from edxval import api as api
 from edxval.api import ValCannotCreateError
 from edxval.serializers import VideoSerializer
@@ -139,7 +139,7 @@ class GetVideoInfoTest(TestCase):
             **constants.ENCODED_VIDEO_DICT_DESKTOP
         )
         self.course_id = 'test-course'
-        CourseVideos.objects.create(video=video, course_id=self.course_id)
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
 
     def test_get_video_found(self):
         """
