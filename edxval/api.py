@@ -155,7 +155,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
         >>> get_video_info("example")
         Returns (dict):
         {
-            'url' : '/edxval/video/example',
+            'url' : '/edxval/videos/example',
             'edx_video_id': u'example',
             'duration': 111.0,
             'client_video_id': u'The example video',

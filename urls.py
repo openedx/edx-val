@@ -1,17 +1,23 @@
+from django.conf import settings
 from django.conf.urls import patterns, include, url
+from django.contrib import admin
 
-from edxval import views
+admin.autodiscover()
 
 urlpatterns = patterns(
     '',
-    url(
-        r'^video/$',
-        views.VideoList.as_view(),
-        name="video_view"
-    ),
-    url(
-        r'^video/(?P<edx_video_id>\w+)',
-        views.VideoDetail.as_view(),
-        name="video_detail_view"
-    )
+    # Django Admin
+    url(r'^admin/', include(admin.site.urls)),
+
+    # edx-val
+    url(r'^edxval/', include('edxval.urls'))
 )
+
+# We need to do explicit setup of the Django debug toolbar because autodiscovery
+# causes problems when you mix debug toolbar >= 1.0 + django < 1.7, and the
+# admin uses autodiscovery. See:
+# http://django-debug-toolbar.readthedocs.org/en/1.0/installation.html#explicit-setup
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        url(r'^__debug__/', include('debug_toolbar.urls')),
+    )
