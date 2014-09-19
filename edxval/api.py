@@ -1,11 +1,11 @@
 # pylint: disable=E1101
 # -*- coding: utf-8 -*-
 """
-The internal API for VAL
+The internal API for VAL. This is not yet stable
 """
 import logging
 
-from edxval.models import Video
+from edxval.models import Video, EncodedVideo
 from edxval.serializers import VideoSerializer, ProfileSerializer
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
@@ -198,7 +198,6 @@ def get_urls_for_profiles(edx_video_id, profiles):
 
     return profiles_to_urls    
 
-
 def get_url_for_profile(edx_video_id, profile):
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
@@ -208,3 +207,30 @@ def get_videos_for_course(course_id):
     """
     videos = Video.objects.filter(courses__course_id=course_id)
     return (VideoSerializer(video).data for video in videos)
+
+def get_video_info_for_course_and_profile(course_id, profile_name):
+    """Returns a dict mapping profiles to URLs.
+
+    If the profiles or video is not found, urls will be blank.
+    """
+    # In case someone passes in a key (VAL doesn't really understand opaque keys)
+    course_id = unicode(course_id)
+    try:
+        encoded_videos = EncodedVideo.objects.filter(
+            profile__profile_name=profile_name,
+            video__courses__course_id=course_id
+        ).select_related()
+    except Exception:
+        error_message = u"Could not get encoded videos for course: {0}".format(course_id)
+        logger.exception(error_message)
+        raise ValInternalError(error_message)
+
+    # DRF serializers were causing extra queries for some reason...
+    return {
+        enc_vid.video.edx_video_id: {
+            "url": enc_vid.url,
+            "file_size": enc_vid.file_size,
+            "duration": enc_vid.video.duration,
+        }
+        for enc_vid in encoded_videos
+    }
