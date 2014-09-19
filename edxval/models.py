@@ -32,7 +32,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
 
 
-url_regex = r'^[a-zA-Z0-9\-]*$'
+url_regex = r'^[a-zA-Z0-9\-_]*$'
 
 
 class Profile(models.Model):
@@ -60,6 +60,7 @@ class Profile(models.Model):
     def __unicode__(self):
         return self.profile_name
 
+
 class Video(models.Model):
     """
     Model for a Video group with the same content.
@@ -86,6 +87,18 @@ class Video(models.Model):
 
     def __str__(self):
         return self.edx_video_id
+
+    @classmethod
+    def by_youtube_id(cls, youtube_id):
+        """
+        Look up video by youtube id
+        """
+        url = '://youtu.be/%s' % youtube_id
+        qset = cls.objects.filter(
+            encoded_videos__profile__profile_name='youtube',
+            encoded_videos__url__endswith=url
+        ).prefetch_related('encoded_videos', 'courses', 'subtitles')
+        return qset
 
 
 class CourseVideo(models.Model):

@@ -58,16 +58,19 @@ class VideoList(generics.ListCreateAPIView):
     lookup_field = "edx_video_id"
     serializer_class = VideoSerializer
 
-
-class CourseVideoList(generics.ListAPIView):
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
-    permission_classes = (ReadRestrictedDjangoModelPermissions,)
-    queryset = Video.objects.all().prefetch_related("encoded_videos")
-    lookup_field = "course_id"
-    serializer_class = VideoSerializer
-
     def get_queryset(self):
-        return self.queryset.filter(courses__course_id=self.kwargs['course_id'])
+        qset = Video.objects.all().prefetch_related("encoded_videos", "courses")
+
+        args = self.request.GET
+        course_id = args.get('course')
+        if course_id:
+            # view videos by course id
+            qset = qset.filter(courses__course_id=course_id)
+        youtube_id = args.get('youtube')
+        if youtube_id:
+            # view videos by youtube id
+            qset = qset & Video.by_youtube_id(youtube_id)
+        return qset
 
 
 class ProfileList(generics.ListCreateAPIView):
