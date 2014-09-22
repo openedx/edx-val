@@ -186,7 +186,7 @@ def get_urls_for_profiles(edx_video_id, profiles):
 
     If the profiles or video is not found, urls will be blank.
     """
-    profiles_to_urls = {profile: "" for profile in profiles}
+    profiles_to_urls = {profile: None for profile in profiles}
     try:
         video_info = get_video_info(edx_video_id)
     except ValVideoNotFoundError:
@@ -205,7 +205,7 @@ def get_videos_for_course(course_id):
     """
     Returns an iterator of videos for the given course id
     """
-    videos = Video.objects.filter(courses__course_id=course_id)
+    videos = Video.objects.filter(courses__course_id=unicode(course_id))
     return (VideoSerializer(video).data for video in videos)
 
 def get_video_info_for_course_and_profile(course_id, profile_name):
