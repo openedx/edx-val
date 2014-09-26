@@ -93,10 +93,9 @@ class Video(models.Model):
         """
         Look up video by youtube id
         """
-        url = '://youtu.be/%s' % youtube_id
         qset = cls.objects.filter(
             encoded_videos__profile__profile_name='youtube',
-            encoded_videos__url__endswith=url
+            encoded_videos__url=youtube_id
         ).prefetch_related('encoded_videos', 'courses', 'subtitles')
         return qset
 
