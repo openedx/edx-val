@@ -516,7 +516,7 @@ class VideoListTest(APIAuthTestCase):
             'encoded_videos': [
                 {
                     'profile': 'youtube',
-                    'url': 'https://youtu.be/AbcDef',
+                    'url': 'AbcDef',
                     'file_size': 4545,
                     'bitrate': 6767,
                 }
