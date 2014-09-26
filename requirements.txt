@@ -1,4 +1,5 @@
 django>=1.4,<1.5
 djangorestframework<2.4
+djangorestframework-bulk
 South==0.7.6
 -e git+https://github.com/edx/django-oauth2-provider.git@0.2.7-fork-edx-1#egg=django-oauth2-provider

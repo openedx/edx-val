@@ -537,6 +537,17 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response[0]['edx_video_id'], video['edx_video_id'])
 
 
+    def test_bulk_create(self):
+        url = reverse('video-list')
+        response = self.client.post(
+            url, [constants.COMPLETE_SET_FISH, constants.COMPLETE_SET_DIFFERENT_ID_UPDATE_FISH], format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        video = self.client.get("/edxval/videos/").data
+        self.assertEqual(len(video), 2)
+        self.assertEqual(len(video[0].get("encoded_videos")), 2)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
     # Tests for POST queries to database
 
     def test_queries_for_only_video(self):
