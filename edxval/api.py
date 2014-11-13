@@ -196,9 +196,12 @@ def get_urls_for_profiles(edx_video_id, profiles):
         if encoded_video["profile"] in profiles:
             profiles_to_urls[encoded_video["profile"]] = encoded_video["url"]
 
-    return profiles_to_urls    
+    return profiles_to_urls
 
 def get_url_for_profile(edx_video_id, profile):
+    """
+    Uses get_urls_for_profile to obtain a single profile
+    """
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
 def get_videos_for_course(course_id):

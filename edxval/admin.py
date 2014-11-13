@@ -6,21 +6,21 @@ from django.contrib import admin
 from .models import Video, Profile, EncodedVideo, Subtitle, CourseVideo
 
 
-class ProfileAdmin(admin.ModelAdmin):
+class ProfileAdmin(admin.ModelAdmin):  # pylint: disable=C0111
     list_display = ('id', 'profile_name', 'extension', 'width', 'height')
     list_display_links = ('id', 'profile_name')
     admin_order_field = 'profile_name'
 
-class EncodedVideoInline(admin.TabularInline):
+class EncodedVideoInline(admin.TabularInline):  # pylint: disable=C0111
     model = EncodedVideo
 
-class CourseVideoInline(admin.TabularInline):
+class CourseVideoInline(admin.TabularInline):  # pylint: disable=C0111
     model = CourseVideo
     extra = 0
     verbose_name = "Course"
     verbose_name_plural = "Courses"
 
-class VideoAdmin(admin.ModelAdmin):
+class VideoAdmin(admin.ModelAdmin):  # pylint: disable=C0111
     list_display = (
         'id', 'edx_video_id', 'client_video_id', 'duration'
     )

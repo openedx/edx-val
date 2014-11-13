@@ -11,7 +11,7 @@ class Profile(models.Model)
         unique=True,
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z0-9\-]*$',
+                regex=regex,
                 message='profile_name has invalid characters',
                 code='invalid profile_name'
             ),
@@ -32,7 +32,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
 
 
-url_regex = r'^[a-zA-Z0-9\-_]*$'
+URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
 
 
 class Profile(models.Model):
@@ -47,7 +47,7 @@ class Profile(models.Model):
         unique=True,
         validators=[
             RegexValidator(
-                regex=url_regex,
+                regex=URL_REGEX,
                 message='profile_name has invalid characters',
                 code='invalid profile_name'
             ),
@@ -73,7 +73,7 @@ class Video(models.Model):
         unique=True,
         validators=[
             RegexValidator(
-                regex=url_regex,
+                regex=URL_REGEX,
                 message='edx_video_id has invalid characters',
                 code='invalid edx_video_id'
             ),
@@ -83,6 +83,9 @@ class Video(models.Model):
     duration = models.FloatField(validators=[MinValueValidator(0)])
 
     def get_absolute_url(self):
+        """
+        Returns the full url link to the edx_video_id
+        """
         return reverse('video-detail', args=[self.edx_video_id])
 
     def __str__(self):
@@ -155,10 +158,16 @@ class Subtitle(models.Model):
         return '%s Subtitle for %s' % (self.language, self.video)
 
     def get_absolute_url(self):
+        """
+        Returns the full url link to the edx_video_id
+        """
         return reverse('subtitle-content', args=[self.video.edx_video_id, self.language])
 
     @property
     def content_type(self):
+        """
+        Sjson is returned as application/json, otherwise text/plain
+        """
         if self.fmt == 'sjson':
             return 'application/json'
         else:

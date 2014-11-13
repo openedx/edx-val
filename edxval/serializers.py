@@ -14,7 +14,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for Profile object.
     """
-    class Meta:  # pylint: disable= C0111
+    class Meta:  # pylint: disable=C1001, C0111
         model = Profile
         fields = (
             "profile_name",
@@ -32,7 +32,7 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
     """
     profile = serializers.SlugRelatedField(slug_field="profile_name")
 
-    class Meta:  # pylint: disable= C0111
+    class Meta:  # pylint: disable=C1001, C0111
         model = EncodedVideo
         fields = (
             "created",
@@ -107,7 +107,7 @@ class VideoSerializer(serializers.ModelSerializer):
     courses = CourseSerializer(many=True, read_only=False)
     url = serializers.SerializerMethodField('get_url')
 
-    class Meta:  # pylint: disable=C0111
+    class Meta:  # pylint: disable=C1001, C0111
         model = Video
         lookup_field = "edx_video_id"
         exclude = ('id',)
