@@ -17,9 +17,15 @@ class APIAuthTestCase(APITestCase):
         self._login()
 
     def _logout(self):
+        """
+        Logs out API user
+        """
         self.client.logout()
 
     def _login(self, unauthorized=False):
+        """
+        Logs in user for test if authorized
+        """
         if unauthorized:
             username = password = 'unauthorized'
         else:

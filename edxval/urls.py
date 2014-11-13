@@ -3,7 +3,6 @@ Url file for django app edxval.
 """
 
 from django.conf.urls import patterns, url
-from django.conf import settings
 
 from edxval import views
 

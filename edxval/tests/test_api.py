@@ -67,7 +67,7 @@ class CreateVideoTest(TestCase):
         video_data = dict(
             encoded_videos=[
                 dict(
-                    profile = constants.PROFILE_DICT_MOBILE,
+                    profile=constants.PROFILE_DICT_MOBILE,
                     **constants.ENCODED_VIDEO_DICT_MOBILE
                 )
             ],

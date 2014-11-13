@@ -15,6 +15,7 @@ from edxval.serializers import (
     SubtitleSerializer
 )
 
+
 class ReadRestrictedDjangoModelPermissions(DjangoModelPermissions):
     """Extending DjangoModelPermissions to allow us to restrict read access.
 
@@ -40,9 +41,12 @@ class MultipleFieldLookupMixin(object):
     based on a `lookup_fields` attribute, instead of the default single field filtering.
     """
     def get_object(self):
+        """
+        Returns an object instance that should be used for detail views.
+        """
         queryset = self.get_queryset()             # Get the base queryset
         queryset = self.filter_queryset(queryset)  # Apply any filter backends
-        filter = {}
+        filter = {}  # pylint: disable=W0622
         for field in self.lookup_fields:
             filter[field] = self.kwargs[field]
         return get_object_or_404(queryset, **filter)  # Lookup the object
@@ -106,11 +110,14 @@ class SubtitleDetail(MultipleFieldLookupMixin, generics.RetrieveUpdateDestroyAPI
     serializer_class = SubtitleSerializer
 
 
-def _last_modified_subtitle(request, edx_video_id, language):
+def _last_modified_subtitle(request, edx_video_id, language):  # pylint: disable=W0613
+    """
+    Returns the last modified subtitle
+    """
     return Subtitle.objects.get(video__edx_video_id=edx_video_id, language=language).modified
 
 @last_modified(last_modified_func=_last_modified_subtitle)
-def get_subtitle(request, edx_video_id, language):
+def get_subtitle(request, edx_video_id, language): # pylint: disable=W0613
     """
     Return content of subtitle by id
     """

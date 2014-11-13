@@ -631,13 +631,13 @@ class SubtitleDetailTest(APIAuthTestCase):
         self.assertEqual(len(video), 1)
         self.assertEqual(len(video[0].get("subtitles")), 2)
 
-        st = video[0]['subtitles'][0]
-        response = self.client.get(st['content_url'])
+        video_subtitles = video[0]['subtitles'][0]
+        response = self.client.get(video_subtitles['content_url'])
         self.assertEqual(response.content, constants.SUBTITLE_DICT_SRT['content'])
         self.assertEqual(response['Content-Type'], 'text/plain')
 
-        st = video[0]['subtitles'][1]
-        response = self.client.get(st['content_url'])
+        video_subtitles = video[0]['subtitles'][1]
+        response = self.client.get(video_subtitles['content_url'])
         self.assertEqual(response.content, constants.SUBTITLE_DICT_SJSON['content'])
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -651,16 +651,16 @@ class SubtitleDetailTest(APIAuthTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         video = response.data
-        st = video['subtitles'][0]
-        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': st['language']})
+        video_subtitles = video['subtitles'][0]
+        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': video_subtitles['language']})
 
-        st['content'] = 'testing 123'
+        video_subtitles['content'] = 'testing 123'
         response = self.client.put(
-            url, st, format='json'
+            url, video_subtitles, format='json'
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.client.get(st['content_url']).content, 'testing 123')
+        self.assertEqual(self.client.get(video_subtitles['content_url']).content, 'testing 123')
 
     def test_update_json_subtitle(self):
         """
@@ -672,20 +672,20 @@ class SubtitleDetailTest(APIAuthTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         video = response.data
-        st = video['subtitles'][1]
-        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': st['language']})
+        video_subtitles = video['subtitles'][1]
+        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': video_subtitles['language']})
 
-        st['content'] = 'testing 123'
+        video_subtitles['content'] = 'testing 123'
         response = self.client.put(
-            url, st, format='json'
+            url, video_subtitles, format='json'
         )
         # not in json format
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        st['content'] = """{"start": "00:00:00"
+        video_subtitles['content'] = """{"start": "00:00:00"
 
         }"""
         response = self.client.put(
-            url, st, format='json'
+            url, video_subtitles, format='json'
         )
-        self.assertEqual(self.client.get(st['content_url']).content, '{"start": "00:00:00"}')
+        self.assertEqual(self.client.get(video_subtitles['content_url']).content, '{"start": "00:00:00"}')
