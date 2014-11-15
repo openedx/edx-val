@@ -45,6 +45,7 @@ VIDEO_DICT_NEGATIVE_DURATION = dict(
     client_video_id="Thunder Cats S01E01",
     duration=-111,
     edx_video_id="thisis12char-thisis7",
+    status="test",
     encoded_videos=[],
     subtitles=[]
 )
@@ -52,11 +53,13 @@ VIDEO_DICT_BEE_INVALID = dict(
     client_video_id="Barking Bee",
     duration=111.00,
     edx_video_id="wa/sps",
+    status="test",
 )
 VIDEO_DICT_INVALID_ID = dict(
     client_video_id="SuperSloth",
     duration=42,
     edx_video_id="sloppy/sloth!!",
+    status="test",
     encoded_videos=[],
     subtitles=[]
 )
@@ -77,6 +80,7 @@ VIDEO_DICT_NON_LATIN_TITLE = dict(
     client_video_id=u"배고픈 햄스터",
     duration=42,
     edx_video_id="ID",
+    status="test",
     encoded_videos=[],
     subtitles=[]
 )
@@ -84,6 +88,7 @@ VIDEO_DICT_NON_LATIN_ID = dict(
     client_video_id="Hungry Hamster",
     duration=42,
     edx_video_id="밥줘",
+    status="test",
     encoded_videos=[],
     subtitles=[]
 )
@@ -140,12 +145,14 @@ Fish
 VIDEO_DICT_FISH = dict(
     client_video_id="Shallow Swordfish",
     duration=122.00,
-    edx_video_id="super-soaker"
+    edx_video_id="super-soaker",
+    status="test",
 )
 VIDEO_DICT_DIFFERENT_ID_FISH = dict(
     client_video_id="Shallow Swordfish",
     duration=122.00,
-    edx_video_id="medium-soaker"
+    edx_video_id="medium-soaker",
+    status="test",
 )
 ENCODED_VIDEO_DICT_FISH_MOBILE = dict(
     url="https://www.swordsingers.com",
@@ -242,6 +249,7 @@ COMPLETE_SET_INVALID_VIDEO_FISH = dict(
     client_video_id="Shallow Swordfish",
     duration=122.00,
     edx_video_id="super/soaker",
+    status="test",
     encoded_videos=[
         ENCODED_VIDEO_DICT_FISH_MOBILE,
         ENCODED_VIDEO_DICT_FISH_DESKTOP
@@ -259,7 +267,8 @@ Star
 VIDEO_DICT_STAR = dict(
     client_video_id="TWINKLE TWINKLE",
     duration=122.00,
-    edx_video_id="little-star"
+    edx_video_id="little-star",
+    status="test",
 )
 ENCODED_VIDEO_DICT_STAR = dict(
     url="https://www.howIwonder.com",
@@ -317,6 +326,7 @@ VIDEO_DICT_ZEBRA = dict(
     client_video_id="Zesty Zebra",
     duration=111.00,
     edx_video_id="zestttt",
+    status="test",
     encoded_videos=[],
     subtitles=[]
 )
@@ -324,6 +334,7 @@ VIDEO_DICT_ANIMAL = dict(
     client_video_id="Average Animal",
     duration=111.00,
     edx_video_id="mediocrity",
+    status="test",
     encoded_videos=[],
     subtitles=[]
 )
@@ -331,6 +342,7 @@ VIDEO_DICT_UPDATE_ANIMAL = dict(
     client_video_id="Above Average Animal",
     duration=999.00,
     edx_video_id="mediocrity",
+    status="test",
     encoded_videos=[],
     subtitles=[]
 )

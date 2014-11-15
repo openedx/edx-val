@@ -161,6 +161,17 @@ class GetVideoInfoTest(TestCase):
         videos = list(api.get_videos_for_course('unknown'))
         self.assertEqual(len(videos), 0)
 
+    def test_get_videos_for_ids(self):
+        """
+        Tests retrieving videos for ids
+        """
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        videos = list(api.get_videos_for_ids([edx_video_id]))
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(videos[0]['edx_video_id'], edx_video_id)
+        videos = list(api.get_videos_for_ids(['unknown']))
+        self.assertEqual(len(videos), 0)
+
     def test_no_such_video(self):
         """
         Tests searching for a video that does not exist

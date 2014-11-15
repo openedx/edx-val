@@ -1,27 +1,43 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        "Write your forwards methods here."
-        orm.Profile.objects.bulk_create([
-            orm.Profile(profile_name="desktop_mp4",  width=1280, height= 720, extension="mp4"),
-            orm.Profile(profile_name="desktop_webm", width=1280, height= 720, extension="webm"),
-            orm.Profile(profile_name="mobile_high",  width= 960, height= 540, extension="mp4"),
-            orm.Profile(profile_name="mobile_low",   width= 640, height= 360, extension="mp4"),
-            orm.Profile(profile_name="youtube",      width=1920, height=1080, extension="mp4"),
-        ])
-        # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
+        # Adding field 'Video.created'
+        db.add_column('edxval_video', 'created',
+                      self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, default=datetime.datetime(2014, 11, 17, 0, 0), blank=True),
+                      keep_default=False)
+
+        # Adding field 'Video.status'
+        db.add_column('edxval_video', 'status',
+                      self.gf('django.db.models.fields.CharField')(default='File Complete', max_length=255, db_index=True),
+                      keep_default=False)
+
+
+        # Changing field 'Video.edx_video_id'
+        db.alter_column('edxval_video', 'edx_video_id', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100))
+
+        # Changing field 'EncodedVideo.url'
+        db.alter_column('edxval_encodedvideo', 'url', self.gf('django.db.models.fields.CharField')(max_length=200))
 
     def backwards(self, orm):
-        "Write your backwards methods here."
-        orm.Profile.objects.filter(
-            profile_name__in=["desktop_mp4", "desktop_webm", "mobile_high", "mobile_low", "youtube"]
-        ).delete()
+        # Deleting field 'Video.created'
+        db.delete_column('edxval_video', 'created')
+
+        # Deleting field 'Video.status'
+        db.delete_column('edxval_video', 'status')
+
+
+        # Changing field 'Video.edx_video_id'
+        db.alter_column('edxval_video', 'edx_video_id', self.gf('django.db.models.fields.CharField')(max_length=50, unique=True))
+
+        # Changing field 'EncodedVideo.url'
+        db.alter_column('edxval_encodedvideo', 'url', self.gf('django.db.models.fields.URLField')(max_length=200))
 
     models = {
         'edxval.coursevideo': {
@@ -38,7 +54,7 @@ class Migration(DataMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'profile': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': "orm['edxval.Profile']"}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '200'}),
+            'url': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'video': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'encoded_videos'", 'to': "orm['edxval.Video']"})
         },
         'edxval.profile': {
@@ -61,12 +77,13 @@ class Migration(DataMigration):
         },
         'edxval.video': {
             'Meta': {'object_name': 'Video'},
-            'client_video_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'}),
+            'client_video_id': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '255', 'blank': 'True'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'duration': ('django.db.models.fields.FloatField', [], {}),
-            'edx_video_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
+            'edx_video_id': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'status': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'})
         }
     }
 
     complete_apps = ['edxval']
-    symmetrical = True

@@ -2,7 +2,7 @@ edx-val
 =======
 
 Note:
-    The naming convetion for the `profile_name` in `Profile` objects will be the
+    The naming convention for the `profile_name` in `Profile` objects will be the
     medium of the profile (a-z), an underscore, and then the quality (a-z).
 
     Examples:

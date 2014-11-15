@@ -32,7 +32,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
 
 
-URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
+URL_REGEX = r'^[a-zA-Z0-9\-_\:]*$'
 
 
 class Profile(models.Model):
@@ -68,8 +68,9 @@ class Video(models.Model):
     A video can have multiple formats. This model are the fields that represent
     the collection of those videos that do not change across formats.
     """
+    created = models.DateTimeField(auto_now_add=True)
     edx_video_id = models.CharField(
-        max_length=50,
+        max_length=100,
         unique=True,
         validators=[
             RegexValidator(
@@ -81,6 +82,7 @@ class Video(models.Model):
     )
     client_video_id = models.CharField(max_length=255, db_index=True, blank=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
+    status = models.CharField(max_length=255, db_index=True)
 
     def get_absolute_url(self):
         """

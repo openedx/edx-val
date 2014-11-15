@@ -129,6 +129,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
             {
                 url: api url to the video
                 edx_video_id: ID of the video
+                status: Status of the video as a string
                 duration: Length of video in seconds
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
@@ -209,6 +210,13 @@ def get_videos_for_course(course_id):
     Returns an iterator of videos for the given course id
     """
     videos = Video.objects.filter(courses__course_id=unicode(course_id))
+    return (VideoSerializer(video).data for video in videos)
+
+def get_videos_for_ids(edx_video_ids):
+    """
+    Returns an iterator of videos that match the given list of ids
+    """
+    videos = Video.objects.filter(edx_video_id__in=edx_video_ids)
     return (VideoSerializer(video).data for video in videos)
 
 def get_video_info_for_course_and_profile(course_id, profile_name):

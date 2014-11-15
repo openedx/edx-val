@@ -513,6 +513,7 @@ class VideoListTest(APIAuthTestCase):
         """
         video = {
             'edx_video_id': 'testing-youtube',
+            'status': 'test',
             'encoded_videos': [
                 {
                     'profile': 'youtube',
