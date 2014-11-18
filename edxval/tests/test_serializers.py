@@ -72,7 +72,8 @@ class SerializerTests(TestCase):
         message = error.get("edx_video_id")[0]
         self.assertEqual(
             message,
-            u"edx_video_id has invalid characters")
+            u"edx_video_id has invalid characters"
+        )
 
     def test_encoded_video_set_output(self):
         """
