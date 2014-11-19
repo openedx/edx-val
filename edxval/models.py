@@ -1,8 +1,9 @@
 """
 Django models for videos for Video Abstraction Layer (VAL)
 
-When calling a serializers' .errors function for objects, there is an
-order in which the errors are returned. This may cause a partial return of errors
+When calling a serializers' .errors field, there is a priority in which the
+errors are returned. This may cause a partial return of errors, starting with
+the highest priority.
 
 Example:
 class Profile(models.Model)
@@ -67,9 +68,14 @@ class Video(models.Model):
 
     A video can have multiple formats. This model are the fields that represent
     the collection of those videos that do not change across formats.
+
+    Attributes:
+        status: Used to keep track of the processing video as it goes through
+            the video pipeline, e.g., "Uploading", "File Complete"...
     """
+    created = models.DateTimeField(auto_now_add=True)
     edx_video_id = models.CharField(
-        max_length=50,
+        max_length=100,
         unique=True,
         validators=[
             RegexValidator(
@@ -81,6 +87,7 @@ class Video(models.Model):
     )
     client_video_id = models.CharField(max_length=255, db_index=True, blank=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
+    status = models.CharField(max_length=255, db_index=True)
 
     def get_absolute_url(self):
         """
@@ -107,8 +114,8 @@ class CourseVideo(models.Model):
     """
     Model for the course_id associated with the video content.
 
-    Every course-semester has a unique course_id. A video can be paired with multiple
-    course_id's but each pair is unique together.
+    Every course-semester has a unique course_id. A video can be paired with
+    multiple course_id's but each pair is unique together.
     """
     course_id = models.CharField(max_length=255)
     video = models.ForeignKey(Video, related_name='courses')
@@ -146,6 +153,10 @@ SUBTITLE_FORMATS = (
 class Subtitle(models.Model):
     """
     Subtitle for video
+
+    Attributes:
+        video: the video that the subtitles are for
+        fmt: the format of the subttitles file
     """
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

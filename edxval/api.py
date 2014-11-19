@@ -51,6 +51,7 @@ class ValCannotCreateError(ValError):
     """
     pass
 
+
 def create_video(video_data):
     """
     Called on to create Video objects in the database
@@ -84,6 +85,7 @@ def create_video(video_data):
         return video_data.get("edx_video_id")
     else:
         raise ValCannotCreateError(serializer.errors)
+
 
 def create_profile(profile_data):
     """
@@ -129,6 +131,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
             {
                 url: api url to the video
                 edx_video_id: ID of the video
+                status: Status of the video as a string
                 duration: Length of video in seconds
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
@@ -181,10 +184,19 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
         raise ValInternalError(error_message)
     return result.data  # pylint: disable=E1101
 
+
 def get_urls_for_profiles(edx_video_id, profiles):
-    """Returns a dict mapping profiles to URLs.
+    """
+    Returns a dict mapping profiles to URLs.
 
     If the profiles or video is not found, urls will be blank.
+
+    Args:
+        edx_video_id (str): id of the video
+        profiles (list): list of profiles we want to search for
+
+    Returns:
+        profiles_to_urls (dict): A dict containing the profile to url pair
     """
     profiles_to_urls = {profile: None for profile in profiles}
     try:
@@ -198,11 +210,23 @@ def get_urls_for_profiles(edx_video_id, profiles):
 
     return profiles_to_urls
 
+
 def get_url_for_profile(edx_video_id, profile):
     """
     Uses get_urls_for_profile to obtain a single profile
+
+    Args:
+        edx_video_id (str): id of the video
+        profile (str): a string of the profile we are searching
+
+    Returns:
+        A dict containing the profile to url. The return type is the same as
+        get_urls_for_profiles for consistency.
+
     """
-    return get_urls_for_profiles(edx_video_id, [profile])[profile]
+    url = get_urls_for_profiles(edx_video_id, [profile])[profile]
+    return {profile: url}
+
 
 def get_videos_for_course(course_id):
     """
@@ -211,8 +235,24 @@ def get_videos_for_course(course_id):
     videos = Video.objects.filter(courses__course_id=unicode(course_id))
     return (VideoSerializer(video).data for video in videos)
 
+
+def get_videos_for_ids(edx_video_ids):
+    """
+    Returns an iterator of videos that match the given list of ids
+
+    Args:
+        edx_video_ids (list)
+
+    Returns:
+        A generator expression that contains the videos found
+    """
+    videos = Video.objects.filter(edx_video_id__in=edx_video_ids)
+    return (VideoSerializer(video).data for video in videos)
+
+
 def get_video_info_for_course_and_profile(course_id, profile_name):
-    """Returns a dict mapping profiles to URLs.
+    """
+    Returns a dict mapping profiles to URLs.
 
     If the profiles or video is not found, urls will be blank.
     """

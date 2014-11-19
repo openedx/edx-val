@@ -201,6 +201,141 @@ class GetVideoInfoTest(TestCase):
             )
 
 
+class GetUrlsForProfileTest(TestCase):
+    """
+    Tests the get_urls_for_profile(s) function in api.py
+    """
+
+    def setUp(self):
+        """
+        Creates EncodedVideo objects in database
+        """
+        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        EncodedVideo.objects.create(
+            video=Video.objects.get(
+                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
+            ),
+            profile=Profile.objects.get(profile_name="mobile"),
+            **constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        EncodedVideo.objects.create(
+            video=Video.objects.get(
+                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
+            ),
+            profile=Profile.objects.get(profile_name="desktop"),
+            **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        self.course_id = 'test-course'
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+
+    def test_get_urls_for_profiles(self):
+        """
+        Tests when the profiles to the video are found
+        """
+        profiles = ["mobile", "desktop"]
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        urls = api.get_urls_for_profiles(edx_video_id, profiles)
+        self.assertEqual(len(urls), 2)
+        self.assertEqual(urls["mobile"], u'http://www.meowmix.com')
+        self.assertEqual(urls["desktop"], u'http://www.meowmagic.com')
+
+    def test_get_urls_for_profiles_no_video(self):
+        """
+        Tests when there is no video found.
+        """
+        urls = api.get_urls_for_profiles("not found", ["mobile"])
+        self.assertEqual(urls["mobile"], None)
+
+    def test_get_urls_for_profiles_no_profiles(self):
+        """
+        Tests when the video is found, but not hte profiles.
+        """
+        profiles = ["not", "found"]
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        urls = api.get_urls_for_profiles(edx_video_id, profiles)
+        self.assertEqual(len(urls), 2)
+        self.assertEqual(urls["not"], None)
+        self.assertEqual(urls["found"], None)
+
+    def test_get_url_for_profile(self):
+        """
+        Tests get_url_for_profile
+        """
+        profile = "mobile"
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        urls = api.get_url_for_profile(edx_video_id, profile)
+        self.assertEqual(len(urls), 1)
+        self.assertEqual(urls["mobile"], u'http://www.meowmix.com')
+
+
+class GetVideosForIds(TestCase):
+    """
+    Tests the get_videos_for_ids function in api.py
+    """
+
+    def setUp(self):
+        """
+        Creates EncodedVideo objects in database
+        """
+        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        EncodedVideo.objects.create(
+            video=Video.objects.get(
+                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
+            ),
+            profile=Profile.objects.get(profile_name="mobile"),
+            **constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        EncodedVideo.objects.create(
+            video=Video.objects.get(
+                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
+            ),
+            profile=Profile.objects.get(profile_name="desktop"),
+            **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        self.course_id = 'test-course'
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+
+    def test_get_videos_for_id(self):
+        """
+        Tests retrieving videos for id
+        """
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        videos = list(api.get_videos_for_ids([edx_video_id]))
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(videos[0]['edx_video_id'], edx_video_id)
+        videos = list(api.get_videos_for_ids(['unknown']))
+        self.assertEqual(len(videos), 0)
+
+    def test_get_videos_for_ids(self):
+        """
+        Tests retrieving videos for ids
+        """
+        Video.objects.create(**constants.VIDEO_DICT_DIFFERENT_ID_FISH)
+        EncodedVideo.objects.create(
+            video=Video.objects.get(
+                edx_video_id=constants.VIDEO_DICT_DIFFERENT_ID_FISH.get("edx_video_id")
+            ),
+            profile=Profile.objects.get(profile_name="mobile"),
+            **constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        edx_video_id_2 = constants.VIDEO_DICT_DIFFERENT_ID_FISH['edx_video_id']
+        videos = list(api.get_videos_for_ids([edx_video_id, edx_video_id_2]))
+        self.assertEqual(len(videos), 2)
+
+    def test_get_videos_for_ids_duplicates(self):
+        """
+        Tests retrieving videos for ids when there are duplicate ids
+        """
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        videos = list(api.get_videos_for_ids([edx_video_id, edx_video_id]))
+        self.assertEqual(len(videos), 1)
+
+
 class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
     """
     Tests for the get_info_video, using the HTTP requests to populate database

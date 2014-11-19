@@ -22,7 +22,7 @@ class CourseVideoInline(admin.TabularInline):  # pylint: disable=C0111
 
 class VideoAdmin(admin.ModelAdmin):  # pylint: disable=C0111
     list_display = (
-        'id', 'edx_video_id', 'client_video_id', 'duration'
+        'id', 'edx_video_id', 'client_video_id', 'duration', 'created', 'status'
     )
     list_display_links = ('id', 'edx_video_id')
     search_fields = ('id', 'edx_video_id', 'client_video_id')

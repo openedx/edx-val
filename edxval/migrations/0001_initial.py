@@ -85,7 +85,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'edxval.coursevideos': {
+        'edxval.coursevideo': {
             'Meta': {'unique_together': "(('course_id', 'video'),)", 'object_name': 'CourseVideo'},
             'course_id': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),

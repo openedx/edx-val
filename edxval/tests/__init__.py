@@ -30,4 +30,4 @@ class APIAuthTestCase(APITestCase):
             username = password = 'unauthorized'
         else:
             username, password = self.username, self.password
-        print self.client.login(username=username, password=password)
+        self.client.login(username=username, password=password)
