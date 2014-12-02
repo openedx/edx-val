@@ -289,6 +289,8 @@ class Migrator(object):
             ("converted_tarfiles/"+new_filename), mode='w'
         )
 
+        self.videos_processed = 0
+
         #Sets course_id and then populates course_videos from val.
         if self.course_id is None:
             course_xml = old_data.extractfile(os.path.join(
@@ -342,7 +344,6 @@ class Migrator(object):
                 )
         self.log.info("{}:{} Videos have been processed".
                       format(self.course_id, self.videos_processed))
-        self.videos_processed = 0
 
     def get_course_videos_from_val(self):
         """
