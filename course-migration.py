@@ -53,6 +53,16 @@ Not found:
             def process_course_data(self, old_course_data, new_filename):
                 ...
                 if not_found:
+
+Note:
+
+    Print statements are useful for whoever is running the script. Rather than
+showing nothing for the duration of the script, messages are printed out to show
+ the status of the script, and that the script is running. Messages such as
+ logged in, or course processed appear in the print statements.
+    Logged statements are for the log that gets sent to whomever needs to see
+the details. Messages such as "56 videos processed" or "Missing video, this is
+the url, etc." are shown in the log.
 """
 #!/usr/bin/env python
 import argparse
@@ -103,9 +113,8 @@ class Migrator(object):
         self.val_url = '{}/api/val/v0'.format(self.studio_url)
         self.sess = requests.Session()
         self.log = logging.getLogger('migrator')
-        self.log.info(50*"=")
-        self.log.info(50*"=")
-        self.log.info(50*"=")
+        for i in range(2):
+            self.log.info(50*"=")
         self.course_id = course_id
         self.course_videos = []
         self.videos_processed = 0
@@ -448,6 +457,10 @@ class Migrator(object):
     def get_course_id_from_tar(self, file_path):
         """
         Given a file_path to a tarfile, returns the course_id
+
+        Attributes:
+            files_path (str): String representation of the path to the tar
+                or an already opened tar.
 
         Returns:
             course_id (str): course_id parsed from course.xml in tar
