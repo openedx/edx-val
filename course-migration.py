@@ -6,30 +6,30 @@ and then optionally imports the new tarfile (converted data) back into studio.
 The old data will be processed by either adding an edx_video_id,
 compared against the Video Abstraction Layer (VAL) edx_video_id for differences,
 or verifiying that the edx_video_id in the old data and VAL match. The
-export (old data) is the same as a studio course export tarfile where the 
+export (old data) is the same as a studio course export tarfile where the
 information we are interested in is in the videos folder of the tarfile. Inside
-of the videos folder, the videos are in a xml format, where we parse out the 
+of the videos folder, the videos are in a xml format, where we parse out the
 target information such as youtube_id, source urls, (if available) exiting
-edx_video_ids. 
+edx_video_ids.
 
 Possible conditions when processing videos:
 
 Matching youtube URLs:
     Old video has an edx_video_id and matches in VAL.
         Great!
-        
+
     Old video has an edx_video_id that does not match in VAL.
         This is possible if the edx_video_id was manually input. Update old
         edx_video_id with VAL edx_video_id.
-        
+
             def add_edx_video_id_to_video(self, video_xml):
                 ...
                 elif studio_edx_video_id != edx_video_id:
-                
+
     Old video does not have an edx_video_id.
         The urls for the video will be compared against VAL and the
         edx_video_id will be added accordingly.
-        
+
             def add_edx_video_id_to_video(self, video_xml):
                 ...
                 if studio_edx_video_id == '' or studio_edx_video_id is None:
@@ -38,7 +38,7 @@ youtube URL mismatch:
     Old video has an edx_video_id and matches in VAL, but urls do not match.
         There could be broken/outdated links, or the wrong edx_video_id
         altogether. Defaults to studio urls.
-        
+
             def get_youtube_mismatch(self, edx_video_id, youtube_id):
 
     #TODO Old video's edx_video_id is found, but there are missing urls.
@@ -49,7 +49,7 @@ Not found:
     Old video has no edx_video_id and no urls can be found in VAL.
         A report should be made to fix this issue. This means that there are
         videos (which also could be broken/outdated) that VAL isn't aware of.
-        
+
             def process_course_data(self, old_course_data, new_filename):
                 ...
                 if not_found:
@@ -99,6 +99,13 @@ class ExportError(Exception):
     pass
 
 
+class UnknownError(Exception):
+    """
+    Last case error when specific case is not handled
+    """
+    pass
+
+
 class Migrator(object):
     """
     The Migration class for using one login for multiple queries
@@ -123,9 +130,12 @@ class Migrator(object):
         """
         return csrf token retrieved from the given url
         """
-        response = self.sess.get(url)
-        csrf = response.cookies['csrftoken']
-        return {'X-CSRFToken': csrf, 'Referer': url}
+        try:
+            response = self.sess.get(url)
+            csrf = response.cookies['csrftoken']
+            return {'X-CSRFToken': csrf, 'Referer': url}
+        except:
+            print "Error when retrieving csrf token."
 
     def login_to_studio(self, email, password):
         """
@@ -290,7 +300,12 @@ class Migrator(object):
                 course_xml.get('course'),
                 course_xml.get('url_name')
             )
-        self.course_videos = self.get_course_videos_from_val()
+        try:
+            self.course_videos = self.get_course_videos_from_val()
+        except PermissionsError:
+            return
+        except UnknownError:
+            return
 
         #Process videos, and save to tarfile
         not_found = []
@@ -322,29 +337,38 @@ class Migrator(object):
                 url_name = video_xml.get("url_name")
                 self.log.info(
                     '\t"url_name:"{}"\tyoutube_id:"{}"\tdisplay_name:"{}"'
-                    .format(url_name,youtube_id,display_name)
+                    .format(url_name, youtube_id, display_name)
                 )
         self.log.info("%s: %s Videos have been processed"
                       % (self.course_id, self.videos_processed))
         self.videos_processed = 0
 
-    def get_course_videos_from_val(self, course_id=None):
+    def get_course_videos_from_val(self):
         """
         Calls VAL api to get all available videos in given course_id
 
         Returns:
             videos (str): videos in json
+
+        Raises:
+            PermissionsError: Raised when user does not have permissions for VAL
+            UnknownError: Raised when an unknown error occurs
         """
-        course_id = course_id or self.course_id
+        course_id = self.course_id
         url = self.val_url + '/videos/'
         response = self.sess.get(url, params={'course': self.course_id})
-        if response.status_code == 403:
-            raise(PermissionsError)
-        videos = response.json()
-        # # HACK for messed up ids
-        if self.course_id == 'MITx/6.002x_4x/3T2014' and not videos:
-            videos = self.get_course_youtube_videos('MITx/6.002_4x/3T2014')
-        return videos
+        if response.status_code == 200:
+            response.status_code
+            videos = response.json()
+            return videos
+        elif response.status_code == 403:
+            self.log.error("Permissions error for VAL access")
+            print "Permissions error for VAL access"
+            raise PermissionsError
+        else:
+            self.log.error("Could not obtain video_list from VAL")
+            print "UnknownError in VAL:", response.status_code
+            raise UnknownError
 
     def add_edx_video_id_to_video(self, video_xml):
         """
