@@ -1,29 +1,46 @@
 """
 The Video Migration Script!
 
-Takes the export tarfile from studio (old data), converts it using VAL, and
-then optionally imports the new tarfile (converted data) back into studio.
-The old data will be processed by either adding an edx_video_id, updating,
-or comparing the edx_video_id against the Video Abstraction Layer (VAL). The
-tarfile export is the same as a studio course tarfile where the information
-we are interested in is in the videos folder of the tarfile.
+Takes the exported course data from studio (old data), converts it using VAL,
+and then optionally imports the new tarfile (converted data) back into studio.
+The old data will be processed by either adding an edx_video_id,
+compared against the Video Abstraction Layer (VAL) edx_video_id for differences,
+or verifiying that the edx_video_id in the old data and VAL match. The
+export (old data) is the same as a studio course export tarfile where the 
+information we are interested in is in the videos folder of the tarfile. Inside
+of the videos folder, the videos are in a xml format, where we parse out the 
+target information such as youtube_id, source urls, (if available) exiting
+edx_video_ids. 
 
 Possible conditions when processing videos:
 
-Matching URLs:
+Matching youtube URLs:
     Old video has an edx_video_id and matches in VAL.
         Great!
-    Old video has an edx_video_id that does not match in VAL. Matching urls
+        
+    Old video has an edx_video_id that does not match in VAL.
         This is possible if the edx_video_id was manually input. Update old
         edx_video_id with VAL edx_video_id.
+        
+            def add_edx_video_id_to_video(self, video_xml):
+                ...
+                elif studio_edx_video_id != edx_video_id:
+                
     Old video does not have an edx_video_id.
         The urls for the video will be compared against VAL and the
         edx_video_id will be added accordingly.
+        
+            def add_edx_video_id_to_video(self, video_xml):
+                ...
+                if studio_edx_video_id == '' or studio_edx_video_id is None:
 
-URL mismatch:
+youtube URL mismatch:
     Old video has an edx_video_id and matches in VAL, but urls do not match.
         There could be broken/outdated links, or the wrong edx_video_id
         altogether. Defaults to studio urls.
+        
+            def get_youtube_mismatch(self, edx_video_id, youtube_id):
+
     #TODO Old video's edx_video_id is found, but there are missing urls.
         Sometimes there will be missing encodings for
         a video, i.e., there exists a desktop version but no mobile version.
@@ -32,6 +49,10 @@ Not found:
     Old video has no edx_video_id and no urls can be found in VAL.
         A report should be made to fix this issue. This means that there are
         videos (which also could be broken/outdated) that VAL isn't aware of.
+        
+            def process_course_data(self, old_course_data, new_filename):
+                ...
+                if not_found:
 """
 #!/usr/bin/env python
 import argparse
@@ -56,7 +77,7 @@ class EdxVideoIdError(Exception):
 
 class PermissionsError(Exception):
     """
-    Permissions Error
+    Login was successful but permission not granted
     """
     pass
 
@@ -70,9 +91,9 @@ class ExportError(Exception):
 
 class Migrator(object):
     """
-    Migration class.
+    The Migration class for using one login for multiple queries
 
-    Because we want to be able to take a list of course_ids and process them
+    We want to be able to take a list of course_ids and process them
     in one session, the Migrator object only needs to log in once.
     """
     def __init__(self,
