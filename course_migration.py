@@ -228,7 +228,9 @@ class Migrator(object):
             if response.status_code != 200:
                 if response.status_code == 500:
                     self.log.error(
-                        "{}: Cannot find course in studio {}".
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                        "{}: Cannot find course in studio {}\n"
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n".
                         format(course_id, response)
                     )
                 else:
@@ -247,7 +249,10 @@ class Migrator(object):
                     print "Course processed"
                 except ExportError:
                     self.log.error(
-                        "{}: Could not read export data".format(self.course_id)
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                        "{}: Could not read export data\n"
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                        .format(self.course_id)
                     )
                     print "Could not read export data for %s" \
                           % self.course_id
@@ -317,7 +322,7 @@ class Migrator(object):
             if '/video/' in item.name:
                 video_xml = fromstring(infile.read())
                 try:
-                    new_xml = self.add_edx_video_id_to_video(video_xml)
+                    new_xml = self.sets_edx_video_id_to_video(video_xml)
                 except EdxVideoIdError:
                     new_xml = None
                     not_found.append(video_xml)
@@ -370,7 +375,7 @@ class Migrator(object):
             print "UnknownError in VAL:", response.status_code
             raise UnknownError
 
-    def add_edx_video_id_to_video(self, video_xml):
+    def sets_edx_video_id_to_video(self, video_xml):
         """
         Takes a video's xml and compares/sets edx_video_id
         """
@@ -384,22 +389,22 @@ class Migrator(object):
         for line in video_xml.findall('./source'):
             source_url = line.get('src')
             if source_url:
-                edx_video_id = self.get_edx_video_id_from_url(source_url)
+                edx_video_id = self.parse_edx_video_id_from_url(source_url)
                 source = source_url
                 edx_video_id_found = True
                 break
         else:
             if source:
-                edx_video_id = self.get_edx_video_id_from_url(source)
+                edx_video_id = self.parse_edx_video_id_from_url(source)
                 edx_video_id_found = True
 
         #Looking for edx_video_id via youtube_id/client_id
-        if self.course_id.startswith(('MITx', 'DelftX', 'LouvainX/Louv1.1x')) \
-                or edx_video_id_found is False:
+        # if self.course_id.startswith(('MITx', 'DelftX', 'LouvainX/Louv1.1x')) \
+        if edx_video_id_found is False:
             # for mit, the filename will be the client id
             client_id = studio_edx_video_id
             edx_video_id_found, edx_video_id =\
-                self.get_edx_video_id_from_ids(
+                self.find_edx_video_id_from_ids(
                     client_id=client_id,
                     youtube_id=youtube_id
                 )
@@ -408,17 +413,17 @@ class Migrator(object):
         if edx_video_id_found is False:
             source = source.split('/')[-1].rsplit('.', 1)[0]
             edx_video_id_found, edx_video_id =\
-                self.get_edx_video_id_from_ids(client_id=source)
+                self.find_edx_video_id_from_ids(client_id=source)
             if edx_video_id_found is False:
                 edx_video_id_found, edx_video_id =\
-                    self.get_edx_video_id_from_ids(
+                    self.find_edx_video_id_from_ids(
                         client_id=source.replace('_', '-')
                     )
                 if edx_video_id_found is False:
                     raise EdxVideoIdError(source)
 
         #Set edx_video_id and log issues
-        else:
+        if edx_video_id_found:
             if studio_edx_video_id == '' or studio_edx_video_id is None:
                 self.log.debug(
                     "{}: Empty edx_video_id in studio for {}".
@@ -429,13 +434,13 @@ class Migrator(object):
                     "{}: Mismatching edx_video_ids - Studio: {} VAL: {}".
                     format(self.course_id, studio_edx_video_id, edx_video_id))
             if youtube_id:
-                self.get_youtube_mismatch(edx_video_id, youtube_id)
+                self.log_youtube_mismatches(edx_video_id, youtube_id)
             video_xml.set('edx_video_id', edx_video_id)
             video_xml = tostring(video_xml)
             self.videos_processed += 1
             return video_xml
 
-    def get_youtube_mismatch(self, edx_video_id, youtube_id):
+    def log_youtube_mismatches(self, edx_video_id, youtube_id):
         """
         Given a youtube_id and edx_video_id, logs mismatched in url
 
@@ -459,17 +464,19 @@ class Migrator(object):
                                 )
                             )
 
-    def get_edx_video_id_from_url(self, path):
+    def parse_edx_video_id_from_url(self, path):
         """
         Parses the edx_video_id from a source url
 
+        Attributes:
+            path (str): the url of the video source
         Returns:
             (str): the edx_video_id
         """
         split = path.split('/')[-1]
         return split.split('_')[0]
 
-    def get_edx_video_id_from_ids(self, youtube_id=None, client_id=None):
+    def find_edx_video_id_from_ids(self, youtube_id=None, client_id=None):
         """
         Gets edx_video_id by searching course_videos with youtube or client ids
 
@@ -535,6 +542,8 @@ def main():
     To export a course, use -c "course_id".
     To export a list of courses, use -l path/to/courses.txt
     To upload courses in the convert_tarfiles directory, use -u
+
+    Use --help to see all options.
     '''.format(cmd=sys.argv[0])
     parser.add_argument('-c', '--course', help='Course', default='')
     parser.add_argument('-l', '--courses', type=argparse.FileType('rb'), default=None)
