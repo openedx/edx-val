@@ -233,16 +233,23 @@ class Migrator(object):
                         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n".
                         format(course_id, response)
                     )
+                    print (
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                        "{}: Cannot find course in studio {}\n"
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n".
+                        format(course_id, response)
+                    )
                 else:
                     self.log.error(
                         "{}: Error {}".format(course_id, response)
                     )
+                    print "{}: Error {}".format(course_id, response)
             else:
                 old_course_data = io.BytesIO(response.content)
 
                 outfile = '%s.tar.gz' % self.course_id.replace('/', '_')
                 print 'Saving to %s' % outfile
-                print "Processing videos. This may take a while depending on" \
+                print "Processing videos. This may take a while depending on " \
                       "the number of videos in the course."
                 try:
                     self.process_course_data(old_course_data, outfile)
@@ -603,6 +610,7 @@ def main():
     if raw_input(upload_query) == 'y':
         upload_message = "*"*20+"Starting uploads"+"*"*20
         logging.info(upload_message)
+        print upload_message
         for filename in os.listdir(folder):
             file_path = "%s/%s" % (folder, filename)
             migration.import_tar_to_studio(file_path)
