@@ -220,12 +220,10 @@ def get_url_for_profile(edx_video_id, profile):
         profile (str): a string of the profile we are searching
 
     Returns:
-        A dict containing the profile to url. The return type is the same as
-        get_urls_for_profiles for consistency.
+        A string with the url
 
     """
-    url = get_urls_for_profiles(edx_video_id, [profile])[profile]
-    return {profile: url}
+    return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
 
 def get_videos_for_course(course_id):
