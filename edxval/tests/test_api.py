@@ -265,9 +265,8 @@ class GetUrlsForProfileTest(TestCase):
         """
         profile = "mobile"
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        urls = api.get_url_for_profile(edx_video_id, profile)
-        self.assertEqual(len(urls), 1)
-        self.assertEqual(urls["mobile"], u'http://www.meowmix.com')
+        url = api.get_url_for_profile(edx_video_id, profile)
+        self.assertEqual(url, u'http://www.meowmix.com')
 
 
 class GetVideosForIds(TestCase):
