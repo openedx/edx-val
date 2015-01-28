@@ -3,6 +3,7 @@
 """
 The internal API for VAL. This is not yet stable
 """
+from enum import Enum
 import logging
 
 from edxval.models import Video, EncodedVideo
@@ -50,6 +51,21 @@ class ValCannotCreateError(ValError):
     This error is raised when an object cannot be created
     """
     pass
+
+
+class VideoSortField(Enum):
+    """An enum representing sortable fields in the Video model"""
+    created = "created"
+    edx_video_id = "edx_video_id"
+    client_video_id = "client_video_id"
+    duration = "duration"
+    # status omitted because user-facing strings do not match data
+
+
+class SortDirection(Enum):
+    """An enum representing sort direction"""
+    asc = "asc"
+    desc = "desc"
 
 
 def create_video(video_data):
@@ -234,17 +250,30 @@ def get_videos_for_course(course_id):
     return (VideoSerializer(video).data for video in videos)
 
 
-def get_videos_for_ids(edx_video_ids):
+def get_videos_for_ids(
+        edx_video_ids,
+        sort_field=None,
+        sort_dir=SortDirection.asc
+):
     """
     Returns an iterator of videos that match the given list of ids
 
     Args:
         edx_video_ids (list)
+        sort_field (VideoSortField)
+        sort_dir (SortDirection)
 
     Returns:
-        A generator expression that contains the videos found
+        A generator expression that contains the videos found, sorted by the
+        given field and direction, with ties broken by edx_video_id to ensure a
+        total order
     """
     videos = Video.objects.filter(edx_video_id__in=edx_video_ids)
+    if sort_field:
+        # Refining by edx_video_id ensures a total order
+        videos = videos.order_by(sort_field.value, "edx_video_id")
+        if sort_dir == SortDirection.desc:
+            videos = videos.reverse()
     return (VideoSerializer(video).data for video in videos)
 
 
