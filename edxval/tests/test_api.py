@@ -14,7 +14,7 @@ from ddt import ddt, data
 
 from edxval.models import Profile, Video, EncodedVideo, CourseVideo
 from edxval import api as api
-from edxval.api import ValCannotCreateError
+from edxval.api import SortDirection, ValCannotCreateError, VideoSortField
 from edxval.serializers import VideoSerializer
 from edxval.tests import constants, APIAuthTestCase
 
@@ -333,6 +333,44 @@ class GetVideosForIds(TestCase):
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         videos = list(api.get_videos_for_ids([edx_video_id, edx_video_id]))
         self.assertEqual(len(videos), 1)
+
+    def test_get_videos_for_ids_sort(self):
+        fish_id = constants.VIDEO_DICT_FISH["edx_video_id"]
+        star_id = constants.VIDEO_DICT_STAR["edx_video_id"]
+        other_id = "other-video"
+        Video.objects.create(**constants.VIDEO_DICT_STAR)
+        # This is made to sort with the other videos differently by each field
+        Video.objects.create(
+            client_video_id="other video",
+            duration=555.0,
+            edx_video_id=other_id
+        )
+
+        def check_sort(sort_field, expected_ids_for_asc):
+            """
+            Assert that sorting by given field returns videos in the expected
+            order (checking both ascending and descending)
+            """
+            def check_direction(sort_dir, expected_ids):
+                """Assert that the given videos match the expected ids"""
+                actual_videos = api.get_videos_for_ids(
+                    # Make sure it's not just returning the order given
+                    list(reversed(expected_ids)),
+                    sort_field,
+                    sort_dir
+                )
+                actual_ids = [video["edx_video_id"] for video in actual_videos]
+                self.assertEqual(actual_ids, expected_ids)
+            check_direction(SortDirection.asc, expected_ids_for_asc)
+            check_direction(
+                SortDirection.desc,
+                list(reversed(expected_ids_for_asc))
+            )
+
+        check_sort(VideoSortField.client_video_id, [fish_id, star_id, other_id])
+        check_sort(VideoSortField.edx_video_id, [star_id, other_id, fish_id])
+        # Check a field with a tie
+        check_sort(VideoSortField.duration, [star_id, fish_id, other_id])
 
 
 class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
