@@ -93,6 +93,7 @@ def create_video(video_data):
                         extension: 3 letter extension of video
                         width: horizontal pixel resolution
                         height: vertical pixel resolution
+                courses: Courses associated with this video
          }
     """
     serializer = VideoSerializer(data=video_data)
@@ -277,9 +278,9 @@ def get_videos_for_ids(
     return (VideoSerializer(video).data for video in videos)
 
 
-def get_video_info_for_course_and_profile(course_id, profile_name):
+def get_video_info_for_course_and_profiles(course_id, profiles):
     """
-    Returns a dict mapping profiles to URLs.
+    Returns a dict mapping edx_video_ids to profile information.
 
     If the profiles or video is not found, urls will be blank.
     """
@@ -287,7 +288,7 @@ def get_video_info_for_course_and_profile(course_id, profile_name):
     course_id = unicode(course_id)
     try:
         encoded_videos = EncodedVideo.objects.filter(
-            profile__profile_name=profile_name,
+            profile__profile_name__in=profiles,
             video__courses__course_id=course_id
         ).select_related()
     except Exception:
@@ -298,6 +299,7 @@ def get_video_info_for_course_and_profile(course_id, profile_name):
     # DRF serializers were causing extra queries for some reason...
     return {
         enc_vid.video.edx_video_id: {
+            "profile_name": enc_vid.profile.profile_name,
             "url": enc_vid.url,
             "file_size": enc_vid.file_size,
             "duration": enc_vid.video.duration,

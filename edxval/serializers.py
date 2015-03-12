@@ -112,6 +112,7 @@ class VideoSerializer(serializers.ModelSerializer):
         lookup_field = "edx_video_id"
         exclude = ('id',)
 
+
     def get_url(self, obj):
         """
         Return relative url for the object
