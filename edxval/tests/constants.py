@@ -30,13 +30,33 @@ Encoded_videos for test_api, does not have profile.
 """
 ENCODED_VIDEO_DICT_MOBILE = dict(
     url="http://www.meowmix.com",
-    file_size=4545,
-    bitrate=6767,
+    file_size=11,
+    bitrate=22,
 )
 ENCODED_VIDEO_DICT_DESKTOP = dict(
     url="http://www.meowmagic.com",
-    file_size=1212,
-    bitrate=2323,
+    file_size=33,
+    bitrate=44,
+)
+ENCODED_VIDEO_DICT_MOBILE2 = dict(
+    url="http://www.woof.com",
+    file_size=55,
+    bitrate=66,
+)
+ENCODED_VIDEO_DICT_DESKTOP2 = dict(
+    url="http://www.bark.com",
+    file_size=77,
+    bitrate=88,
+)
+ENCODED_VIDEO_DICT_MOBILE3 = dict(
+    url="http://www.ssss.com",
+    file_size=1111,
+    bitrate=2222,
+)
+ENCODED_VIDEO_DICT_DESKTOP3 = dict(
+    url="http://www.hiss.com",
+    file_size=3333,
+    bitrate=4444,
 )
 """
 Validators
@@ -322,6 +342,18 @@ COMPLETE_SET_EXTRA_VIDEO_FIELD = dict(
 """
 Other
 """
+VIDEO_DICT_TREE = dict(
+    client_video_id="Trees4lyfe",
+    duration=532.00,
+    edx_video_id="tree-hugger",
+    status="test",
+)
+VIDEO_DICT_PLANT = dict(
+    client_video_id="PlantzRule",
+    duration=876.00,
+    edx_video_id="fernmaster",
+    status="test",
+)
 VIDEO_DICT_ZEBRA = dict(
     client_video_id="Zesty Zebra",
     duration=111.00,
