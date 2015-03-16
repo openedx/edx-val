@@ -278,11 +278,9 @@ def get_videos_for_ids(
     return (VideoSerializer(video).data for video in videos)
 
 
-def get_video_info_for_course_and_profile(course_id, profile_name):
+def get_video_info_for_course_and_profiles(course_id, profiles):
     """
     Returns a dict of edx_video_ids with a dict of requested profiles.
-
-    If the profiles or video is not found, urls will be blank.
 
     Args:
         course_id (str): id of the course
@@ -292,48 +290,51 @@ def get_video_info_for_course_and_profile(course_id, profile_name):
         edx_video_id
         {
             edx_video_id: {
-                profile_name: {
-                    'url': url of the encoding
-                    'duration': length of the video in seconds
-                    'file_size': size of the file in bytes
-                },
+                'duration': length of the video in seconds,
+                'profiles': {
+                    profile_name: {
+                        'url': url of the encoding
+                        'file_size': size of the file in bytes
+                    },
+                }
             },
         }
     Example:
         Given two videos with two profiles each in course_id 'test_course':
         {
             u'edx_video_id_1': {
-                u'mobile': {
-                    'url': u'http: //www.example.com/meow',
-                    'duration': 1111,
-                    'file_size': 2222
-                },
-                u'desktop': {
-                    'url': u'http: //www.example.com/woof',
-                    'duration': 3333,
-                    'file_size': 4444
+                u'duration: 1111,
+                u'profiles': {
+                    u'mobile': {
+                        'url': u'http: //www.example.com/meow',
+                        'file_size': 2222
+                    },
+                    u'desktop': {
+                        'url': u'http: //www.example.com/woof',
+                        'file_size': 4444
+                    }
                 }
             },
             u'edx_video_id_2': {
-                u'mobile': {
-                    'url': u'http: //www.example.com/roar',
-                    'duration': 5555,
-                    'file_size': 6666
-                },
-                u'desktop': {
-                    'url': u'http: //www.example.com/bzzz',
-                    'duration': 7777,
-                    'file_size': 8888
+                u'duration: 2222,
+                u'profiles': {
+                    u'mobile': {
+                        'url': u'http: //www.example.com/roar',
+                        'file_size': 6666
+                    },
+                    u'desktop': {
+                        'url': u'http: //www.example.com/bzzz',
+                        'file_size': 8888
+                    }
                 }
             }
         }
     """
-    #TODO This function needs unit tests. Write them when addressing MA-169
     # In case someone passes in a key (VAL doesn't really understand opaque keys)
     course_id = unicode(course_id)
     try:
         encoded_videos = EncodedVideo.objects.filter(
-            profile__profile_name=profile_name,
+            profile__profile_name__in=profiles,
             video__courses__course_id=course_id
         ).select_related()
     except Exception:
@@ -342,36 +343,39 @@ def get_video_info_for_course_and_profile(course_id, profile_name):
         raise ValInternalError(error_message)
 
     # DRF serializers were causing extra queries for some reason...
-    return {
-        enc_vid.video.edx_video_id: {
-            "url": enc_vid.url,
-            "file_size": enc_vid.file_size,
-            "duration": enc_vid.video.duration,
-        }
-        for enc_vid in encoded_videos
-    }
+    return_dict = {}
+    for enc_vid in encoded_videos:
+        # Add duration to edx_video_id
+        return_dict.setdefault(enc_vid.video.edx_video_id, {}).update(
+            {
+                "duration": enc_vid.video.duration,
+            }
+        )
+        # Add profile information to edx_video_id's profiles
+        return_dict[enc_vid.video.edx_video_id].setdefault("profiles", {}).update(
+            {enc_vid.profile.profile_name: {
+                "url": enc_vid.url,
+                "file_size": enc_vid.file_size,
+            }}
+        )
+    return return_dict
 
 
-def copy_course_videos(old_course_id, new_course_id):
+def copy_course_videos(source_course_id, destination_course_id):
     """
-    Adds the new_course_id to the videos taken from the old_course_id
+    Adds the destination_course_id to the videos taken from the source_course_id
 
     Args:
-        old_course_id: The original course_id
-        new_course_id: The new course_id of the rerun
+        source_course_id: The original course_id
+        destination_course_id: The new course_id where the videos will be copied
     """
-    if old_course_id == new_course_id:
-        raise ValueError(
-            "Both course_id's are the same: {}".format(new_course_id)
-        )
-    if Video.objects.filter(courses__course_id=unicode(new_course_id)):
-        raise ValCannotCreateError(
-            "New course id already exists: {}".format(new_course_id)
-        )
-    videos = Video.objects.filter(courses__course_id=unicode(old_course_id))
+    if source_course_id == destination_course_id:
+        return
+
+    videos = Video.objects.filter(courses__course_id=unicode(source_course_id))
 
     for video in videos:
-        CourseVideo.objects.create(
+        CourseVideo.objects.get_or_create(
             video=video,
-            course_id=new_course_id
+            course_id=destination_course_id
         )
