@@ -14,9 +14,14 @@ from ddt import ddt, data
 
 from edxval.models import Profile, Video, EncodedVideo, CourseVideo
 from edxval import api as api
-from edxval.api import SortDirection, ValCannotCreateError, VideoSortField
+from edxval.api import (
+    SortDirection,
+    ValCannotCreateError,
+    VideoSortField,
+)
 from edxval.serializers import VideoSerializer
 from edxval.tests import constants, APIAuthTestCase
+
 
 @ddt
 class CreateVideoTest(TestCase):
@@ -125,16 +130,12 @@ class GetVideoInfoTest(TestCase):
         Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
-            video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
-            ),
+            video=video,
             profile=Profile.objects.get(profile_name="mobile"),
             **constants.ENCODED_VIDEO_DICT_MOBILE
         )
         EncodedVideo.objects.create(
-            video=Video.objects.get(
-                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
-            ),
+            video=video,
             profile=Profile.objects.get(profile_name="desktop"),
             **constants.ENCODED_VIDEO_DICT_DESKTOP
         )
@@ -267,6 +268,210 @@ class GetUrlsForProfileTest(TestCase):
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         url = api.get_url_for_profile(edx_video_id, profile)
         self.assertEqual(url, u'http://www.meowmix.com')
+
+
+class GetVideoForCourseProfiles(TestCase):
+    """Tests get_video_info_for_course_and_profiles in api.py"""
+
+    def setUp(self):
+        """
+        Creates two courses for testing
+
+        Creates two videos with 2 encoded videos for the first course, and then
+        2 videos with 1 encoded video for the second course.
+        """
+        mobile_profile = Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        desktop_profile = Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+
+        self.course_id = 'test-course'
+        # 1st video
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        EncodedVideo.objects.create(
+            video=video,
+            profile=mobile_profile,
+            **constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        EncodedVideo.objects.create(
+            video=video,
+            profile=desktop_profile,
+            **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+        # 2nd video
+        video = Video.objects.create(**constants.VIDEO_DICT_STAR)
+        EncodedVideo.objects.create(
+            video=video,
+            profile=mobile_profile,
+            **constants.ENCODED_VIDEO_DICT_MOBILE2
+        )
+        EncodedVideo.objects.create(
+            video=video,
+            profile=desktop_profile,
+            **constants.ENCODED_VIDEO_DICT_DESKTOP2
+        )
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+
+        self.course_id2 = "test-course2"
+        # 3rd video different course
+        video = Video.objects.create(**constants.VIDEO_DICT_TREE)
+        EncodedVideo.objects.create(
+            video=video,
+            profile=mobile_profile,
+            **constants.ENCODED_VIDEO_DICT_MOBILE3
+        )
+        CourseVideo.objects.create(video=video, course_id=self.course_id2)
+
+        # 4th video different course
+        video = Video.objects.create(**constants.VIDEO_DICT_PLANT)
+        EncodedVideo.objects.create(
+            video=video,
+            profile=desktop_profile,
+            **constants.ENCODED_VIDEO_DICT_DESKTOP3
+        )
+        CourseVideo.objects.create(video=video, course_id=self.course_id2)
+
+    def _create_video_dict(self, video, encoding_dict):
+        """
+        Creates a video dict object from given constants
+        """
+        return {
+            video['edx_video_id']: {
+                "duration": video['duration'],
+                'profiles': {
+                    profile_name: {
+                        "url": encoding["url"],
+                        "file_size": encoding["file_size"],
+                    }
+                    for (profile_name, encoding) in encoding_dict.iteritems()
+                }
+            }
+        }
+
+    def test_get_video_for_course_profiles_success_one_profile(self):
+        """
+        Tests get_video_info_for_course_and_profiles for one profile
+        """
+        videos = api.get_video_info_for_course_and_profiles(
+            self.course_id,
+            ['mobile']
+        )
+        expected_dict = {}
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_FISH,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE
+            }
+        ))
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_STAR,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2
+            }))
+        self.assertEqual(videos, expected_dict)
+
+    def test_get_video_for_course_profiles_success_two_profiles(self):
+        """
+        Tests get_video_info_for_course_and_profiles for two profile
+        """
+        videos = api.get_video_info_for_course_and_profiles(
+            'test-course',
+            ['mobile', 'desktop'])
+        expected_dict = {}
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_FISH,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE,
+                constants.PROFILE_DICT_DESKTOP["profile_name"]: constants.ENCODED_VIDEO_DICT_DESKTOP,
+            }
+        ))
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_STAR,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2,
+                constants.PROFILE_DICT_DESKTOP["profile_name"]: constants.ENCODED_VIDEO_DICT_DESKTOP2,
+            }
+        ))
+        self.assertEqual(videos, expected_dict)
+
+    def test_get_video_for_course_profiles_no_profile(self):
+        """Tests get_video_info_for_course_and_profiles with no such profile"""
+        videos = api.get_video_info_for_course_and_profiles(
+            'test-course',
+            ['no_profile'])
+        self.assertEqual(len(videos), 0)
+
+        videos = api.get_video_info_for_course_and_profiles(
+            'test-course',
+            [])
+        self.assertEqual(len(videos), 0)
+
+        videos = api.get_video_info_for_course_and_profiles(
+            'test-course',
+            ['mobile', 'no_profile'])
+        expected_dict = {}
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_FISH,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE
+            }
+        ))
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_STAR,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2
+            }
+        ))
+        self.assertEqual(videos, expected_dict)
+
+    def test_get_video_for_course_profiles_video_with_one_profile(self):
+        """
+        Tests get_video_info_for_course_and_profiles with one of two profiles
+        """
+        videos = api.get_video_info_for_course_and_profiles(
+            'test-course2',
+            ['mobile'])
+        expected_dict = {}
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_TREE,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE3
+            }
+        ))
+        self.assertEqual(videos, expected_dict)
+
+        videos = api.get_video_info_for_course_and_profiles(
+            'test-course2',
+            ['desktop'])
+        expected_dict = {}
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_PLANT,
+            {
+                constants.PROFILE_DICT_DESKTOP["profile_name"]: constants.ENCODED_VIDEO_DICT_DESKTOP3
+            }
+        ))
+        self.assertEqual(videos, expected_dict)
+
+    def test_get_video_for_course_profiles_repeated_profile(self):
+        """
+        Tests get_video_info_for_course_and_profiles with repeated profile
+        """
+        videos = api.get_video_info_for_course_and_profiles(
+            'test-course',
+            ['mobile', 'mobile'])
+        expected_dict = {}
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_FISH,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE,
+            }
+        ))
+        expected_dict.update(self._create_video_dict(
+            constants.VIDEO_DICT_STAR,
+            {
+                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2
+            }
+        ))
+        self.assertEqual(videos, expected_dict)
 
 
 class GetVideosForIds(TestCase):
@@ -435,4 +640,58 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         with self.assertNumQueries(4):
             api.get_video_info(constants.VIDEO_DICT_ZEBRA.get("edx_video_id"))
+
+
+class TestCopyCourse(TestCase):
+    """Tests copy_course_videos in api.py"""
+
+    def setUp(self):
+        """
+        Creates a course with 2 videos and a course with 1 video
+        """
+        self.course_id = 'test-course'
+        # 1st video
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+        # 2nd video
+        video = Video.objects.create(**constants.VIDEO_DICT_STAR)
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+
+        self.course_id2 = "test-course2"
+        # 3rd video different course
+        video = Video.objects.create(**constants.VIDEO_DICT_TREE)
+        CourseVideo.objects.create(video=video, course_id=self.course_id2)
+
+    def test_successful_copy(self):
+        """Tests a successful copy course"""
+        api.copy_course_videos('test-course', 'course-copy1')
+        original_videos = Video.objects.filter(courses__course_id='test-course')
+        copied_videos = Video.objects.filter(courses__course_id='course-copy1')
+        other_course = Video.objects.filter(courses__course_id='test-course2')
+
+        self.assertEqual(len(original_videos), 2)
+        self.assertEqual(
+            {original_video.edx_video_id for original_video in original_videos},
+            {constants.VIDEO_DICT_FISH["edx_video_id"], constants.VIDEO_DICT_STAR["edx_video_id"]}
+        )
+        self.assertTrue(set(original_videos) == set(copied_videos))
+
+    def test_same_course_ids(self):
+        """
+        Tests when the destination course id name is the same as the source
+        """
+        original_videos = Video.objects.filter(courses__course_id='test-course')
+        api.copy_course_videos('test-course', 'test-course')
+        copied_videos = Video.objects.filter(courses__course_id='test-course')
+        self.assertEqual(len(original_videos), 2)
+        self.assertTrue(set(original_videos) == set(copied_videos))
+
+    def test_existing_destination_course_id(self):
+        """Test when the destination course id already exists"""
+        api.copy_course_videos('test-course', 'test-course2')
+        original_videos = Video.objects.filter(courses__course_id='test-course')
+        copied_videos = Video.objects.filter(courses__course_id='test-course2')
+        self.assertEqual(len(original_videos), 2)
+        self.assertLessEqual(set(original_videos), set(copied_videos))
+        self.assertEqual(len(copied_videos), 3)
 

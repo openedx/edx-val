@@ -6,7 +6,7 @@ The internal API for VAL. This is not yet stable
 from enum import Enum
 import logging
 
-from edxval.models import Video, EncodedVideo
+from edxval.models import Video, EncodedVideo, CourseVideo
 from edxval.serializers import VideoSerializer, ProfileSerializer
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
@@ -93,6 +93,7 @@ def create_video(video_data):
                         extension: 3 letter extension of video
                         width: horizontal pixel resolution
                         height: vertical pixel resolution
+                courses: Courses associated with this video
          }
     """
     serializer = VideoSerializer(data=video_data)
@@ -119,7 +120,7 @@ def create_profile(profile_data):
         }
 
     Returns:
-        new_object.id (int): id of the newly created object
+        (int): id of the newly created object
 
     Raises:
         ValCannotCreateError: Raised if the serializer throws an error
@@ -141,7 +142,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
         edx_video_id (str): id for video content.
 
     Returns:
-        result (dict): Deserialized Video Object with related field EncodedVideo
+        (dict): Deserialized Video Object with related field EncodedVideo
             Returns all the Video object fields, and it's related EncodedVideo
             objects in a list.
             {
@@ -180,7 +181,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
             'client_video_id': u'The example video',
             'encoded_videos': [
                 {
-                    'url': u'http://www.meowmix.com',
+                    'url': u'http://www.example.com',
                     'file_size': 25556,
                     'bitrate': 9600,
                     'profile': u'mobile'
@@ -212,7 +213,7 @@ def get_urls_for_profiles(edx_video_id, profiles):
         profiles (list): list of profiles we want to search for
 
     Returns:
-        profiles_to_urls (dict): A dict containing the profile to url pair
+        (dict): A dict containing the profile to url pair
     """
     profiles_to_urls = {profile: None for profile in profiles}
     try:
@@ -236,7 +237,7 @@ def get_url_for_profile(edx_video_id, profile):
         profile (str): a string of the profile we are searching
 
     Returns:
-        A string with the url
+        (str): A string with the url
 
     """
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
@@ -277,17 +278,63 @@ def get_videos_for_ids(
     return (VideoSerializer(video).data for video in videos)
 
 
-def get_video_info_for_course_and_profile(course_id, profile_name):
+def get_video_info_for_course_and_profiles(course_id, profiles):
     """
-    Returns a dict mapping profiles to URLs.
+    Returns a dict of edx_video_ids with a dict of requested profiles.
 
-    If the profiles or video is not found, urls will be blank.
+    Args:
+        course_id (str): id of the course
+        profiles (list): list of profile_names
+    Returns:
+        (dict): Returns all the profiles attached to a specific
+        edx_video_id
+        {
+            edx_video_id: {
+                'duration': length of the video in seconds,
+                'profiles': {
+                    profile_name: {
+                        'url': url of the encoding
+                        'file_size': size of the file in bytes
+                    },
+                }
+            },
+        }
+    Example:
+        Given two videos with two profiles each in course_id 'test_course':
+        {
+            u'edx_video_id_1': {
+                u'duration: 1111,
+                u'profiles': {
+                    u'mobile': {
+                        'url': u'http: //www.example.com/meow',
+                        'file_size': 2222
+                    },
+                    u'desktop': {
+                        'url': u'http: //www.example.com/woof',
+                        'file_size': 4444
+                    }
+                }
+            },
+            u'edx_video_id_2': {
+                u'duration: 2222,
+                u'profiles': {
+                    u'mobile': {
+                        'url': u'http: //www.example.com/roar',
+                        'file_size': 6666
+                    },
+                    u'desktop': {
+                        'url': u'http: //www.example.com/bzzz',
+                        'file_size': 8888
+                    }
+                }
+            }
+        }
     """
     # In case someone passes in a key (VAL doesn't really understand opaque keys)
     course_id = unicode(course_id)
     try:
         encoded_videos = EncodedVideo.objects.filter(
-            profile__profile_name=profile_name,
+            profile__profile_name__in=profiles,
             video__courses__course_id=course_id
         ).select_related()
     except Exception:
@@ -296,11 +343,39 @@ def get_video_info_for_course_and_profile(course_id, profile_name):
         raise ValInternalError(error_message)
 
     # DRF serializers were causing extra queries for some reason...
-    return {
-        enc_vid.video.edx_video_id: {
-            "url": enc_vid.url,
-            "file_size": enc_vid.file_size,
-            "duration": enc_vid.video.duration,
-        }
-        for enc_vid in encoded_videos
-    }
+    return_dict = {}
+    for enc_vid in encoded_videos:
+        # Add duration to edx_video_id
+        return_dict.setdefault(enc_vid.video.edx_video_id, {}).update(
+            {
+                "duration": enc_vid.video.duration,
+            }
+        )
+        # Add profile information to edx_video_id's profiles
+        return_dict[enc_vid.video.edx_video_id].setdefault("profiles", {}).update(
+            {enc_vid.profile.profile_name: {
+                "url": enc_vid.url,
+                "file_size": enc_vid.file_size,
+            }}
+        )
+    return return_dict
+
+
+def copy_course_videos(source_course_id, destination_course_id):
+    """
+    Adds the destination_course_id to the videos taken from the source_course_id
+
+    Args:
+        source_course_id: The original course_id
+        destination_course_id: The new course_id where the videos will be copied
+    """
+    if source_course_id == destination_course_id:
+        return
+
+    videos = Video.objects.filter(courses__course_id=unicode(source_course_id))
+
+    for video in videos:
+        CourseVideo.objects.get_or_create(
+            video=video,
+            course_id=destination_course_id
+        )
