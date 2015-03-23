@@ -4,6 +4,7 @@ Tests for the API for Video Abstraction Layer
 """
 
 import mock
+from lxml import etree
 
 from django.test import TestCase
 from django.db import DatabaseError
@@ -674,3 +675,37 @@ class TestCopyCourse(TestCase):
         self.assertLessEqual(set(original_videos), set(copied_videos))
         self.assertEqual(len(copied_videos), 3)
 
+
+class ExportImportTest(TestCase):
+    """
+    Tests the export import functions in api.py.
+    """
+    def setUp(self):
+        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
+        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        self.edx_video_id = constants.VIDEO_DICT_FISH.get("edx_video_id")
+        EncodedVideo.objects.create(
+            video=Video.objects.get(self.edx_video_id),
+            profile=Profile.objects.get(profile_name="mobile"),
+            **constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        EncodedVideo.objects.create(
+            video=Video.objects.get(self.edx_video_id),
+            profile=Profile.objects.get(profile_name="desktop"),
+            **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        self.course_id = 'test-course'
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+
+    def assertXmlEqual(self, expected_xml_string, xml):
+        parser = etree.XMLParser(remove_blank_text=True)
+        expected = etree.XML(expected_xml_string, parser=parser)
+        for attr in ['tag', 'attrib', 'text', 'tail']:
+            self.assertEqual(getattr(expected, attr), getattr(xml, attr))
+        for left, right in zip(expected, xml):
+            self.assertXmlEqual(left, right)
+
+    def test_success(self):
+        xml = etree.Element('val_test')
+        api.export_to_xml(xml, self.edx_video_id)

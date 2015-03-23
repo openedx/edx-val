@@ -4,7 +4,7 @@
 The internal API for VAL. This is not yet stable
 """
 import logging
-
+from lxml.etree import SubElement
 from enum import Enum
 
 from django.core.exceptions import ValidationError
@@ -365,3 +365,111 @@ def copy_course_videos(source_course_id, destination_course_id):
             video=video,
             course_id=destination_course_id
         )
+
+
+def get_video_or_none(edx_video_id):
+    """
+    Returns video object for the given edx_video_id if it exists, otherwise returns None.
+    """
+    try:
+        return Video.objects.prefetch_related("encoded_videos", "courses").get(edx_video_id=edx_video_id)
+    except Video.DoesNotExist:
+        return None
+
+
+def export_to_xml(xml, edx_video_id):
+    """
+    Exports data about the given edx_video_id into the given xml object.
+    """
+    video = get_video_or_none(edx_video_id=edx_video_id)
+    if not video:
+        return
+
+    video_el = SubElement(
+        xml,
+        'edx_video',
+        attrib={
+            'client_video_id': video.client_video_id,
+            'duration': unicode(video.duration),
+            'status': video.status,
+            # Note: we intentionally do not put course information in the
+            # exported data so we don't leak information about other courses.
+            # 'courses': [course.course_id for course in video.courses]
+        }
+    )
+    encoded_videos_el = SubElement(video_el, 'encoded_videos')
+    for encoded_video in video.encoded_videos.all():
+         SubElement(
+            encoded_videos_el,
+            'encoded_video',
+            {
+                name: unicode(getattr(encoded_video, name))
+                for name in ['profile', 'url', 'file_size', 'bitrate']
+            }
+        )
+
+    # Note: we are *not* exporting Subtitle data since it is not currently updated by VEDA or used by LMS/Studio.
+
+
+def import_from_xml(xml, edx_video_id, course_id):
+    """
+    Imports data from the given xml object about the given edx_video_id.
+    If the edx_video_id already exists,
+      then the existing data in the database is kept and not overridden.
+      However, any additional encoded_videos in the xml that are not in the database would be added.
+    The edx_video_id is associated with the given course, regardless of whether it already existed.
+    """
+    video = get_video_or_none(edx_video_id=edx_video_id)
+    video_el = xml.find('edx_video')
+    if video_el:
+        if video:
+            logger.info(
+                "edx_video_id '%s' present in course '%s' not imported because it exists in VAL.",
+                edx_video_id,
+                course_id,
+            )
+        else:
+            # create the edx_video_id entry since it doesn't already exist
+            video = Video.objects.create(
+                edx_video_id=edx_video_id,
+                client_video_id=video_el.get('client_video_id'),
+                duration=video_el.get('duration'),
+                status=video_el.get('status'),
+            )
+
+        encoded_videos_el = video_el.find('encoded_videos')
+        if encoded_videos_el:
+            # We iterate through all the encoded videos regardless of whether a video entry already existed.
+            # If a video entry didn't exist, then the encoded_videos will be imported.
+            # If a video entry did exist, then only new encoded_videos will be imported.
+            for encoded_video_el in encoded_videos_el.iterfind('encoded_video'):
+
+                # If profile doesn't exist, create it.
+                # This may happen if the profile existed on the server/instance where the xml
+                # was exported, but doesn't exist in the local database.
+                # We create the profile entry with default values and log that it was created.
+                profile_name = encoded_video_el.get('profile')
+                profile, created = Profile.objects.get_or_create(profile_name=)
+                if created:
+                    logger.info(
+                        "New profile '%s' was created for edx_video_id '%s' for course '%s.",
+                        profile_name,
+                        edx_video_id,
+                        course_id,
+                    )
+
+                # only add the encoded video if one for its profile doesn't already exist.
+                if not EncodedVideo.objects.filter(profile__profile_name=profile).exists():
+                    EncodedVideo.objects.create(
+                        video=video,
+                        profile=profile,
+                        url=encoded_video_el.get('url'),
+                        file_size=encoded_video_el.get('file_size'),
+                        bitrate=encoded_video_el.get('bitrate'),
+                    )
+
+    # Associate the (existing or new) video with the given course_id.
+    CourseVideo.objects.get_or_create(
+        video=video,
+        course_id=course_id
+    )
