@@ -10,20 +10,6 @@ from django.core.exceptions import ValidationError
 from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Profile object.
-    """
-    class Meta:  # pylint: disable=C1001, C0111
-        model = Profile
-        fields = (
-            "profile_name",
-            "extension",
-            "width",
-            "height"
-        )
-
-
 class EncodedVideoSerializer(serializers.ModelSerializer):
     """
     Serializer for EncodedVideo object.

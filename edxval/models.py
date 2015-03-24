@@ -5,26 +5,9 @@ When calling a serializers' .errors field, there is a priority in which the
 errors are returned. This may cause a partial return of errors, starting with
 the highest priority.
 
-Example:
-class Profile(models.Model)
-    profile_name = models.CharField(
-        max_length=50,
-        unique=True,
-        validators=[
-            RegexValidator(
-                regex=regex,
-                message='profile_name has invalid characters',
-                code='invalid profile_name'
-            ),
-        ]
-    )
-    extension = models.CharField(max_length=10)
-    width = models.PositiveIntegerField()
-    height = models.PositiveIntegerField()
-
-Missing a field, having an input type (expected an int, not a str),
+Missing a field, having an incorrect input type (expected an int, not a str),
 nested serialization errors, or any similar errors will be returned by
-themselves. After these are resolved, errors such as a negative height, or
+themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
@@ -54,9 +37,6 @@ class Profile(models.Model):
             ),
         ]
     )
-    extension = models.CharField(max_length=10)
-    width = models.PositiveIntegerField()
-    height = models.PositiveIntegerField()
 
     def __unicode__(self):
         return self.profile_name

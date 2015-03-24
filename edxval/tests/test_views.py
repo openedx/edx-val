@@ -18,8 +18,8 @@ class VideoDetail(APIAuthTestCase):
         """
         Used for manually creating profile objects which EncodedVideos require.
         """
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         super(VideoDetail, self).setUp()
 
     # Tests for successful PUT requests.
@@ -321,8 +321,8 @@ class VideoListTest(APIAuthTestCase):
         """
         Used for manually creating profile objects which EncodedVideos require.
         """
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         super(VideoListTest, self).setUp()
 
     def tearDown(self):
@@ -573,8 +573,8 @@ class VideoDetailTest(APIAuthTestCase):
         """
         Used for manually creating profile objects which EncodedVideos require.
         """
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         super(VideoDetailTest, self).setUp()
 
     def test_get_all_videos(self):
@@ -615,8 +615,8 @@ class SubtitleDetailTest(APIAuthTestCase):
     Tests for subtitle API
     """
     def setUp(self):
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         super(SubtitleDetailTest, self).setUp()
 
     def test_get_subtitle_content(self):

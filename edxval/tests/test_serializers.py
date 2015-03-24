@@ -8,7 +8,6 @@ from django.test import TestCase
 
 from edxval.serializers import (
     EncodedVideoSerializer,
-    ProfileSerializer,
     VideoSerializer,
     ValidationError,
 )
@@ -22,11 +21,14 @@ class SerializerTests(TestCase):
     """
     def setUp(self):
         """
-        Creates Profile objects
+        Creates Profile objects and a video object
         """
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
-        Profile.objects.create(**constants.PROFILE_DICT_NON_LATIN)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
+        Video.objects.create(
+            duration=0,
+            edx_video_id=constants.VIDEO_DICT_NON_LATIN_ID["edx_video_id"]
+        )
 
     def test_negative_fields_for_encoded_video_serializer(self):
         """
@@ -60,8 +62,10 @@ class SerializerTests(TestCase):
         """
         # TODO not the best test. Need to understand what result we want
         self.assertIsInstance(
-            ProfileSerializer(Profile.objects.get(profile_name="배고파")),
-            ProfileSerializer
+            VideoSerializer(
+                Video.objects.get(edx_video_id=constants.VIDEO_DICT_NON_LATIN_ID["edx_video_id"])
+            ),
+            VideoSerializer
         )
 
     def test_invalid_edx_video_id(self):

@@ -7,7 +7,7 @@ from .models import Video, Profile, EncodedVideo, Subtitle, CourseVideo
 
 
 class ProfileAdmin(admin.ModelAdmin):  # pylint: disable=C0111
-    list_display = ('id', 'profile_name', 'extension', 'width', 'height')
+    list_display = ('id', 'profile_name')
     list_display_links = ('id', 'profile_name')
     admin_order_field = 'profile_name'
 

@@ -3,11 +3,14 @@
 """
 The internal API for VAL. This is not yet stable
 """
-from enum import Enum
 import logging
 
-from edxval.models import Video, EncodedVideo, CourseVideo
-from edxval.serializers import VideoSerializer, ProfileSerializer
+from enum import Enum
+
+from django.core.exceptions import ValidationError
+
+from edxval.models import Video, EncodedVideo, CourseVideo, Profile
+from edxval.serializers import VideoSerializer
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -88,11 +91,7 @@ def create_video(video_data):
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
                     file_size: size of the video in bytes
-                    profile: a dict of encoding details
-                        profile_name: ID of the profile
-                        extension: 3 letter extension of video
-                        width: horizontal pixel resolution
-                        height: vertical pixel resolution
+                    profile: ID of the profile
                 courses: Courses associated with this video
          }
     """
@@ -104,33 +103,24 @@ def create_video(video_data):
         raise ValCannotCreateError(serializer.errors)
 
 
-def create_profile(profile_data):
+def create_profile(profile_name):
     """
     Used to create Profile objects in the database
 
     A profile needs to exists before an EncodedVideo object can be created.
 
     Args:
-        data (dict):
-        {
-            profile_name: ID of the profile
-            extension: 3 letter extension of video
-            width: horizontal pixel resolution
-            height: vertical pixel resolution
-        }
-
-    Returns:
-        (int): id of the newly created object
+        profile_name (str): ID of the profile
 
     Raises:
-        ValCannotCreateError: Raised if the serializer throws an error
+        ValCannotCreateError: Raised if the profile name is invalid or exists
     """
-    serializer = ProfileSerializer(data=profile_data)
-    if serializer.is_valid():
-        serializer.save()
-        return profile_data.get("profile_name")
-    else:
-        raise ValCannotCreateError(serializer.errors)
+    try:
+        profile = Profile(profile_name=profile_name)
+        profile.full_clean()
+        profile.save()
+    except ValidationError as err:
+        raise ValCannotCreateError(err.message_dict)
 
 
 def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
@@ -154,11 +144,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
                     file_size: size of the video in bytes
-                    profile: a dict of encoding details
-                        profile_name: ID of the profile
-                        extension: 3 letter extension of video
-                        width: horizontal pixel resolution
-                        height: vertical pixel resolution
+                    profile: ID of the profile
                 subtitles: a list of Subtitle dicts
                     fmt: file format (SRT or SJSON)
                     language: language code

@@ -11,7 +11,6 @@ from django.views.decorators.http import last_modified
 from edxval.models import Video, Profile, Subtitle
 from edxval.serializers import (
     VideoSerializer,
-    ProfileSerializer,
     SubtitleSerializer
 )
 
@@ -75,17 +74,6 @@ class VideoList(generics.ListCreateAPIView):
             # view videos by youtube id
             qset = qset & Video.by_youtube_id(youtube_id)
         return qset
-
-
-class ProfileList(generics.ListCreateAPIView):
-    """
-    GETs or POST video objects
-    """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
-    permission_classes = (ReadRestrictedDjangoModelPermissions,)
-    queryset = Profile.objects.all()
-    lookup_field = "profile_name"
-    serializer_class = ProfileSerializer
 
 
 class VideoDetail(generics.RetrieveUpdateDestroyAPIView):
