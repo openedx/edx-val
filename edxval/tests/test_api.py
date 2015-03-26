@@ -651,23 +651,22 @@ class TestCopyCourse(TestCase):
         """
         self.course_id = 'test-course'
         # 1st video
-        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
-        CourseVideo.objects.create(video=video, course_id=self.course_id)
+        self.video1 = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
         # 2nd video
-        video = Video.objects.create(**constants.VIDEO_DICT_STAR)
-        CourseVideo.objects.create(video=video, course_id=self.course_id)
+        self.video2 = Video.objects.create(**constants.VIDEO_DICT_STAR)
+        CourseVideo.objects.create(video=self.video2, course_id=self.course_id)
 
         self.course_id2 = "test-course2"
         # 3rd video different course
-        video = Video.objects.create(**constants.VIDEO_DICT_TREE)
-        CourseVideo.objects.create(video=video, course_id=self.course_id2)
+        self.video3 = Video.objects.create(**constants.VIDEO_DICT_TREE)
+        CourseVideo.objects.create(video=self.video3, course_id=self.course_id2)
 
     def test_successful_copy(self):
         """Tests a successful copy course"""
         api.copy_course_videos('test-course', 'course-copy1')
         original_videos = Video.objects.filter(courses__course_id='test-course')
         copied_videos = Video.objects.filter(courses__course_id='course-copy1')
-        other_course = Video.objects.filter(courses__course_id='test-course2')
 
         self.assertEqual(len(original_videos), 2)
         self.assertEqual(
@@ -695,3 +694,17 @@ class TestCopyCourse(TestCase):
         self.assertLessEqual(set(original_videos), set(copied_videos))
         self.assertEqual(len(copied_videos), 3)
 
+    def test_existing_video_in_destination_course_id(self):
+        """
+        Test when the destination course id already has videos from source id
+        """
+        course_id3 = 'test-course3'
+        # 1st video
+        CourseVideo.objects.create(video=self.video1, course_id=course_id3)
+
+        api.copy_course_videos('test-course', 'test-course3')
+        original_videos = Video.objects.filter(courses__course_id='test-course')
+        copied_videos = Video.objects.filter(courses__course_id='test-course3')
+
+        self.assertEqual(len(original_videos), 2)
+        self.assertTrue(set(copied_videos) == set(original_videos))
