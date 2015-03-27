@@ -7,24 +7,9 @@ EDX_VIDEO_ID = "itchyjacket"
 """
 Generic Profiles for manually creating profile objects
 """
-PROFILE_DICT_MOBILE = dict(
-    profile_name="mobile",
-    extension="avi",
-    width=100,
-    height=101
-)
-PROFILE_DICT_DESKTOP = dict(
-    profile_name="desktop",
-    extension="mp4",
-    width=200,
-    height=2001
-)
-PROFILE_DICT_YOUTUBE = dict(
-    profile_name="youtube",
-    extension="mp4",
-    width=1280,
-    height=720
-)
+PROFILE_MOBILE = "mobile"
+PROFILE_DESKTOP = "desktop"
+PROFILE_YOUTUBE = "youtube"
 """
 Encoded_videos for test_api, does not have profile.
 """
@@ -112,40 +97,7 @@ VIDEO_DICT_NON_LATIN_ID = dict(
     encoded_videos=[],
     subtitles=[]
 )
-PROFILE_DICT_NON_LATIN = dict(
-    profile_name=u"배고파",
-    extension="mew",
-    width=100,
-    height=300
-)
-PROFILE_DICT_INVALID_NAME = dict(
-    profile_name="lo/lol",
-    extension="mew",
-    width=100,
-    height=300
-)
-PROFILE_DICT_NEGATIVE_WIDTH = dict(
-    profile_name="mobile",
-    extension="mew",
-    width=-100,
-    height=300
-)
-PROFILE_DICT_NEGATIVE_HEIGHT = dict(
-    profile_name="mobile",
-    extension="mew",
-    width=100,
-    height=-300
-)
-PROFILE_DICT_MISSING_EXTENSION = dict(
-    profile_name="mobile",
-    width=100,
-    height=300
-)
-PROFILE_DICT_MANY_INVALID = dict(
-    profile_name="hh/ff",
-    width=-100,
-    height="lol",
-)
+PROFILE_INVALID_NAME = "lo/lol"
 """
 Subtitles
 """

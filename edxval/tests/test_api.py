@@ -8,7 +8,6 @@ import mock
 from django.test import TestCase
 from django.db import DatabaseError
 from django.core.urlresolvers import reverse
-from django.core.exceptions import ValidationError
 from rest_framework import status
 from ddt import ddt, data
 
@@ -35,8 +34,8 @@ class CreateVideoTest(TestCase):
         """
         Creation of Profile objects that will be used to test video creation
         """
-        api.create_profile(constants.PROFILE_DICT_DESKTOP)
-        api.create_profile(constants.PROFILE_DICT_MOBILE)
+        api.create_profile(constants.PROFILE_DESKTOP)
+        api.create_profile(constants.PROFILE_MOBILE)
 
     def test_create_video(self):
         """
@@ -65,24 +64,7 @@ class CreateVideoTest(TestCase):
         with self.assertRaises(ValCannotCreateError):
             api.create_video(data)
 
-    def test_invalid_profile(self):
-        """
-        Tests inputting bad profile type
-        """
-        video_data = dict(
-            encoded_videos=[
-                dict(
-                    profile=constants.PROFILE_DICT_MOBILE,
-                    **constants.ENCODED_VIDEO_DICT_MOBILE
-                )
-            ],
-            **constants.VIDEO_DICT_FISH
-        )
-        with self.assertRaises(ValidationError):
-            api.create_video(video_data)
 
-
-@ddt
 class CreateProfileTest(TestCase):
     """
     Tests the create_profile function in the api.py
@@ -92,29 +74,26 @@ class CreateProfileTest(TestCase):
         """
         Tests the creation of a profile
         """
-        result = api.create_profile(constants.PROFILE_DICT_DESKTOP)
+        result = api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
         self.assertEqual(len(profiles), 6)
         self.assertEqual(
             profiles[-1].profile_name,
-            constants.PROFILE_DICT_DESKTOP.get('profile_name')
+            constants.PROFILE_DESKTOP
         )
         self.assertEqual(len(profiles), 6)
-        self.assertEqual("desktop", result)
 
-    @data(
-        constants.PROFILE_DICT_NEGATIVE_WIDTH,
-        constants.PROFILE_DICT_NEGATIVE_HEIGHT,
-        constants.PROFILE_DICT_MISSING_EXTENSION,
-        constants.PROFILE_DICT_MANY_INVALID,
-        constants.PROFILE_DICT_INVALID_NAME,
-    )
-    def test_invalid_create_profile(self, data): # pylint: disable=W0621
+    def test_invalid_create_profile(self):
         """
         Tests the creation of invalid profile data
         """
         with self.assertRaises(ValCannotCreateError):
-            api.create_profile(data)
+            api.create_profile(constants.PROFILE_INVALID_NAME)
+
+    def test_create_profile_duplicate(self):
+        api.create_profile(constants.PROFILE_DESKTOP)
+        with self.assertRaises(ValCannotCreateError):
+            api.create_profile(constants.PROFILE_DESKTOP)
 
 
 class GetVideoInfoTest(TestCase):
@@ -126,8 +105,8 @@ class GetVideoInfoTest(TestCase):
         """
         Creates EncodedVideo objects in database
         """
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
             video=video,
@@ -211,8 +190,8 @@ class GetUrlsForProfileTest(TestCase):
         """
         Creates EncodedVideo objects in database
         """
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
             video=Video.objects.get(
@@ -280,8 +259,8 @@ class GetVideoForCourseProfiles(TestCase):
         Creates two videos with 2 encoded videos for the first course, and then
         2 videos with 1 encoded video for the second course.
         """
-        mobile_profile = Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        desktop_profile = Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        desktop_profile = Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
 
         self.course_id = 'test-course'
         # 1st video
@@ -359,13 +338,13 @@ class GetVideoForCourseProfiles(TestCase):
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_FISH,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE
             }
         ))
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_STAR,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE2
             }))
         self.assertEqual(videos, expected_dict)
 
@@ -380,15 +359,15 @@ class GetVideoForCourseProfiles(TestCase):
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_FISH,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE,
-                constants.PROFILE_DICT_DESKTOP["profile_name"]: constants.ENCODED_VIDEO_DICT_DESKTOP,
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE,
+                constants.PROFILE_DESKTOP: constants.ENCODED_VIDEO_DICT_DESKTOP,
             }
         ))
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_STAR,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2,
-                constants.PROFILE_DICT_DESKTOP["profile_name"]: constants.ENCODED_VIDEO_DICT_DESKTOP2,
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE2,
+                constants.PROFILE_DESKTOP: constants.ENCODED_VIDEO_DICT_DESKTOP2,
             }
         ))
         self.assertEqual(videos, expected_dict)
@@ -412,13 +391,13 @@ class GetVideoForCourseProfiles(TestCase):
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_FISH,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE
             }
         ))
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_STAR,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE2
             }
         ))
         self.assertEqual(videos, expected_dict)
@@ -434,7 +413,7 @@ class GetVideoForCourseProfiles(TestCase):
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_TREE,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE3
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE3
             }
         ))
         self.assertEqual(videos, expected_dict)
@@ -446,7 +425,7 @@ class GetVideoForCourseProfiles(TestCase):
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_PLANT,
             {
-                constants.PROFILE_DICT_DESKTOP["profile_name"]: constants.ENCODED_VIDEO_DICT_DESKTOP3
+                constants.PROFILE_DESKTOP: constants.ENCODED_VIDEO_DICT_DESKTOP3
             }
         ))
         self.assertEqual(videos, expected_dict)
@@ -462,13 +441,13 @@ class GetVideoForCourseProfiles(TestCase):
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_FISH,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE,
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE,
             }
         ))
         expected_dict.update(self._create_video_dict(
             constants.VIDEO_DICT_STAR,
             {
-                constants.PROFILE_DICT_MOBILE["profile_name"]: constants.ENCODED_VIDEO_DICT_MOBILE2
+                constants.PROFILE_MOBILE: constants.ENCODED_VIDEO_DICT_MOBILE2
             }
         ))
         self.assertEqual(videos, expected_dict)
@@ -483,8 +462,8 @@ class GetVideosForIds(TestCase):
         """
         Creates EncodedVideo objects in database
         """
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
             video=Video.objects.get(
@@ -592,8 +571,8 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         database via HTTP uploads.
         """
         super(GetVideoInfoTestWithHttpCalls, self).setUp()
-        Profile.objects.create(**constants.PROFILE_DICT_MOBILE)
-        Profile.objects.create(**constants.PROFILE_DICT_DESKTOP)
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         url = reverse('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
