@@ -436,6 +436,7 @@ def import_from_xml(xml, edx_video_id, course_id):
                 duration=video_el.get('duration'),
                 status=video_el.get('status'),
             )
+            video.full_clean()
 
         encoded_videos_el = video_el.find('encoded_videos')
         if encoded_videos_el:
@@ -460,16 +461,20 @@ def import_from_xml(xml, edx_video_id, course_id):
 
                 # only add the encoded video if one for its profile doesn't already exist.
                 if not EncodedVideo.objects.filter(profile__profile_name=profile).exists():
-                    EncodedVideo.objects.create(
+                    encoded_video = EncodedVideo.objects.create(
                         video=video,
                         profile=profile,
                         url=encoded_video_el.get('url'),
                         file_size=encoded_video_el.get('file_size'),
                         bitrate=encoded_video_el.get('bitrate'),
                     )
+                    encoded_video.full_clean()
 
     # Associate the (existing or new) video with the given course_id.
-    CourseVideo.objects.get_or_create(
+    course_video, created = CourseVideo.objects.get_or_create(
         video=video,
         course_id=course_id
     )
+    if created:
+        course_video.full_clean()
+
