@@ -4,6 +4,7 @@ Tests for the API for Video Abstraction Layer
 """
 
 import mock
+from lxml import etree
 
 from django.test import TestCase
 from django.db import DatabaseError
@@ -16,9 +17,9 @@ from edxval import api as api
 from edxval.api import (
     SortDirection,
     ValCannotCreateError,
+    ValVideoNotFoundError,
     VideoSortField,
 )
-from edxval.serializers import VideoSerializer
 from edxval.tests import constants, APIAuthTestCase
 
 
@@ -157,17 +158,6 @@ class GetVideoInfoTest(TestCase):
         """
         with self.assertRaises(api.ValVideoNotFoundError):
             api.get_video_info(u"๓ﻉѻฝ๓ٱซ")
-
-    @mock.patch.object(VideoSerializer, '__init__')
-    def test_force_internal_error(self, mock_init):
-        """
-        Tests to see if an unknown error will be handled
-        """
-        mock_init.side_effect = Exception("Mock error")
-        with self.assertRaises(api.ValInternalError):
-            api.get_video_info(
-                constants.VIDEO_DICT_FISH.get("edx_video_id")
-            )
 
     @mock.patch.object(Video, '__init__')
     def test_force_database_error(self, mock_get):
@@ -687,3 +677,241 @@ class TestCopyCourse(TestCase):
 
         self.assertEqual(len(original_videos), 2)
         self.assertTrue(set(copied_videos) == set(original_videos))
+
+
+class ExportTest(TestCase):
+    """Tests export_to_xml"""
+    def setUp(self):
+        mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        desktop_profile = Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
+        Video.objects.create(**constants.VIDEO_DICT_STAR)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        EncodedVideo.objects.create(
+            video=video,
+            profile=mobile_profile,
+            **constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        EncodedVideo.objects.create(
+            video=video,
+            profile=desktop_profile,
+            **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+
+    def assert_xml_equal(self, left, right):
+        """
+        Assert that the given XML fragments have the same attributes, text, and
+        (recursively) children
+        """
+        def get_child_tags(elem):
+            """Extract the list of tag names for children of elem"""
+            return [child.tag for child in elem]
+
+        for attr in ['tag', 'attrib', 'text', 'tail']:
+            self.assertEqual(getattr(left, attr), getattr(right, attr))
+        self.assertEqual(get_child_tags(left), get_child_tags(right))
+        for left_child, right_child in zip(left, right):
+            self.assert_xml_equal(left_child, right_child)
+
+    def parse_xml(self, xml_str):
+        """Parse XML for comparison with export output"""
+        parser = etree.XMLParser(remove_blank_text=True)
+        return etree.XML(xml_str, parser=parser)
+
+    def test_no_encodings(self):
+        expected = self.parse_xml("""
+            <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0"/>
+        """)
+        self.assert_xml_equal(
+            api.export_to_xml(constants.VIDEO_DICT_STAR["edx_video_id"]),
+            expected
+        )
+
+    def test_basic(self):
+        expected = self.parse_xml("""
+            <video_asset client_video_id="Shallow Swordfish" duration="122.0">
+                <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
+                <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
+            </video_asset>
+        """)
+        self.assert_xml_equal(
+            api.export_to_xml(constants.VIDEO_DICT_FISH["edx_video_id"]),
+            expected
+        )
+
+    def test_unknown_video(self):
+        with self.assertRaises(ValVideoNotFoundError):
+            api.export_to_xml("unknown_video")
+
+
+class ImportTest(TestCase):
+    """Tests import_from_xml"""
+    def setUp(self):
+        mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        EncodedVideo.objects.create(
+            video=video,
+            profile=mobile_profile,
+            **constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        CourseVideo.objects.create(video=video, course_id='existing_course_id')
+
+    def make_import_xml(self, video_dict, encoded_video_dicts=None):
+        ret = etree.Element(
+            "video_asset",
+            attrib={
+                key: unicode(video_dict[key])
+                for key in ["client_video_id", "duration"]
+            }
+        )
+        for encoding_dict in (encoded_video_dicts or []):
+            etree.SubElement(
+                ret,
+                "encoded_video",
+                attrib={
+                    key: unicode(val)
+                    for key, val in encoding_dict.items()
+                }
+            )
+        return ret
+
+    def assert_obj_matches_dict_for_keys(self, obj, dict_, keys):
+        for key in keys:
+            self.assertEqual(getattr(obj, key), dict_[key])
+
+    def assert_video_matches_dict(self, video, video_dict):
+        self.assert_obj_matches_dict_for_keys(
+            video,
+            video_dict,
+            ["client_video_id", "duration"]
+        )
+
+    def assert_encoded_video_matches_dict(self, encoded_video, encoded_video_dict):
+        self.assert_obj_matches_dict_for_keys(
+            encoded_video,
+            encoded_video_dict,
+            ["url", "file_size", "bitrate"]
+        )
+
+    def assert_invalid_import(self, xml, course_id=None):
+        edx_video_id = "test_edx_video_id"
+        with self.assertRaises(ValCannotCreateError):
+            api.import_from_xml(xml, edx_video_id, course_id)
+        self.assertFalse(Video.objects.filter(edx_video_id=edx_video_id).exists())
+
+    def test_new_video_full(self):
+        new_course_id = "new_course_id"
+
+        xml = self.make_import_xml(
+            video_dict=constants.VIDEO_DICT_STAR,
+            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR]
+        )
+        api.import_from_xml(xml, constants.VIDEO_DICT_STAR["edx_video_id"], new_course_id)
+
+        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR["edx_video_id"])
+        self.assert_video_matches_dict(video, constants.VIDEO_DICT_STAR)
+        self.assert_encoded_video_matches_dict(
+            video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
+            constants.ENCODED_VIDEO_DICT_STAR
+        )
+        video.courses.get(course_id=new_course_id)
+
+    def test_new_video_minimal(self):
+        edx_video_id = "test_edx_video_id"
+
+        xml = self.make_import_xml(
+            video_dict={
+                "client_video_id": "dummy",
+                "duration": "0",
+            }
+        )
+        api.import_from_xml(xml, edx_video_id)
+
+        video = Video.objects.get(edx_video_id=edx_video_id)
+        self.assertFalse(video.encoded_videos.all().exists())
+        self.assertFalse(video.courses.all().exists())
+
+    def test_existing_video(self):
+        new_course_id = "new_course_id"
+
+        xml = self.make_import_xml(
+            video_dict={
+                "client_video_id": "new_client_video_id",
+                "duration": 0,
+            },
+            encoded_video_dicts=[
+                constants.ENCODED_VIDEO_DICT_FISH_DESKTOP,
+                {
+                    "url": "http://example.com/new_url",
+                    "file_size": 2733256,
+                    "bitrate": 1597804,
+                    "profile": "mobile",
+                },
+            ]
+        )
+        api.import_from_xml(xml, constants.VIDEO_DICT_FISH["edx_video_id"], new_course_id)
+
+        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH["edx_video_id"])
+        self.assert_video_matches_dict(video, constants.VIDEO_DICT_FISH)
+        self.assert_encoded_video_matches_dict(
+            video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
+            constants.ENCODED_VIDEO_DICT_MOBILE
+        )
+        self.assertFalse(
+            video.encoded_videos.filter(profile__profile_name=constants.PROFILE_DESKTOP).exists()
+        )
+        self.assertFalse(video.courses.filter(course_id=new_course_id).exists())
+
+    def test_unknown_profile(self):
+        profile = "unknown_profile"
+        xml = self.make_import_xml(
+            video_dict=constants.VIDEO_DICT_STAR,
+            encoded_video_dicts=[
+                constants.ENCODED_VIDEO_DICT_STAR,
+                {
+                    "url": "http://example.com/dummy",
+                    "file_size": -1,  # Invalid data in an unknown profile is ignored
+                    "bitrate": 0,
+                    "profile": profile,
+                }
+            ]
+        )
+        api.import_from_xml(xml, constants.VIDEO_DICT_STAR["edx_video_id"])
+
+        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR["edx_video_id"])
+        self.assertFalse(video.encoded_videos.filter(profile__profile_name=profile).exists())
+
+    def test_invalid_tag(self):
+        xml = etree.Element(
+            "invalid_tag",
+            attrib={
+                "client_video_id": "dummy",
+                "duration": "0",
+            }
+        )
+        self.assert_invalid_import(xml)
+
+    def test_invalid_video_attr(self):
+        xml = self.make_import_xml(
+            video_dict={
+                "client_video_id": "dummy",
+                "duration": -1,
+            }
+        )
+        self.assert_invalid_import(xml)
+
+    def test_invalid_encoded_video_attr(self):
+        xml = self.make_import_xml(
+            video_dict=constants.VIDEO_DICT_FISH,
+            encoded_video_dicts=[{
+                "url": "http://example.com/dummy",
+                "file_size": -1,
+                "bitrate": 0,
+                "profile": "mobile"
+            }]
+        )
+        self.assert_invalid_import(xml)
+
+    def test_invalid_course_id(self):
+        xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
+        self.assert_invalid_import(xml, "x" * 300)

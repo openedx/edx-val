@@ -5,6 +5,7 @@ The internal API for VAL. This is not yet stable
 """
 import logging
 
+from lxml.etree import Element, SubElement
 from enum import Enum
 
 from django.core.exceptions import ValidationError
@@ -123,12 +124,28 @@ def create_profile(profile_name):
         raise ValCannotCreateError(err.message_dict)
 
 
-def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
+def _get_video(edx_video_id):
+    """
+    Get a Video instance, prefetching encoded video and course information.
+
+    Raises ValVideoNotFoundError if the video cannot be retrieved.
+    """
+    try:
+        return Video.objects.prefetch_related("encoded_videos", "courses").get(edx_video_id=edx_video_id)
+    except Video.DoesNotExist:
+        error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
+        raise ValVideoNotFoundError(error_message)
+    except Exception:
+        error_message = u"Could not get edx_video_id: {0}".format(edx_video_id)
+        logger.exception(error_message)
+        raise ValInternalError(error_message)
+
+
+def get_video_info(edx_video_id):
     """
     Retrieves all encoded videos of a video found with given video edx_video_id
 
     Args:
-        location (str): geographic locations used determine CDN
         edx_video_id (str): id for video content.
 
     Returns:
@@ -175,17 +192,7 @@ def get_video_info(edx_video_id, location=None):  # pylint: disable=W0613
             ]
         }
     """
-    try:
-        video = Video.objects.prefetch_related("encoded_videos", "courses").get(edx_video_id=edx_video_id)
-        result = VideoSerializer(video)
-    except Video.DoesNotExist:
-        error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
-        raise ValVideoNotFoundError(error_message)
-    except Exception:
-        error_message = u"Could not get edx_video_id: {0}".format(edx_video_id)
-        logger.exception(error_message)
-        raise ValInternalError(error_message)
-    return result.data  # pylint: disable=E1101
+    return VideoSerializer(_get_video(edx_video_id)).data
 
 
 def get_urls_for_profiles(edx_video_id, profiles):
@@ -365,3 +372,96 @@ def copy_course_videos(source_course_id, destination_course_id):
             video=video,
             course_id=destination_course_id
         )
+
+
+def export_to_xml(edx_video_id):
+    """
+    Exports data about the given edx_video_id into the given xml object.
+
+    Args:
+        edx_video_id (str): The ID of the video to export
+
+    Returns:
+        An lxml video_asset element containing export data
+
+    Raises:
+        ValVideoNotFoundError: if the video does not exist
+    """
+    video = _get_video(edx_video_id)
+    video_el = Element(
+        'video_asset',
+        attrib={
+            'client_video_id': video.client_video_id,
+            'duration': unicode(video.duration),
+        }
+    )
+    for encoded_video in video.encoded_videos.all():
+        SubElement(
+            video_el,
+            'encoded_video',
+            {
+                name: unicode(getattr(encoded_video, name))
+                for name in ['profile', 'url', 'file_size', 'bitrate']
+            }
+        )
+    # Note: we are *not* exporting Subtitle data since it is not currently updated by VEDA or used
+    # by LMS/Studio.
+    return video_el
+
+
+def import_from_xml(xml, edx_video_id, course_id=None):
+    """
+    Imports data from a video_asset element about the given edx_video_id.
+
+    If the edx_video_id already exists, then no changes are made. If an unknown
+    profile is referenced by an encoded video, that encoding will be ignored.
+
+    Args:
+        xml: An lxml video_asset element containing import data
+        edx_video_id (str): The ID for the video content
+        course_id (str): The ID of a course to associate the video with
+            (optional)
+
+    Raises:
+        ValCannotCreateError: if there is an error importing the video
+    """
+    if xml.tag != 'video_asset':
+        raise ValCannotCreateError('Invalid XML')
+
+    if Video.objects.filter(edx_video_id=edx_video_id).exists():
+        logger.info(
+            "edx_video_id '%s' present in course '%s' not imported because it exists in VAL.",
+            edx_video_id,
+            course_id,
+        )
+        return
+
+    data = {
+        'edx_video_id': edx_video_id,
+        'client_video_id': xml.get('client_video_id'),
+        'duration': xml.get('duration'),
+        'status': 'imported',
+        'encoded_videos': [],
+        'courses': [],
+    }
+    for encoded_video_el in xml.iterfind('encoded_video'):
+        profile_name = encoded_video_el.get('profile')
+        try:
+            Profile.objects.get(profile_name=profile_name)
+        except Profile.DoesNotExist:
+            logger.info(
+                "Imported edx_video_id '%s' contains unknown profile '%s'.",
+                edx_video_id,
+                profile_name
+            )
+            continue
+        data['encoded_videos'].append({
+            'profile': profile_name,
+            'url': encoded_video_el.get('url'),
+            'file_size': encoded_video_el.get('file_size'),
+            'bitrate': encoded_video_el.get('bitrate'),
+        })
+    if course_id:
+        data['courses'].append(course_id)
+
+    create_video(data)
