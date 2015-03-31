@@ -79,8 +79,9 @@ class CourseSerializer(serializers.RelatedField):
 
     def from_native(self, data):
         if data:
-            return CourseVideo(course_id=data)
-
+            course_video = CourseVideo(course_id=data)
+            course_video.full_clean(exclude=["video"])
+            return course_video
 
 class VideoSerializer(serializers.ModelSerializer):
     """

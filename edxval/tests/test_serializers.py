@@ -79,6 +79,22 @@ class SerializerTests(TestCase):
             u"edx_video_id has invalid characters"
         )
 
+    def test_invalid_course_id(self):
+        errors = VideoSerializer(
+            data={
+                "edx_video_id": "dummy",
+                "client_video_id": "dummy",
+                "duration": 0,
+                "status": "dummy",
+                "encoded_videos": [],
+                "courses": ["x" * 300],
+            }
+        ).errors
+        self.assertEqual(
+            errors,
+            {"courses": ["Ensure this value has at most 255 characters (it has 300)."]}
+        )
+
     def test_encoded_video_set_output(self):
         """
         Tests for basic structure of EncodedVideoSetSerializer
