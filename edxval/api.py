@@ -428,21 +428,31 @@ def import_from_xml(xml, edx_video_id, course_id=None):
     if xml.tag != 'video_asset':
         raise ValCannotCreateError('Invalid XML')
 
-    if Video.objects.filter(edx_video_id=edx_video_id).exists():
+    # If video with edx_video_id already exists, associate it with the given course_id.
+    try:
+        video = Video.objects.get(edx_video_id=edx_video_id)
         logger.info(
             "edx_video_id '%s' present in course '%s' not imported because it exists in VAL.",
             edx_video_id,
             course_id,
         )
+        if course_id:
+            CourseVideo.create_with_validation(video=video, course_id=course_id)
         return
+    except ValidationError as err:
+        logger.exception(err.message)
+        raise ValCannotCreateError(err.message_dict)
+    except Video.DoesNotExist:
+        pass
 
+    # Video with edx_video_id did not exist, so create one from xml data.
     data = {
         'edx_video_id': edx_video_id,
         'client_video_id': xml.get('client_video_id'),
         'duration': xml.get('duration'),
         'status': 'imported',
         'encoded_videos': [],
-        'courses': [],
+        'courses': [course_id] if course_id else [],
     }
     for encoded_video_el in xml.iterfind('encoded_video'):
         profile_name = encoded_video_el.get('profile')
@@ -461,7 +471,4 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             'file_size': encoded_video_el.get('file_size'),
             'bitrate': encoded_video_el.get('bitrate'),
         })
-    if course_id:
-        data['courses'].append(course_id)
-
     create_video(data)

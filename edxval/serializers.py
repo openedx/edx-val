@@ -83,6 +83,7 @@ class CourseSerializer(serializers.RelatedField):
             course_video.full_clean(exclude=["video"])
             return course_video
 
+
 class VideoSerializer(serializers.ModelSerializer):
     """
     Serializer for Video object
