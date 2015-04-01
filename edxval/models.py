@@ -19,6 +19,20 @@ from django.core.urlresolvers import reverse
 URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
 
 
+class ModelFactoryWithValidation(object):
+    """
+    A Model mixin that provides validation-based factory methods.
+    """
+    @classmethod
+    def create_with_validation(cls, *args, **kwargs):
+        """
+        Factory method that creates and validates the model object before it is saved.
+        """
+        ret_val = cls(*args, **kwargs)
+        ret_val.full_clean()
+        ret_val.save()
+
+
 class Profile(models.Model):
     """
     Details for pre-defined encoding format
@@ -90,7 +104,7 @@ class Video(models.Model):
         return qset
 
 
-class CourseVideo(models.Model):
+class CourseVideo(models.Model, ModelFactoryWithValidation):
     """
     Model for the course_id associated with the video content.
 

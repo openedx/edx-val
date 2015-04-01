@@ -860,7 +860,12 @@ class ImportTest(TestCase):
         self.assertFalse(
             video.encoded_videos.filter(profile__profile_name=constants.PROFILE_DESKTOP).exists()
         )
-        self.assertFalse(video.courses.filter(course_id=new_course_id).exists())
+        self.assertTrue(video.courses.filter(course_id=new_course_id).exists())
+
+    def test_existing_video_with_invalid_course_id(self):
+        xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
+        with self.assertRaises(ValCannotCreateError):
+            api.import_from_xml(xml, edx_video_id=constants.VIDEO_DICT_FISH["edx_video_id"], course_id="x" * 300)
 
     def test_unknown_profile(self):
         profile = "unknown_profile"
