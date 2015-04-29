@@ -32,6 +32,18 @@ class ModelFactoryWithValidation(object):
         ret_val.full_clean()
         ret_val.save()
 
+    @classmethod
+    def get_or_create_with_validation(cls, *args, **kwargs):
+        """
+        Factory method that gets or creates-and-validates the model object before it is saved.
+        Similar to the get_or_create method on Models, it returns a tuple of (object, created),
+        where created is a boolean specifying whether an object was created.
+        """
+        try:
+            return cls.objects.get(*args, **kwargs), False
+        except cls.DoesNotExist:
+            return cls.create_with_validation(*args, **kwargs), True
+
 
 class Profile(models.Model):
     """

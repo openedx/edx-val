@@ -437,7 +437,7 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             course_id,
         )
         if course_id:
-            CourseVideo.create_with_validation(video=video, course_id=course_id)
+            CourseVideo.get_or_create_with_validation(video=video, course_id=course_id)
         return
     except ValidationError as err:
         logger.exception(err.message)
