@@ -743,6 +743,7 @@ class ExportTest(TestCase):
             api.export_to_xml("unknown_video")
 
 
+@ddt
 class ImportTest(TestCase):
     """Tests import_from_xml"""
     def setUp(self):
@@ -831,9 +832,13 @@ class ImportTest(TestCase):
         self.assertFalse(video.encoded_videos.all().exists())
         self.assertFalse(video.courses.all().exists())
 
-    def test_existing_video(self):
-        new_course_id = "new_course_id"
-
+    @data(
+        # import into another course, where the video already exists, but is not associated with the course.
+        "new_course_id",
+        # re-import case, where the video and course association already exists.
+        "existing_course_id"
+    )
+    def test_existing_video(self, course_id):
         xml = self.make_import_xml(
             video_dict={
                 "client_video_id": "new_client_video_id",
@@ -849,7 +854,7 @@ class ImportTest(TestCase):
                 },
             ]
         )
-        api.import_from_xml(xml, constants.VIDEO_DICT_FISH["edx_video_id"], new_course_id)
+        api.import_from_xml(xml, constants.VIDEO_DICT_FISH["edx_video_id"], course_id)
 
         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH["edx_video_id"])
         self.assert_video_matches_dict(video, constants.VIDEO_DICT_FISH)
@@ -860,7 +865,8 @@ class ImportTest(TestCase):
         self.assertFalse(
             video.encoded_videos.filter(profile__profile_name=constants.PROFILE_DESKTOP).exists()
         )
-        self.assertTrue(video.courses.filter(course_id=new_course_id).exists())
+        self.assertTrue(video.courses.filter(course_id=course_id).exists())
+
 
     def test_existing_video_with_invalid_course_id(self):
         xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
