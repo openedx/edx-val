@@ -236,12 +236,48 @@ def get_url_for_profile(edx_video_id, profile):
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
 
-def get_videos_for_course(course_id):
+def _get_videos_for_filter(
+        video_filter,
+        sort_field=None,
+        sort_dir=SortDirection.asc
+):
     """
-    Returns an iterator of videos for the given course id
+    Returns a generator expression that contains the videos found, sorted by
+    the given field and direction, with ties broken by edx_video_id to ensure a
+    total order.
     """
-    videos = Video.objects.filter(courses__course_id=unicode(course_id))
+    videos = Video.objects.filter(**video_filter)
+    if sort_field:
+        # Refining by edx_video_id ensures a total order
+        videos = videos.order_by(sort_field.value, "edx_video_id")
+        if sort_dir == SortDirection.desc:
+            videos = videos.reverse()
     return (VideoSerializer(video).data for video in videos)
+
+
+def get_videos_for_course(
+    course_id,
+    sort_field=None,
+    sort_dir=SortDirection.asc,
+):
+    """
+    Returns an iterator of videos for the given course id.
+
+    Args:
+        course_id (String)
+        sort_field (VideoSortField)
+        sort_dir (SortDirection)
+
+    Returns:
+        A generator expression that contains the videos found, sorted by the
+        given field and direction, with ties broken by edx_video_id to ensure a
+        total order.
+    """
+    return _get_videos_for_filter(
+        {"courses__course_id":unicode(course_id)},
+        sort_field,
+        sort_dir,
+    )
 
 
 def get_videos_for_ids(
@@ -250,7 +286,7 @@ def get_videos_for_ids(
         sort_dir=SortDirection.asc
 ):
     """
-    Returns an iterator of videos that match the given list of ids
+    Returns an iterator of videos that match the given list of ids.
 
     Args:
         edx_video_ids (list)
@@ -262,13 +298,11 @@ def get_videos_for_ids(
         given field and direction, with ties broken by edx_video_id to ensure a
         total order
     """
-    videos = Video.objects.filter(edx_video_id__in=edx_video_ids)
-    if sort_field:
-        # Refining by edx_video_id ensures a total order
-        videos = videos.order_by(sort_field.value, "edx_video_id")
-        if sort_dir == SortDirection.desc:
-            videos = videos.reverse()
-    return (VideoSerializer(video).data for video in videos)
+    return _get_videos_for_filter(
+        {"edx_video_id__in":edx_video_ids},
+        sort_field,
+        sort_dir,
+    )
 
 
 def get_video_info_for_course_and_profiles(course_id, profiles):
