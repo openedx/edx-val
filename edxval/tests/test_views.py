@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from edxval.tests import constants, APIAuthTestCase
-from edxval.models import Profile, Video
+from edxval.models import Profile, Video, CourseVideo
 
 
 class VideoDetail(APIAuthTestCase):
@@ -206,6 +206,30 @@ class VideoDetail(APIAuthTestCase):
             constants.ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP.get("url")
         )
         self.assertEqual(len(videos[0].encoded_videos.all()), 1)
+
+    def test_update_courses(self):
+        # Create the video with associated course keys
+        url = reverse('video-list')
+        response = self.client.post(url, constants.COMPLETE_SET_WITH_COURSE_KEY, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify that the video was associated with the courses
+        video = Video.objects.get()
+        course_keys = [c.course_id for c in CourseVideo.objects.filter(video=video)]
+        self.assertEqual(course_keys, constants.COMPLETE_SET_WITH_COURSE_KEY["courses"])
+
+        # Update the video to associate it with other courses
+        url = reverse('video-detail', kwargs={"edx_video_id": video.edx_video_id})
+        response = self.client.put(
+            url,
+            constants.COMPLETE_SET_WITH_OTHER_COURSE_KEYS,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.content)
+
+        # Verify that the video's courses were updated
+        course_keys = [c.course_id for c in CourseVideo.objects.filter(video=video)]
+        self.assertEqual(course_keys, constants.COMPLETE_SET_WITH_OTHER_COURSE_KEYS["courses"])
 
     def test_update_invalid_video(self):
         """
