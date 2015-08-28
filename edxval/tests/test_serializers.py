@@ -6,11 +6,7 @@ Tests the serializers for the Video Abstraction Layer
 
 from django.test import TestCase
 
-from edxval.serializers import (
-    EncodedVideoSerializer,
-    VideoSerializer,
-    ValidationError,
-)
+from edxval.serializers import EncodedVideoSerializer, VideoSerializer
 from edxval.models import Profile, Video, EncodedVideo
 from edxval.tests import constants
 
@@ -36,14 +32,19 @@ class SerializerTests(TestCase):
 
         Tests negative inputs for bitrate, file_size in EncodedVideo
         """
-        errors = EncodedVideoSerializer(  # pylint: disable=E1101
-            data=constants.ENCODED_VIDEO_DICT_NEGATIVE_BITRATE).errors
-        self.assertEqual(errors.get('bitrate')[0],
-                         u"Ensure this value is greater than or equal to 0.")
-        errors = EncodedVideoSerializer(  # pylint: disable=E1101
-            data=constants.ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE).errors
-        self.assertEqual(errors.get('file_size')[0],
-                         u"Ensure this value is greater than or equal to 0.")
+        serializer = EncodedVideoSerializer(data=constants.ENCODED_VIDEO_DICT_NEGATIVE_BITRATE)
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            serializer.errors.get('bitrate')[0],
+            u"Ensure this value is greater than or equal to 0."
+        )
+
+        serializer = EncodedVideoSerializer(data=constants.ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE)
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            serializer.errors.get('file_size')[0],
+            u"Ensure this value is greater than or equal to 0."
+        )
 
     def test_negative_fields_for_video_serializer(self):
         """
@@ -51,10 +52,12 @@ class SerializerTests(TestCase):
 
         Tests negative inputs for duration in model Video
         """
-        errors = VideoSerializer(  # pylint: disable=E1101
-            data=constants.VIDEO_DICT_NEGATIVE_DURATION).errors
-        self.assertEqual(errors.get('duration')[0],
-                         u"Ensure this value is greater than or equal to 0.")
+        serializer = VideoSerializer(data=constants.VIDEO_DICT_NEGATIVE_DURATION)
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            serializer.errors.get('duration')[0],
+            u"Ensure this value is greater than or equal to 0."
+        )
 
     def test_non_latin_serialization(self):
         """
@@ -72,15 +75,16 @@ class SerializerTests(TestCase):
         """
         Test the Video model regex validation for edx_video_id field
         """
-        error = VideoSerializer(data=constants.VIDEO_DICT_INVALID_ID).errors  # pylint: disable=E1101
-        message = error.get("edx_video_id")[0]
+        serializer = VideoSerializer(data=constants.VIDEO_DICT_INVALID_ID)
+        self.assertFalse(serializer.is_valid())
+        message = serializer.errors.get("edx_video_id")[0]
         self.assertEqual(
             message,
             u"edx_video_id has invalid characters"
         )
 
     def test_invalid_course_id(self):
-        errors = VideoSerializer(
+        serializer = VideoSerializer(
             data={
                 "edx_video_id": "dummy",
                 "client_video_id": "dummy",
@@ -89,9 +93,10 @@ class SerializerTests(TestCase):
                 "encoded_videos": [],
                 "courses": ["x" * 300],
             }
-        ).errors
+        )
+        self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            errors,
+            serializer.errors,
             {"courses": ["Ensure this value has at most 255 characters (it has 300)."]}
         )
 
@@ -128,8 +133,11 @@ class SerializerTests(TestCase):
             **constants.VIDEO_DICT_FISH
         )
         serializer = VideoSerializer(data=data)
-        with self.assertRaises(ValidationError):
-            serializer.is_valid()
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(
+            serializer.errors.get("encoded_videos"),
+            [{"profile": ["This field is required."]}]
+        )
 
     def test_wrong_input_type(self):
         """
@@ -137,7 +145,8 @@ class SerializerTests(TestCase):
         """
         data = "hello"
         serializer = VideoSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
         self.assertEqual(
             serializer.errors.get("non_field_errors")[0],
-            "Invalid data"
+            "Invalid data. Expected a dictionary, but got str."
         )

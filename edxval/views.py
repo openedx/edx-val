@@ -2,7 +2,8 @@
 Views file for django app edxval.
 """
 from rest_framework import generics
-from rest_framework.authentication import OAuth2Authentication, SessionAuthentication
+from rest_framework.authentication import SessionAuthentication
+from rest_framework_oauth.authentication import OAuth2Authentication
 from rest_framework.permissions import DjangoModelPermissions
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
