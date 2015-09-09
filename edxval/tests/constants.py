@@ -268,6 +268,22 @@ COMPLETE_SET_UPDATE_STAR = dict(
     subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
+COMPLETE_SET_WITH_COURSE_KEY = dict(
+    courses=['edX/DemoX/Demo_Course'],
+    encoded_videos=[
+        ENCODED_VIDEO_UPDATE_DICT_STAR
+    ],
+    subtitles=[SUBTITLE_DICT_SRT],
+    **VIDEO_DICT_STAR
+)
+COMPLETE_SET_WITH_OTHER_COURSE_KEYS = dict(
+    courses=['edX/DemoX/Astonomy', 'edX/DemoX/Zoology'],
+    encoded_videos=[
+        ENCODED_VIDEO_UPDATE_DICT_STAR
+    ],
+    subtitles=[SUBTITLE_DICT_SRT],
+    **VIDEO_DICT_STAR
+)
 COMPLETE_SET_NOT_A_LIST = dict(
     encoded_videos=dict(
         url="https://www.howIwonder.com",

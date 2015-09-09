@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 
 from edxval.tests import constants, APIAuthTestCase
-from edxval.models import Profile, Video
+from edxval.models import Profile, Video, CourseVideo
 
 
 class VideoDetail(APIAuthTestCase):
@@ -206,6 +206,92 @@ class VideoDetail(APIAuthTestCase):
             constants.ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP.get("url")
         )
         self.assertEqual(len(videos[0].encoded_videos.all()), 1)
+
+    def test_update_remove_subtitles(self):
+        # Create some subtitles
+        url = reverse('video-list')
+        response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Sanity check that the subtitles
+        videos = Video.objects.all()
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(len(videos[0].subtitles.all()), 1)
+
+        # Update with an empty list of subtitles
+        url = reverse(
+            'video-detail',
+            kwargs={"edx_video_id": constants.COMPLETE_SET_STAR.get("edx_video_id")}
+        )
+        response = self.client.put(
+            url,
+            dict(subtitles=[], encoded_videos=[], **constants.VIDEO_DICT_STAR),
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Expect that subtitles have been removed
+        videos = Video.objects.all()
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(len(videos[0].subtitles.all()), 0)
+
+    def test_update_remove_encoded_videos(self):
+        # Create some encoded videos
+        url = reverse('video-list')
+        response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Sanity check that the encoded videos were created
+        videos = Video.objects.all()
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(len(videos[0].encoded_videos.all()), 1)
+
+        # Update with an empty list of videos
+        url = reverse(
+            'video-detail',
+            kwargs={"edx_video_id": constants.COMPLETE_SET_STAR.get("edx_video_id")}
+        )
+        response = self.client.put(
+            url,
+            dict(encoded_videos=[], **constants.VIDEO_DICT_STAR),
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Expect that encoded videos have been removed
+        videos = Video.objects.all()
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(len(videos[0].encoded_videos.all()), 0)
+
+    def test_update_courses(self):
+        # Create the video with associated course keys
+        url = reverse('video-list')
+        response = self.client.post(url, constants.COMPLETE_SET_WITH_COURSE_KEY, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify that the video was associated with the courses
+        video = Video.objects.get()
+        course_keys = [c.course_id for c in CourseVideo.objects.filter(video=video)]
+        self.assertEqual(course_keys, constants.COMPLETE_SET_WITH_COURSE_KEY["courses"])
+
+        # Update the video to associate it with other courses
+        url = reverse('video-detail', kwargs={"edx_video_id": video.edx_video_id})
+        response = self.client.put(
+            url,
+            constants.COMPLETE_SET_WITH_OTHER_COURSE_KEYS,
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.content)
+
+        # Verify that the video's courses were updated
+        # Note: the current version of edx-val does NOT remove old course videos!
+        course_keys = [c.course_id for c in CourseVideo.objects.filter(video=video)]
+        expected_course_keys = (
+            constants.COMPLETE_SET_WITH_COURSE_KEY["courses"] +
+            constants.COMPLETE_SET_WITH_OTHER_COURSE_KEYS["courses"]
+        )
+
+        self.assertEqual(course_keys, expected_course_keys)
 
     def test_update_invalid_video(self):
         """
