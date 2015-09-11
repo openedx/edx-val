@@ -128,10 +128,8 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 
     # Third Party
-    'south',
     'django_nose',
     'rest_framework',
-    'debug_toolbar',
 
     # Our App
     'edxval',
