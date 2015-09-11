@@ -641,7 +641,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
         url = reverse('video-list')
-        with self.assertNumQueries(17):
+        with self.assertNumQueries(15):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
     def test_queries_for_single_encoded_videos(self):
@@ -649,7 +649,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
         url = reverse('video-list')
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(13):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
 
@@ -690,11 +690,11 @@ class VideoDetailTest(APIAuthTestCase):
             self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(12):
             self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(17):
+        with self.assertNumQueries(14):
             self.client.get("/edxval/videos/").data
 
 
