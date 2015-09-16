@@ -486,7 +486,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data.get("edx_video_id")[0],
-            "Video with this Edx video id already exists."
+            "This field must be unique."
         )
         videos = len(self.client.get("/edxval/videos/").data)
         self.assertEqual(videos, 1)
@@ -641,7 +641,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
         url = reverse('video-list')
-        with self.assertNumQueries(21):
+        with self.assertNumQueries(17):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
     def test_queries_for_single_encoded_videos(self):
@@ -649,7 +649,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
         url = reverse('video-list')
-        with self.assertNumQueries(15):
+        with self.assertNumQueries(14):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
 
