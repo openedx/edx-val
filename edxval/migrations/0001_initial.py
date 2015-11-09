@@ -6,28 +6,6 @@ import django.core.validators
 import edxval.models
 
 
-def forwards_default_profiles(apps, schema_editor):
-    """ Add default profiles """
-    Profile = apps.get_model("edxval", "Profile")
-    db_alias = schema_editor.connection.alias
-    Profile.objects.using(db_alias).bulk_create([
-        Profile(profile_name="desktop_mp4"),
-        Profile(profile_name="desktop_webm"),
-        Profile(profile_name="mobile_high"),
-        Profile(profile_name="mobile_low"),
-        Profile(profile_name="youtube"),
-    ])
-
-
-def reverse_default_profiles(apps, schema_editor):
-    """ Remove default profiles """
-    Profile = apps.get_model("edxval", "Profile")
-    db_alias = schema_editor.connection.alias
-    Profile.objects.using(db_alias).filter(
-        profile_name__in=["desktop_mp4", "desktop_webm", "mobile_high", "mobile_low", "youtube"]
-    ).delete()
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -106,5 +84,4 @@ class Migration(migrations.Migration):
             name='coursevideo',
             unique_together=set([('course_id', 'video')]),
         ),
-        migrations.RunPython(forwards_default_profiles, reverse_default_profiles, atomic=False),
     ]
