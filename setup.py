@@ -2,7 +2,9 @@
 from setuptools import setup
 
 PACKAGES = [
-    'edxval'
+    'edxval',
+    'edxval.migrations',
+    'edxval.tests',
 ]
 
 def is_requirement(line):
