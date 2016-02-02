@@ -16,16 +16,14 @@ DEFAULT_PROFILES = [
 def create_default_profiles(apps, schema_editor):
     """ Add default profiles """
     Profile = apps.get_model("edxval", "Profile")
-    db_alias = schema_editor.connection.alias
     for profile in DEFAULT_PROFILES:
-        Profile.objects.using(db_alias).get_or_create(profile_name=profile)
+        Profile.objects.get_or_create(profile_name=profile)
 
 
 def delete_default_profiles(apps, schema_editor):
     """ Remove default profiles """
     Profile = apps.get_model("edxval", "Profile")
-    db_alias = schema_editor.connection.alias
-    Profile.objects.using(db_alias).filter(profile_name__in=DEFAULT_PROFILES).delete()
+    Profile.objects.filter(profile_name__in=DEFAULT_PROFILES).delete()
 
 
 class Migration(migrations.Migration):
