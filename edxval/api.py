@@ -96,7 +96,13 @@ def create_video(video_data):
                 courses: Courses associated with this video
          }
     """
-    serializer = VideoSerializer(data=video_data)
+
+    try:
+        video = _get_video(video_data.get("edx_video_id"))
+        serializer = VideoSerializer(video, data=video_data)
+    except Exception:
+        serializer = VideoSerializer(data=video_data)
+
     if serializer.is_valid():
         serializer.save()
         return video_data.get("edx_video_id")
