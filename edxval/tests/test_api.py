@@ -104,21 +104,6 @@ class CreateVideoTest(TestCase):
         self.assertEqual(len(videos), 1)
         self.assertEqual("super-soaker", result)
 
-    def test_update_video(self):
-        """
-        Tests the creation of a video
-        """
-        video_data = dict(
-            encoded_videos=[
-                constants.ENCODED_VIDEO_DICT_FISH_MOBILE
-            ],
-            **constants.VIDEO_DICT_FISH_UPDATE
-        )
-        result = api.update_video(video_data)
-        videos = Video.objects.all()
-        self.assertEqual(len(videos), 1)
-        self.assertEqual("super-soaker", result)
-
     @data(
         constants.VIDEO_DICT_FISH,
         constants.VIDEO_DICT_NEGATIVE_DURATION,
