@@ -114,7 +114,7 @@ class CreateVideoTest(TestCase):
             ],
             **constants.VIDEO_DICT_FISH_UPDATE
         )
-        result = api.create_video(video_data)
+        result = api.update_video(video_data)
         videos = Video.objects.all()
         self.assertEqual(len(videos), 1)
         self.assertEqual("super-soaker", result)

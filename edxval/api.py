@@ -97,12 +97,37 @@ def create_video(video_data):
          }
     """
 
-    try:
-        video = _get_video(video_data.get("edx_video_id"))
-        serializer = VideoSerializer(video, data=video_data)
-    except Exception:
-        serializer = VideoSerializer(data=video_data)
+    serializer = VideoSerializer(data=video_data)
+    if serializer.is_valid():
+        serializer.save()
+        return video_data.get("edx_video_id")
+    else:
+        raise ValCannotCreateError(serializer.errors)
 
+
+def update_video(video_data):
+    """
+    Called on to update Video objects in the database
+
+    update_video is used to update Video objects.
+    Args:
+        edx_video_id (String)
+        data (dict):
+         {
+                url: api url to the video
+                edx_video_id: ID of the video
+                duration: Length of video in seconds
+                client_video_id: client ID of video
+                encoded_video: a list of EncodedVideo dicts
+                    url: url of the video
+                    file_size: size of the video in bytes
+                    profile: ID of the profile
+                courses: Courses associated with this video
+         }
+    """
+
+    video = _get_video(video_data.get("edx_video_id"))
+    serializer = VideoSerializer(video, data=video_data)
     if serializer.is_valid():
         serializer.save()
         return video_data.get("edx_video_id")
