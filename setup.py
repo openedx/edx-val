@@ -39,7 +39,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edxval',
-    version='0.0.9',
+    version='0.0.10',
     author='edX',
     url='http://github.com/edx/edx-val',
     description='edx-val',
@@ -52,6 +52,13 @@ setup(
         'Programming Language :: Python',
     ],
     packages=PACKAGES,
-    install_requires=load_requirements('requirements.txt'),
-    tests_require=load_requirements('test-requirements.txt'),
+    install_requires=[
+        'django>=1.8,<1.9',
+        'djangorestframework>=3.1,<4.0',
+        'enum34',
+        'lxml',
+        'django-oauth2-provider',
+        'djangorestframework-oauth',
+    ],
+    tests_require=load_requirements('requirements.txt', 'test-requirements.txt'),
 )
