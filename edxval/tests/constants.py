@@ -120,6 +120,12 @@ VIDEO_DICT_FISH = dict(
     edx_video_id="super-soaker",
     status="test",
 )
+VIDEO_DICT_FISH_UPDATE = dict(
+    client_video_id="Full Swordfish",
+    duration=1222.00,
+    edx_video_id="super-soaker",
+    status="live",
+)
 VIDEO_DICT_DIFFERENT_ID_FISH = dict(
     client_video_id="Shallow Swordfish",
     duration=122.00,

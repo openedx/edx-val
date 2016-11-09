@@ -17,6 +17,7 @@ from edxval import api as api
 from edxval.api import (
     SortDirection,
     ValCannotCreateError,
+    ValCannotUpdateError,
     ValVideoNotFoundError,
     VideoSortField,
 )
@@ -93,6 +94,7 @@ class CreateVideoTest(TestCase):
         """
         Tests the creation of a video
         """
+
         video_data = dict(
             encoded_videos=[
                 constants.ENCODED_VIDEO_DICT_FISH_MOBILE
@@ -115,6 +117,73 @@ class CreateVideoTest(TestCase):
         """
         with self.assertRaises(ValCannotCreateError):
             api.create_video(data)
+
+
+
+@ddt
+class UpdateVideoTest(TestCase):
+    """
+    Tests the update_video function in api.py.
+
+    This function requires that a Video object exist.
+    This function requires that a Profile object exist.
+    """
+
+    def setUp(self):
+        """
+        Creation of Video object that will be used to test video update
+        Creation of Profile objects that will be used to test video update
+        """
+        api.create_profile(constants.PROFILE_DESKTOP)
+        api.create_profile(constants.PROFILE_MOBILE)
+        video_data = dict(
+            encoded_videos=[
+                constants.ENCODED_VIDEO_DICT_FISH_MOBILE
+            ],
+            **constants.VIDEO_DICT_FISH
+        )
+        api.create_video(video_data)
+
+
+    def test_update_video(self):
+        """
+        Tests the update of a video
+        """
+        
+        video_data = dict(
+            encoded_videos=[
+                constants.ENCODED_VIDEO_DICT_FISH_MOBILE
+            ],
+            **constants.VIDEO_DICT_FISH_UPDATE
+        )
+        result = api.update_video(video_data)
+        videos = Video.objects.all()
+        updated_video = videos[0]
+        self.assertEqual(len(videos), 1)
+        self.assertEqual(type(updated_video), Video)
+        self.assertEqual(updated_video.client_video_id, "Full Swordfish")
+
+
+    @data(
+        constants.COMPLETE_SET_INVALID_ENCODED_VIDEO_FISH,
+    )
+    def test_update_video_incorrect_data(self, data):
+        """
+        Tests the update of a video with invalid data
+        """
+        with self.assertRaises(ValCannotUpdateError):
+            api.update_video(data)
+
+
+    @data(
+        constants.VIDEO_DICT_DIFFERENT_ID_FISH
+    )
+    def test_update_video_not_found(self, data):
+        """
+        Tests the update of a video with invalid id
+        """
+        with self.assertRaises(ValVideoNotFoundError):
+            api.update_video(data)
 
 
 class CreateProfileTest(TestCase):

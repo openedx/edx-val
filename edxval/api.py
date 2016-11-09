@@ -57,6 +57,13 @@ class ValCannotCreateError(ValError):
     pass
 
 
+class ValCannotUpdateError(ValError):
+    """
+    This error is raised when an object cannot be updated
+    """
+    pass
+
+
 class VideoSortField(Enum):
     """An enum representing sortable fields in the Video model"""
     created = "created"
@@ -83,7 +90,7 @@ def create_video(video_data):
     creation will be rejected. If the profile is not found in the database, the
     video will not be created.
     Args:
-        data (dict):
+        video_data (dict):
          {
                 url: api url to the video
                 edx_video_id: ID of the video
@@ -95,13 +102,60 @@ def create_video(video_data):
                     profile: ID of the profile
                 courses: Courses associated with this video
          }
+
+    Raises:
+        Raises ValCannotCreateError if the video cannot be created.
+
+    Returns the successfully created Video object
     """
+
     serializer = VideoSerializer(data=video_data)
     if serializer.is_valid():
         serializer.save()
         return video_data.get("edx_video_id")
     else:
         raise ValCannotCreateError(serializer.errors)
+
+
+def update_video(video_data):
+    """
+    Called on to update Video objects in the database
+
+    update_video is used to update Video objects by the given edx_video_id in the video_data.
+
+    Args:
+        video_data (dict):
+         {
+                url: api url to the video
+                edx_video_id: ID of the video
+                duration: Length of video in seconds
+                client_video_id: client ID of video
+                encoded_video: a list of EncodedVideo dicts
+                    url: url of the video
+                    file_size: size of the video in bytes
+                    profile: ID of the profile
+                courses: Courses associated with this video
+         }
+
+    Raises:
+        Raises ValVideoNotFoundError if the video cannot be retrieved.
+        Raises ValCannotUpdateError if the video cannot be updated.
+
+    Returns the successfully updated Video object
+    """
+
+    try:
+        video = _get_video(video_data.get("edx_video_id"))
+    except Video.DoesNotExist:
+        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id")) 
+        raise ValVideoNotFoundError(error_message)
+
+    serializer = VideoSerializer(video, data=video_data)
+    if serializer.is_valid():
+        serializer.save()
+        return video_data.get("edx_video_id")
+    else:
+        raise ValCannotUpdateError(serializer.errors)
 
 
 def create_profile(profile_name):
