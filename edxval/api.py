@@ -102,6 +102,11 @@ def create_video(video_data):
                     profile: ID of the profile
                 courses: Courses associated with this video
          }
+
+    Raises:
+        Raises ValCannotCreateError if the video cannot be created.
+
+    Returns the successfully created Video object
     """
 
     serializer = VideoSerializer(data=video_data)
@@ -135,6 +140,8 @@ def update_video(video_data):
     Raises:
         Raises ValVideoNotFoundError if the video cannot be retrieved.
         Raises ValCannotUpdateError if the video cannot be updated.
+
+    Returns the successfully updated Video object
     """
 
     try:
@@ -142,7 +149,7 @@ def update_video(video_data):
     except Video.DoesNotExist:
         error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id")) 
         raise ValVideoNotFoundError(error_message)
-        
+
     serializer = VideoSerializer(video, data=video_data)
     if serializer.is_valid():
         serializer.save()
