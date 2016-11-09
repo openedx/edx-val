@@ -149,7 +149,7 @@ class UpdateVideoTest(TestCase):
         """
         Tests the update of a video
         """
-        
+
         video_data = dict(
             encoded_videos=[
                 constants.ENCODED_VIDEO_DICT_FISH_MOBILE
@@ -1055,3 +1055,47 @@ class ImportTest(TestCase):
     def test_invalid_course_id(self):
         xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
         self.assert_invalid_import(xml, "x" * 300)
+
+
+class GetCourseVideoRemoveTest(TestCase):
+    """
+    Tests to check `remove_video_for_course` function works correctly
+    """
+
+    def setUp(self):
+        """
+        Creates video objects for courses
+        """
+        # create video in the test course
+        self.course_id = 'test-course'
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        CourseVideo.objects.create(video=video, course_id=self.course_id)
+        self.edx_video_id = video.edx_video_id
+
+        # add the video in another course (to make sure that video is removed for correct course)
+        CourseVideo.objects.create(video=video, course_id='other-course')
+
+    def test_remove_video_for_course(self):
+        """
+        Tests video removal for a course
+        """
+        # we have one video for this course
+        videos = list(api.get_videos_for_course(self.course_id))
+        self.assertEqual(len(videos), 1)
+
+        # remove the video and verify that video is removed from correct course
+        api.remove_video_for_course(self.course_id, self.edx_video_id)
+        videos = list(api.get_videos_for_course(self.course_id))
+        self.assertEqual(len(videos), 0)
+
+        # verify that CourseVideo related object exists(soft removal) for removed video
+        course_video = CourseVideo.objects.get(course_id=self.course_id, video__edx_video_id=self.edx_video_id)
+        self.assertEqual(course_video.is_hidden, True)
+
+        # verify that video still exists for other course
+        videos = list(api.get_videos_for_course('other-course'))
+        self.assertEqual(len(videos), 1)
+
+        # verify that video for other course has the correct info
+        video_info = {key: videos[0][key] for key in constants.VIDEO_DICT_FISH}
+        self.assertEqual(video_info, constants.VIDEO_DICT_FISH)

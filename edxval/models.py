@@ -125,6 +125,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
     """
     course_id = models.CharField(max_length=255)
     video = models.ForeignKey(Video, related_name='courses')
+    is_hidden = models.BooleanField(default=False, help_text='Hide video for course.')
 
     class Meta:  # pylint: disable=C1001
         """
