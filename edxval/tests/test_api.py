@@ -17,6 +17,7 @@ from edxval import api as api
 from edxval.api import (
     SortDirection,
     ValCannotCreateError,
+    ValCannotUpdateError,
     ValVideoNotFoundError,
     VideoSortField,
 )
@@ -118,6 +119,8 @@ class CreateVideoTest(TestCase):
             api.create_video(data)
 
 
+
+@ddt
 class UpdateVideoTest(TestCase):
     """
     Tests the update_video function in api.py.
@@ -159,6 +162,28 @@ class UpdateVideoTest(TestCase):
         self.assertEqual(len(videos), 1)
         self.assertEqual(type(updated_video), Video)
         self.assertEqual(updated_video.client_video_id, "Full Swordfish")
+
+
+    @data(
+        constants.COMPLETE_SET_INVALID_ENCODED_VIDEO_FISH,
+    )
+    def test_update_video_incorrect_data(self, data):
+        """
+        Tests the update of a video with invalid data
+        """
+        with self.assertRaises(ValCannotUpdateError):
+            api.update_video(data)
+
+
+    @data(
+        constants.VIDEO_DICT_DIFFERENT_ID_FISH
+    )
+    def test_update_video_not_found(self, data):
+        """
+        Tests the update of a video with invalid id
+        """
+        with self.assertRaises(ValVideoNotFoundError):
+            api.update_video(data)
 
 
 class CreateProfileTest(TestCase):

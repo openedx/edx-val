@@ -57,6 +57,13 @@ class ValCannotCreateError(ValError):
     pass
 
 
+class ValCannotUpdateError(ValError):
+    """
+    This error is raised when an object cannot be updated
+    """
+    pass
+
+
 class VideoSortField(Enum):
     """An enum representing sortable fields in the Video model"""
     created = "created"
@@ -109,7 +116,8 @@ def update_video(video_data):
     """
     Called on to update Video objects in the database
 
-    update_video is used to update Video objects.
+    update_video is used to update Video objects by the given edx_video_id in the video_data.
+
     Args:
         video_data (dict):
          {
@@ -123,15 +131,24 @@ def update_video(video_data):
                     profile: ID of the profile
                 courses: Courses associated with this video
          }
+
+    Raises:
+        Raises ValVideoNotFoundError if the video cannot be retrieved.
+        Raises ValCannotUpdateError if the video cannot be updated.
     """
 
-    video = _get_video(video_data.get("edx_video_id"))
+    try:
+        video = _get_video(video_data.get("edx_video_id"))
+    except Video.DoesNotExist:
+        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id")) 
+        raise ValVideoNotFoundError(error_message)
+        
     serializer = VideoSerializer(video, data=video_data)
     if serializer.is_valid():
         serializer.save()
         return video_data.get("edx_video_id")
     else:
-        raise ValCannotCreateError(serializer.errors)
+        raise ValCannotUpdateError(serializer.errors)
 
 
 def create_profile(profile_name):
