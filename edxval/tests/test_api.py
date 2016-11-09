@@ -93,6 +93,7 @@ class CreateVideoTest(TestCase):
         """
         Tests the creation of a video
         """
+
         video_data = dict(
             encoded_videos=[
                 constants.ENCODED_VIDEO_DICT_FISH_MOBILE
@@ -115,6 +116,47 @@ class CreateVideoTest(TestCase):
         """
         with self.assertRaises(ValCannotCreateError):
             api.create_video(data)
+
+
+class UpdateVideoTest(TestCase):
+    """
+    Tests the update_video function in api.py.
+
+    This function requires that a Video object exist.
+    This function requires that a Profile object exist.
+    """
+
+    def setUp(self):
+        """
+        Creation of Video object that will be used to test video update
+        Creation of Profile objects that will be used to test video update
+        """
+        api.create_profile(constants.PROFILE_DESKTOP)
+        api.create_profile(constants.PROFILE_MOBILE)
+        video_data = dict(
+            encoded_videos=[
+                constants.ENCODED_VIDEO_DICT_FISH_MOBILE
+            ],
+            **constants.VIDEO_DICT_FISH
+        )
+        api.create_video(video_data)
+
+
+    def test_update_video(self):
+        """
+        Tests the update of a video
+        """
+        
+        video_data = dict(
+            encoded_videos=[
+                constants.ENCODED_VIDEO_DICT_FISH_MOBILE
+            ],
+            **constants.VIDEO_DICT_FISH_UPDATE
+        )
+        result = api.update_video(video_data)
+        videos = Video.objects.all()
+        self.assertEqual(len(videos), 1)
+        self.assertEqual("super-soaker", result)
 
 
 class CreateProfileTest(TestCase):
