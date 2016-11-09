@@ -83,7 +83,7 @@ def create_video(video_data):
     creation will be rejected. If the profile is not found in the database, the
     video will not be created.
     Args:
-        data (dict):
+        video_data (dict):
          {
                 url: api url to the video
                 edx_video_id: ID of the video
@@ -111,8 +111,7 @@ def update_video(video_data):
 
     update_video is used to update Video objects.
     Args:
-        edx_video_id (String)
-        data (dict):
+        video_data (dict):
          {
                 url: api url to the video
                 edx_video_id: ID of the video

@@ -157,6 +157,7 @@ class UpdateVideoTest(TestCase):
         videos = Video.objects.all()
         updated_video = videos[0]
         self.assertEqual(len(videos), 1)
+        self.assertEqual(type(updated_video), Video)
         self.assertEqual(updated_video.client_video_id, "Full Swordfish")
 
 
