@@ -155,8 +155,9 @@ class UpdateVideoTest(TestCase):
         )
         result = api.update_video(video_data)
         videos = Video.objects.all()
+        updated_video = videos[0]
         self.assertEqual(len(videos), 1)
-        self.assertEqual("super-soaker", result)
+        self.assertEqual(updated_video.client_video_id, "Full Swordfish")
 
 
 class CreateProfileTest(TestCase):
