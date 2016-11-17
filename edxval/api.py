@@ -147,7 +147,7 @@ def update_video(video_data):
     try:
         video = _get_video(video_data.get("edx_video_id"))
     except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id")) 
+        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id"))
         raise ValVideoNotFoundError(error_message)
 
     serializer = VideoSerializer(video, data=video_data)
@@ -328,10 +328,23 @@ def get_videos_for_course(
         total order.
     """
     return _get_videos_for_filter(
-        {"courses__course_id":unicode(course_id)},
+        {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
         sort_field,
         sort_dir,
     )
+
+
+def remove_video_for_course(course_id, edx_video_id):
+    """
+    Soft deletes video for particular course.
+
+    Arguments:
+        course_id (str): id of the course
+        edx_video_id (str): id of the video to be hidden
+    """
+    course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)
+    course_video.is_hidden = True
+    course_video.save()
 
 
 def get_videos_for_ids(
