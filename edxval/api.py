@@ -158,6 +158,30 @@ def update_video(video_data):
         raise ValCannotUpdateError(serializer.errors)
 
 
+def update_video_status(edx_video_id, status):
+    """
+    Update status for an existing video.
+
+    Args:
+        edx_video_id: ID of the video
+        status: video status
+
+    Raises:
+        Raises ValVideoNotFoundError if the video cannot be retrieved.
+    """
+
+    try:
+        video = _get_video(edx_video_id)
+    except Video.DoesNotExist:
+        error_message = u"Video not found when trying to update video status with edx_video_id: {0}".format(
+            edx_video_id
+        )
+        raise ValVideoNotFoundError(error_message)
+
+    video.status = status
+    video.save()
+
+
 def create_profile(profile_name):
     """
     Used to create Profile objects in the database
