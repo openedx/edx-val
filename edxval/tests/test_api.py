@@ -4,6 +4,7 @@ Tests for the API for Video Abstraction Layer
 """
 
 import mock
+from mock import patch
 from lxml import etree
 
 from django.test import TestCase
@@ -1099,3 +1100,41 @@ class GetCourseVideoRemoveTest(TestCase):
         # verify that video for other course has the correct info
         video_info = {key: videos[0][key] for key in constants.VIDEO_DICT_FISH}
         self.assertEqual(video_info, constants.VIDEO_DICT_FISH)
+
+
+class VideoStatusUpdateTest(TestCase):
+    """
+    Tests to check video status update works correctly
+    """
+    @patch('edxval.models.logger')
+    def test_video_instance_save_logging(self, mock_logger):
+        """
+        Tests correct message is logged when video instance is created and updated
+        """
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        mock_logger.info.assert_called_with(
+            'VAL: Video created with id [%s] and status [%s]',
+            video.edx_video_id,
+            constants.VIDEO_DICT_FISH.get('status')
+        )
+
+        video.status = 'new_status'
+        video.save()
+        mock_logger.info.assert_called_with(
+            'VAL: Status changed to [%s] for video [%s]',
+            video.status,
+            video.edx_video_id
+        )
+
+    @patch('edxval.models.logger')
+    def test_update_video_status_logging(self, mock_logger):
+        """
+        Tests correct message is logged when `update_video_status` is called
+        """
+        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        api.update_video_status(video.edx_video_id, 'fail')
+        mock_logger.info.assert_called_with(
+            'VAL: Status changed to [%s] for video [%s]',
+            'fail',
+            video.edx_video_id
+        )

@@ -23,7 +23,8 @@ class SerializerTests(TestCase):
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         Video.objects.create(
             duration=0,
-            edx_video_id=constants.VIDEO_DICT_NON_LATIN_ID["edx_video_id"]
+            edx_video_id=constants.VIDEO_DICT_NON_LATIN_ID["edx_video_id"],
+            status='test'
         )
 
     def test_negative_fields_for_encoded_video_serializer(self):

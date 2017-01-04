@@ -11,10 +11,14 @@ themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
+import logging
+
 from django.db import models
+from django.dispatch import receiver
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
 
+logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
 URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
 
@@ -190,3 +194,16 @@ class Subtitle(models.Model):
             return 'application/json'
         else:
             return 'text/plain'
+
+
+@receiver(models.signals.post_save, sender=Video)
+def video_status_update_callback(sender, **kwargs):  # pylint: disable=unused-argument
+    """
+    Log video status for an existing video instance
+    """
+    video = kwargs['instance']
+
+    if kwargs['created']:
+        logger.info('VAL: Video created with id [%s] and status [%s]', video.edx_video_id, video.status)
+    else:
+        logger.info('VAL: Status changed to [%s] for video [%s]', video.status, video.edx_video_id)
