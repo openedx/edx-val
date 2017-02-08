@@ -9,6 +9,7 @@ from lxml.etree import Element, SubElement
 from enum import Enum
 
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 
 from edxval.models import Video, EncodedVideo, CourseVideo, Profile
 from edxval.serializers import VideoSerializer
@@ -316,27 +317,48 @@ def get_url_for_profile(edx_video_id, profile):
 
 def _get_videos_for_filter(
         video_filter,
-        sort_field=None,
-        sort_dir=SortDirection.asc
+        **kwargs
 ):
     """
     Returns a generator expression that contains the videos found, sorted by
     the given field and direction, with ties broken by edx_video_id to ensure a
     total order.
     """
-    videos = Video.objects.filter(**video_filter)
+    from nose.tools import set_trace; set_trace();
+    from django.db import connection
+
+
+    videos_qs = Video.objects.filter(**video_filter)
+    page_no = int(kwargs.pop("page", 1))
+    page_size = int(kwargs.pop("page_size", 20))
+    sort_field = kwargs.pop("sort_field", None)
+    sort_dir = kwargs.pop("sort_dir", SortDirection.asc)
+
+    paginator = Paginator(videos_qs, page_size)
+    page = paginator.page(page_no)
+    total_count = paginator.count
+    start, end = paginator.page_range
+
     if sort_field:
         # Refining by edx_video_id ensures a total order
-        videos = videos.order_by(sort_field.value, "edx_video_id")
+        videos_qs = videos_qs.order_by(sort_field.value, "edx_video_id")
         if sort_dir == SortDirection.desc:
-            videos = videos.reverse()
-    return (VideoSerializer(video).data for video in videos)
+            videos_qs = videos_qs.reverse()
+    
+    return ({
+        "start": start,
+        "end": end,
+        "total_count": total_count,
+        "page_size": page_size,
+        "sort_field": sort_field,
+        "sort_dir": sort_dir,
+        "videos": list(VideoSerializer(video).data for video in page.object_list)
+    })
 
 
 def get_videos_for_course(
     course_id,
-    sort_field=None,
-    sort_dir=SortDirection.asc,
+    **kwargs
 ):
     """
     Returns an iterator of videos for the given course id.
@@ -353,8 +375,7 @@ def get_videos_for_course(
     """
     return _get_videos_for_filter(
         {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
-        sort_field,
-        sort_dir,
+        **kwargs
     )
 
 
@@ -373,8 +394,7 @@ def remove_video_for_course(course_id, edx_video_id):
 
 def get_videos_for_ids(
         edx_video_ids,
-        sort_field=None,
-        sort_dir=SortDirection.asc
+        **kwargs
 ):
     """
     Returns an iterator of videos that match the given list of ids.
@@ -391,8 +411,7 @@ def get_videos_for_ids(
     """
     return _get_videos_for_filter(
         {"edx_video_id__in":edx_video_ids},
-        sort_field,
-        sort_dir,
+        **kwargs
     )
 
 
