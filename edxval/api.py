@@ -332,7 +332,7 @@ def _get_videos_for_filter(
     page_no = int(kwargs.pop("page", 1))
     page_size = int(kwargs.pop("page_size", 20))
     sort_field = kwargs.pop("sort_field", None)
-    sort_dir = kwargs.pop("sort_dir", SortDirection.asc)
+    sort_dir = kwargs.pop("sort_dir", "asc")
 
     paginator = Paginator(videos_qs, page_size)
     page = paginator.page(page_no)
