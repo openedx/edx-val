@@ -324,10 +324,6 @@ def _get_videos_for_filter(
     the given field and direction, with ties broken by edx_video_id to ensure a
     total order.
     """
-    from nose.tools import set_trace; set_trace();
-    from django.db import connection
-
-
     videos_qs = Video.objects.filter(**video_filter)
     page_no = int(kwargs.pop("page", 1))
     page_size = int(kwargs.pop("page_size", 20))
