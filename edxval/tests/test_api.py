@@ -38,7 +38,7 @@ class SortedVideoTestMixin(object):
             """Assert that the given videos match the expected ids"""
 
             # Make sure it's not just returning the order given
-            actual_videos = api_func(list(reversed(expected_ids)), sort_field, sort_direction)
+            actual_videos = api_func(list(reversed(expected_ids)), sort_field, sort_direction)["videos"]
             actual_ids = [video["edx_video_id"] for video in actual_videos]
             self.assertEqual(actual_ids, expected_ids)
 
@@ -583,10 +583,10 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
         """
         Tests retrieving videos for a course id
         """
-        videos = list(api.get_videos_for_course(self.course_id))
+        videos = list(api.get_videos_for_course(self.course_id)["videos"])
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['edx_video_id'], constants.VIDEO_DICT_FISH['edx_video_id'])
-        videos = list(api.get_videos_for_course('unknown'))
+        videos = list(api.get_videos_for_course('unknown')["videos"])
         self.assertEqual(len(videos), 0)
 
     def test_get_videos_for_course_sort(self):
@@ -636,10 +636,10 @@ class GetVideosForIdsTest(TestCase, SortedVideoTestMixin):
         Tests retrieving videos for id
         """
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        videos = list(api.get_videos_for_ids([edx_video_id]))
+        videos = list(api.get_videos_for_ids([edx_video_id])["videos"])
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['edx_video_id'], edx_video_id)
-        videos = list(api.get_videos_for_ids(['unknown']))
+        videos = list(api.get_videos_for_ids(['unknown'])["videos"])
         self.assertEqual(len(videos), 0)
 
     def test_get_videos_for_ids(self):
@@ -656,7 +656,7 @@ class GetVideosForIdsTest(TestCase, SortedVideoTestMixin):
         )
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         edx_video_id_2 = constants.VIDEO_DICT_DIFFERENT_ID_FISH['edx_video_id']
-        videos = list(api.get_videos_for_ids([edx_video_id, edx_video_id_2]))
+        videos = list(api.get_videos_for_ids([edx_video_id, edx_video_id_2])["videos"])
         self.assertEqual(len(videos), 2)
 
     def test_get_videos_for_ids_duplicates(self):
@@ -664,7 +664,7 @@ class GetVideosForIdsTest(TestCase, SortedVideoTestMixin):
         Tests retrieving videos for ids when there are duplicate ids
         """
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        videos = list(api.get_videos_for_ids([edx_video_id, edx_video_id]))
+        videos = list(api.get_videos_for_ids([edx_video_id, edx_video_id])["videos"])
         self.assertEqual(len(videos), 1)
 
     def test_get_videos_for_ids_sort(self):
@@ -1081,12 +1081,12 @@ class GetCourseVideoRemoveTest(TestCase):
         Tests video removal for a course
         """
         # we have one video for this course
-        videos = list(api.get_videos_for_course(self.course_id))
+        videos = list(api.get_videos_for_course(self.course_id)["videos"])
         self.assertEqual(len(videos), 1)
 
         # remove the video and verify that video is removed from correct course
         api.remove_video_for_course(self.course_id, self.edx_video_id)
-        videos = list(api.get_videos_for_course(self.course_id))
+        videos = list(api.get_videos_for_course(self.course_id)["videos"])
         self.assertEqual(len(videos), 0)
 
         # verify that CourseVideo related object exists(soft removal) for removed video
@@ -1094,7 +1094,7 @@ class GetCourseVideoRemoveTest(TestCase):
         self.assertEqual(course_video.is_hidden, True)
 
         # verify that video still exists for other course
-        videos = list(api.get_videos_for_course('other-course'))
+        videos = list(api.get_videos_for_course('other-course')["videos"])
         self.assertEqual(len(videos), 1)
 
         # verify that video for other course has the correct info
