@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 
 from edxval.models import Video, EncodedVideo, CourseVideo, Profile
-from edxval.serializers import VideoSerializer
+from edxval.serializers import VideoSerializer, VideosPagination
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -327,30 +327,24 @@ def _get_videos_for_filter(
     total order.
     """
     videos_qs = Video.objects.filter(**video_filter)
-    page_no = int(kwargs.pop("page", 1))
-    page_size = int(kwargs.pop("page_size", 20))
-
     if sort_field:
         # Refining by edx_video_id ensures a total order
         videos_qs = videos_qs.order_by(sort_field.value, "edx_video_id")
         if sort_dir == SortDirection.desc:
             videos_qs = videos_qs.reverse()
 
-    paginator = Paginator(videos_qs, page_size)
-    page = paginator.page(page_no)
-    total_count = paginator.count
-    start = paginator.page_range
-    end = paginator.num_pages
+    paginated = kwargs.pop("paginated", False)
+    if paginated:
+        page_no = int(kwargs.pop("page", 1))
+        page_size = int(kwargs.pop("page_size", 20))
 
-    return ({
-        "start": start,
-        "end": end,
-        "total_count": total_count,
-        "page_size": page_size,
-        "sort_field": sort_field,
-        "sort_dir": sort_dir.value,
-        "videos": list(VideoSerializer(video).data for video in page.object_list)
-    })
+        paginator = VideosPagination()
+        videos = paginator.paginate_queryset(videos_qs, page_no, page_size)
+        return paginator.get_paginated_response(
+            list(VideoSerializer(video).data for video in videos),
+            sort_dir.value, sort_field)
+    else:
+        return (list(VideoSerializer(video).data for video in videos_qs))
 
 
 def get_videos_for_course(
