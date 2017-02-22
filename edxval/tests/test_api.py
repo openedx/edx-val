@@ -11,6 +11,7 @@ from django.test import TestCase
 from django.db import DatabaseError
 from django.core.urlresolvers import reverse
 from rest_framework import status
+from rest_framework.exceptions import NotFound
 from ddt import ddt, data
 
 from edxval.models import Profile, Video, EncodedVideo, CourseVideo
@@ -600,6 +601,164 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
                 sort_direction,
             )
         self.check_sort_params_of_api(api_func)
+
+
+class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
+    """
+    Tests for our get_videos_for_course function in api.py
+    """
+
+    def setUp(self):
+        """
+        Creates EncodedVideo objects in database
+        """
+        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
+
+        # create video in the test course
+        self.course_id = 'test-course'
+
+        # set default parameters for pagination query
+        self.params = {
+            "page" : 1,
+            "page_size": 20,
+            "paginated": True
+        }
+
+        # Create 50 videos for 'test-course'
+        for i in range(50):
+            video = Video.objects.create(
+                        client_video_id="video_" + str(50 - i),
+                        duration=111.0,
+                        edx_video_id="video-" + str(i)
+                    )
+            CourseVideo.objects.create(video=video, course_id=self.course_id)
+
+    def sort_results(self, results, sort_dir, sort_field):
+
+        sorted_videos = sorted(results, key=lambda result: result[sort_field])
+        if sort_dir == 'asc':
+            return sorted_videos
+        elif sort_dir == 'desc':
+            sorted_videos.reverse()
+            return sorted_videos
+
+    def test_get_videos_for_course(self):
+
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+
+        self.assertEqual(len(videos_data["results"]), self.params["page_size"])
+        self.assertEqual(videos_data["current_page"], self.params["page"])
+        self.assertEqual(videos_data["total_pages"], 3)
+        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["sort_field"], "created")
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    videos_data["sort_field"])
+            )
+
+    def test_get_videos_for_course_sort_desc(self):
+
+        self.params["sort_dir"] = api.SortDirection.desc
+        self.params["sort_field"] = api.VideoSortField.created
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+
+        self.assertEqual(videos_data["sort_dir"], 'desc')
+        self.assertEqual(videos_data["sort_field"], "created")
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    videos_data["sort_field"])
+            )
+
+    def test_get_videos_for_course_sort_asc_edx_id(self):
+
+        self.params["sort_field"] = api.VideoSortField.edx_video_id
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+
+        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["sort_field"], "edx_video_id")
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    videos_data["sort_field"])
+            )
+
+    def test_get_videos_for_course_sort_desc_edx_id(self):
+
+        self.params["sort_dir"] = api.SortDirection.desc
+        self.params["sort_field"] = api.VideoSortField.edx_video_id
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+
+        self.assertEqual(videos_data["sort_dir"], 'desc')
+        self.assertEqual(videos_data["sort_field"], "edx_video_id")
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    videos_data["sort_field"])
+            )
+
+    def test_get_videos_for_course_sort_asc_client_id(self):
+
+        self.params["sort_field"] = api.VideoSortField.client_video_id
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+
+        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["sort_field"], "client_video_id")
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    videos_data["sort_field"])
+            )
+
+    def test_get_videos_for_course_sort_desc_client_id(self):
+
+        self.params["sort_dir"] = api.SortDirection.desc
+        self.params["sort_field"] = api.VideoSortField.client_video_id
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+
+        self.assertEqual(videos_data["sort_dir"], 'desc')
+        self.assertEqual(videos_data["sort_field"], "client_video_id")
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    videos_data["sort_field"])
+            )
+
+    def test_get_videos_for_course_sort_duration(self):
+
+        self.params["sort_field"] = api.VideoSortField.duration
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+
+        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["sort_field"], "duration")
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    videos_data["sort_field"])
+            )
+
+        # Since duration is same for all videos
+        # ordering must be refined by edx_video_id
+        self.assertEqual(videos_data["results"],
+                self.sort_results(videos_data["results"],
+                    videos_data["sort_dir"],
+                    "edx_video_id")
+            )
+
+    def test_get_videos_for_course_invalid_page(self):
+        """
+        Test invalid page numbers i.e. negatives and exceeding range
+        """
+        self.params["page"] = 4
+        with self.assertRaises(NotFound):
+            api.get_videos_for_course(self.course_id, **self.params)
+
+        self.params["page"] = -1
+        with self.assertRaises(NotFound):
+            api.get_videos_for_course(self.course_id, **self.params)
+
 
 
 class GetVideosForIdsTest(TestCase, SortedVideoTestMixin):

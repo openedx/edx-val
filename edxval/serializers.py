@@ -7,10 +7,11 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from rest_framework.fields import IntegerField, DateTimeField
 
-from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
 from rest_framework import pagination
 
 from django.core.paginator import Paginator, InvalidPage
+from django.utils import six
 
 from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo
 
@@ -215,6 +216,8 @@ class VideosPagination(pagination.BasePagination):
     """
     Paginator for APIs in edx-val.
     """
+    invalid_page_message = 'Invalid page.'
+
     def paginate_queryset(self, queryset, page_no=1, page_size=20):
         """
         Paginate the queryset and returns the interable data
@@ -226,7 +229,7 @@ class VideosPagination(pagination.BasePagination):
             self.page = paginator.page(page_no)
         except InvalidPage as exc:
             msg = self.invalid_page_message.format(
-                page_number=page_number, message=six.text_type(exc)
+                page_number=page_no, message=six.text_type(exc)
             )
             raise NotFound(msg)
 
@@ -236,12 +239,17 @@ class VideosPagination(pagination.BasePagination):
         """
         Annotate the response with pagination information.
         """
-        return Response({
+        if sort_field is None:
+            sort_field = "created"
+        else:
+            sort_field = sort_field.value
+
+        return {
             'page_size': self.page.paginator.per_page,
             'total_count': self.page.paginator.count,
             'total_pages': self.page.paginator.num_pages,
             'current_page': self.page.number,
             'sort_field': sort_field,
-            'sort_dir': sort_dir,
+            'sort_dir': sort_dir.value,
             'results': data
-        })
+        }

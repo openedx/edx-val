@@ -342,7 +342,7 @@ def _get_videos_for_filter(
         videos = paginator.paginate_queryset(videos_qs, page_no, page_size)
         return paginator.get_paginated_response(
             list(VideoSerializer(video).data for video in videos),
-            sort_dir.value, sort_field)
+            sort_dir, sort_field)
     else:
         return (list(VideoSerializer(video).data for video in videos_qs))
 
