@@ -8,6 +8,7 @@ import logging
 from lxml.etree import Element, SubElement
 from enum import Enum
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 
@@ -317,8 +318,8 @@ def get_url_for_profile(edx_video_id, profile):
 
 def _get_videos_for_filter(
         video_filter,
-        sort_field=None,
-        sort_dir=SortDirection.asc,
+        sort_field=VideoSortField.created,
+        sort_dir=SortDirection.desc,
         **kwargs
 ):
     """
@@ -330,13 +331,14 @@ def _get_videos_for_filter(
     if sort_field:
         # Refining by edx_video_id ensures a total order
         videos_qs = videos_qs.order_by(sort_field.value, "edx_video_id")
-        if sort_dir == SortDirection.desc:
-            videos_qs = videos_qs.reverse()
+
+    if sort_dir == SortDirection.desc:
+        videos_qs = videos_qs.reverse()
 
     paginated = kwargs.pop("paginated", False)
     if paginated:
         page_no = int(kwargs.pop("page", 1))
-        page_size = int(kwargs.pop("page_size", 20))
+        page_size = int(kwargs.pop("page_size", settings.VAL_PAGE_SIZE))
 
         paginator = VideosPagination()
         videos = paginator.paginate_queryset(videos_qs, page_no, page_size)
@@ -349,7 +351,7 @@ def _get_videos_for_filter(
 
 def get_videos_for_course(
     course_id,
-    sort_field=None,
+    sort_field=VideoSortField.created,
     sort_dir=SortDirection.asc,
     **kwargs
 ):
@@ -389,7 +391,7 @@ def remove_video_for_course(course_id, edx_video_id):
 
 def get_videos_for_ids(
         edx_video_ids,
-        sort_field=None,
+        sort_field=VideoSortField.created,
         sort_dir=SortDirection.asc,
         **kwargs
 ):

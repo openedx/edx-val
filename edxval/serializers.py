@@ -241,10 +241,10 @@ class VideosPagination(pagination.BasePagination):
         """
         return {
             'page_size': self.page.paginator.per_page,
-            'total_count': self.page.paginator.count,
-            'total_pages': self.page.paginator.num_pages,
-            'current_page': self.page.number,
+            'count': self.page.paginator.count,
+            'num_pages': self.page.paginator.num_pages,
+            'page': self.page.number,
             'sort_field': sort_field.value,
-            'sort_dir': sort_dir.value,
+            'sort_order': sort_dir.value,
             'results': data
         }
