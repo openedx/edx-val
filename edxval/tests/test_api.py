@@ -648,13 +648,13 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
         self.assertEqual(len(videos_data["results"]), self.params["page_size"])
-        self.assertEqual(videos_data["current_page"], self.params["page"])
-        self.assertEqual(videos_data["total_pages"], 3)
-        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["page"], self.params["page"])
+        self.assertEqual(videos_data["num_pages"], 3)
+        self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "created")
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     videos_data["sort_field"])
             )
 
@@ -664,11 +664,11 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.params["sort_field"] = api.VideoSortField.created
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
-        self.assertEqual(videos_data["sort_dir"], 'desc')
+        self.assertEqual(videos_data["sort_order"], 'desc')
         self.assertEqual(videos_data["sort_field"], "created")
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     videos_data["sort_field"])
             )
 
@@ -677,11 +677,11 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.params["sort_field"] = api.VideoSortField.edx_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
-        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "edx_video_id")
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     videos_data["sort_field"])
             )
 
@@ -691,11 +691,11 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.params["sort_field"] = api.VideoSortField.edx_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
-        self.assertEqual(videos_data["sort_dir"], 'desc')
+        self.assertEqual(videos_data["sort_order"], 'desc')
         self.assertEqual(videos_data["sort_field"], "edx_video_id")
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     videos_data["sort_field"])
             )
 
@@ -704,11 +704,11 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.params["sort_field"] = api.VideoSortField.client_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
-        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "client_video_id")
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     videos_data["sort_field"])
             )
 
@@ -718,11 +718,11 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.params["sort_field"] = api.VideoSortField.client_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
-        self.assertEqual(videos_data["sort_dir"], 'desc')
+        self.assertEqual(videos_data["sort_order"], 'desc')
         self.assertEqual(videos_data["sort_field"], "client_video_id")
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     videos_data["sort_field"])
             )
 
@@ -731,11 +731,11 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.params["sort_field"] = api.VideoSortField.duration
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
-        self.assertEqual(videos_data["sort_dir"], 'asc')
+        self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "duration")
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     videos_data["sort_field"])
             )
 
@@ -743,7 +743,7 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         # ordering must be refined by edx_video_id
         self.assertEqual(videos_data["results"],
                 self.sort_results(videos_data["results"],
-                    videos_data["sort_dir"],
+                    videos_data["sort_order"],
                     "edx_video_id")
             )
 
