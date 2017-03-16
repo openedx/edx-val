@@ -4,16 +4,20 @@ Serializers for Video Abstraction Layer
 Serialization is usually sent through the VideoSerializer which uses the
 EncodedVideoSerializer which uses the profile_name as it's profile field.
 """
-from rest_framework import serializers
-from rest_framework.fields import IntegerField, DateTimeField
-
-from rest_framework.exceptions import NotFound
-from rest_framework import pagination
-
-from django.core.paginator import Paginator, InvalidPage
+import logging
 from django.utils import six
 
+from rest_framework import pagination
+from rest_framework import serializers
+from rest_framework.exceptions import NotFound
+from rest_framework.fields import IntegerField, DateTimeField
+
+from django.core.paginator import Paginator, InvalidPage
+from django.utils.translation import ugettext_lazy as _
+
 from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo
+
+logger = logging.getLogger(__name__)
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
@@ -216,9 +220,9 @@ class VideosPagination(pagination.BasePagination):
     """
     Paginator for APIs in edx-val.
     """
-    invalid_page_message = 'Invalid page.'
+    invalid_page_message = _('Invalid page {page_no}: {msg}')
 
-    def paginate_queryset(self, queryset, page_no=1, page_size=20):
+    def paginate_queryset(self, queryset, page_no, page_size):
         """
         Paginate the queryset and returns the interable data
         for the given page and page_size
@@ -228,10 +232,11 @@ class VideosPagination(pagination.BasePagination):
         try:
             self.page = paginator.page(page_no)
         except InvalidPage as exc:
+            self.page = paginator.page(1)
             msg = self.invalid_page_message.format(
-                page_number=page_no, message=six.text_type(exc)
+                page_no=page_no, msg=six.text_type(exc)
             )
-            raise NotFound(msg)
+            logger.exception(msg)
 
         return list(self.page)
 

@@ -318,8 +318,8 @@ def get_url_for_profile(edx_video_id, profile):
 
 def _get_videos_for_filter(
         video_filter,
-        sort_field=VideoSortField.created,
-        sort_dir=SortDirection.desc,
+        sort_field=None,
+        sort_dir=SortDirection.asc,
         **kwargs
 ):
     """
@@ -335,11 +335,15 @@ def _get_videos_for_filter(
     if sort_dir == SortDirection.desc:
         videos_qs = videos_qs.reverse()
 
-    paginated = kwargs.pop("paginated", False)
+    paginated = kwargs.get("paginated", False)
     if paginated:
-        page_no = int(kwargs.pop("page", 1))
-        page_size = int(kwargs.pop("page_size", settings.VAL_PAGE_SIZE))
-        search_key = kwargs.pop("search_key", "")
+        page_no = kwargs.get("page", 1)
+        page_size = kwargs.get("page_size", settings.VAL_PAGE_SIZE)
+        search_key = kwargs.get("search_key", None)
+
+        # Default sorting is based on creation time
+        if not sort_field:
+            sort_field = VideoSortField.created
 
         if search_key:
             videos_qs = videos_qs.filter(client_video_id__icontains=search_key)
@@ -348,14 +352,15 @@ def _get_videos_for_filter(
         videos = paginator.paginate_queryset(videos_qs, page_no, page_size)
         return paginator.get_paginated_response(
             list(VideoSerializer(video).data for video in videos),
-            sort_dir, sort_field)
+            sort_dir,
+            sort_field)
     else:
         return (list(VideoSerializer(video).data for video in videos_qs))
 
 
 def get_videos_for_course(
     course_id,
-    sort_field=VideoSortField.created,
+    sort_field=None,
     sort_dir=SortDirection.asc,
     **kwargs
 ):
@@ -374,8 +379,8 @@ def get_videos_for_course(
     """
     return _get_videos_for_filter(
         {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
-        sort_field=sort_field,
-        sort_dir=sort_dir,
+        sort_field,
+        sort_dir,
         **kwargs
     )
 
@@ -395,7 +400,7 @@ def remove_video_for_course(course_id, edx_video_id):
 
 def get_videos_for_ids(
         edx_video_ids,
-        sort_field=VideoSortField.created,
+        sort_field=None,
         sort_dir=SortDirection.asc,
         **kwargs
 ):
@@ -414,8 +419,8 @@ def get_videos_for_ids(
     """
     return _get_videos_for_filter(
         {"edx_video_id__in":edx_video_ids},
-        sort_field=sort_field,
-        sort_dir=sort_dir,
+        sort_field,
+        sort_dir,
         **kwargs
     )
 

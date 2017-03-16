@@ -10,8 +10,8 @@ from lxml import etree
 from django.test import TestCase
 from django.db import DatabaseError
 from django.core.urlresolvers import reverse
+from django.core.paginator import InvalidPage, EmptyPage
 from rest_framework import status
-from rest_framework.exceptions import NotFound
 from ddt import ddt, data
 
 from edxval.models import Profile, Video, EncodedVideo, CourseVideo
@@ -605,7 +605,7 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
 
 class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
     """
-    Tests for our get_videos_for_course function in api.py
+    Tests for paginations in our get_videos_for_course function in api.py
     """
 
     def setUp(self):
@@ -635,7 +635,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             CourseVideo.objects.create(video=video, course_id=self.course_id)
 
     def sort_results(self, results, sort_dir, sort_field):
-
+        """
+        Sorts results array according to input sort direction and
+        sort field
+        """
         sorted_videos = sorted(results, key=lambda result: result[sort_field])
         if sort_dir == 'asc':
             return sorted_videos
@@ -644,7 +647,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             return sorted_videos
 
     def test_get_videos_for_course(self):
-
+        """
+        Tests retrieving videos for a course id and check paginated
+        response parameters
+        """
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
         self.assertEqual(len(videos_data["results"]), self.params["page_size"])
@@ -659,7 +665,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             )
 
     def test_get_videos_for_course_sort_desc(self):
-
+        """
+        Tests retrieving videos for a course id with descending
+        sort order with default sort field
+        """
         self.params["sort_dir"] = api.SortDirection.desc
         self.params["sort_field"] = api.VideoSortField.created
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
@@ -673,7 +682,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             )
 
     def test_get_videos_for_course_sort_asc_edx_id(self):
-
+        """
+        Tests retrieving videos for a course id with ascending
+        sort order for edx_video_id field
+        """
         self.params["sort_field"] = api.VideoSortField.edx_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
@@ -686,7 +698,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             )
 
     def test_get_videos_for_course_sort_desc_edx_id(self):
-
+        """
+        Tests retrieving videos for a course id with descending
+        sort order for edx_video_id field
+        """
         self.params["sort_dir"] = api.SortDirection.desc
         self.params["sort_field"] = api.VideoSortField.edx_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
@@ -700,7 +715,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             )
 
     def test_get_videos_for_course_sort_asc_client_id(self):
-
+        """
+        Tests retrieving videos for a course id with ascending
+        sort order for client_video_id field
+        """
         self.params["sort_field"] = api.VideoSortField.client_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
@@ -713,7 +731,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             )
 
     def test_get_videos_for_course_sort_desc_client_id(self):
-
+        """
+        Tests retrieving videos for a course id with descending
+        sort order for client_video_id field
+        """
         self.params["sort_dir"] = api.SortDirection.desc
         self.params["sort_field"] = api.VideoSortField.client_video_id
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
@@ -727,7 +748,10 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
             )
 
     def test_get_videos_for_course_sort_duration(self):
-
+        """
+        Tests retrieving videos for a course id with ascending
+        sort order for duration field
+        """
         self.params["sort_field"] = api.VideoSortField.duration
         videos_data = api.get_videos_for_course(self.course_id, **self.params)
 
@@ -752,12 +776,16 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         Test invalid page numbers i.e. negatives and exceeding range
         """
         self.params["page"] = 4
-        with self.assertRaises(NotFound):
-            api.get_videos_for_course(self.course_id, **self.params)
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+        self.assertEqual(videos_data["page"], 1)
 
         self.params["page"] = -1
-        with self.assertRaises(NotFound):
-            api.get_videos_for_course(self.course_id, **self.params)
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+        self.assertEqual(videos_data["page"], 1)
+
+        self.params["page"] = "test"
+        videos_data = api.get_videos_for_course(self.course_id, **self.params)
+        self.assertEqual(videos_data["page"], 1)
 
 
 
