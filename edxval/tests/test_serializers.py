@@ -116,9 +116,14 @@ class SerializerTests(TestCase):
             profile=Profile.objects.get(profile_name="mobile"),
             **constants.ENCODED_VIDEO_DICT_MOBILE
         )
+        EncodedVideo.objects.create(
+            video=video,
+            profile=Profile.objects.get(profile_name="hls"),
+            **constants.ENCODED_VIDEO_DICT_HLS
+        )
         result = VideoSerializer(video).data  # pylint: disable=E1101
-        # Check for 2 EncodedVideo entries
-        self.assertEqual(len(result.get("encoded_videos")), 2)
+        # Check for 3 EncodedVideo entries
+        self.assertEqual(len(result.get("encoded_videos")), 3)
         # Check for original Video data
         self.assertDictContainsSubset(constants.VIDEO_DICT_FISH, result)
 

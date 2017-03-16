@@ -103,16 +103,17 @@ class VideoDetail(APIAuthTestCase):
             constants.ENCODED_VIDEO_UPDATE_DICT_STAR.get("url")
         )
 
-    def test_update_two_encoded_videos(self):
+    def test_update_three_encoded_videos(self):
         """
-        Tests PUTting two encoded videos and then PUT back.
+        Tests PUTting three encoded videos and then PUT back.
         """
         url = reverse('video-list')
-        response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
+        response = self.client.post(url, constants.COMPLETE_SET_FISH_WITH_HLS, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         url = reverse(
             'video-detail',
-            kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
+            kwargs={"edx_video_id": constants.COMPLETE_SET_FISH_WITH_HLS.get("edx_video_id")}
         )
         response = self.client.patch(  # pylint: disable=E1101
             path=url,
@@ -122,41 +123,36 @@ class VideoDetail(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         videos = Video.objects.all()
         self.assertEqual(len(videos), 1)
-        self.assertEqual(len(videos[0].encoded_videos.all()), 2)
-        first_url = videos[0].encoded_videos.all()[0].url
-        self.assertNotEqual(
-            constants.ENCODED_VIDEO_DICT_FISH_MOBILE,
-            constants.ENCODED_VIDEO_DICT_UPDATE_FISH_MOBILE.get("url"))
-        self.assertEqual(
-            first_url,
-            constants.ENCODED_VIDEO_DICT_UPDATE_FISH_MOBILE.get("url")
-        )
-        second_url = videos[0].encoded_videos.all()[1].url
-        self.assertNotEqual(
-            constants.ENCODED_VIDEO_DICT_FISH_DESKTOP,
-            constants.ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP.get("url"))
-        self.assertEqual(
-            second_url,
-            constants.ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP.get("url")
-        )
+        self.assertEqual(len(videos[0].encoded_videos.all()), 3)
+
+        for index, encoding in enumerate(videos[0].encoded_videos.all()):
+            before_update_encoding = constants.COMPLETE_SET_FISH_WITH_HLS['encoded_videos'][index]
+            after_update_encoding = constants.COMPLETE_SET_UPDATE_FISH['encoded_videos'][index]
+
+            self.assertNotEqual(
+                before_update_encoding.get('url'),
+                after_update_encoding.get('url')
+            )
+            self.assertEqual(
+                encoding.url,
+                after_update_encoding.get('url')
+            )
+
         response = self.client.put(
             path=url,
-            data=constants.COMPLETE_SET_FISH,
+            data=constants.COMPLETE_SET_FISH_WITH_HLS,
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         videos = Video.objects.all()
         self.assertEqual(len(videos), 1)
-        first_url = videos[0].encoded_videos.all()[0].url
-        self.assertEqual(
-            first_url,
-            constants.ENCODED_VIDEO_DICT_FISH_MOBILE.get("url")
-        )
-        second_url = videos[0].encoded_videos.all()[1].url
-        self.assertEqual(
-            second_url,
-            constants.ENCODED_VIDEO_DICT_FISH_DESKTOP.get("url")
-        )
+        self.assertEqual(len(videos[0].encoded_videos.all()), 3)
+
+        for index, encoding in enumerate(videos[0].encoded_videos.all()):
+            self.assertEqual(
+                encoding.url,
+                constants.COMPLETE_SET_FISH_WITH_HLS['encoded_videos'][index].get('url')
+            )
 
     def test_update_one_of_two_encoded_videos(self):
         """
@@ -418,18 +414,18 @@ class VideoListTest(APIAuthTestCase):
         Video.objects.all().delete()
 
     # Tests for successful POST 201 requests.
-    def test_complete_set_two_encoded_video_post(self):
+    def test_complete_set_three_encoded_video_post(self):
         """
         Tests POSTing Video and EncodedVideo pair
         """  # pylint: disable=R0801
         url = reverse('video-list')
         response = self.client.post(
-            url, constants.COMPLETE_SET_FISH, format='json'
+            url, constants.COMPLETE_SET_FISH_WITH_HLS, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 1)
-        self.assertEqual(len(video[0].get("encoded_videos")), 2)
+        self.assertEqual(len(video[0].get("encoded_videos")), 3)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_complete_set_with_extra_video_field(self):
@@ -625,6 +621,26 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(len(response), 1)
         self.assertEqual(response[0]['edx_video_id'], video['edx_video_id'])
 
+    def test_post_with_hls(self):
+        """
+        Test that hls is a valid profile.
+        """
+        url = reverse('video-list')
+
+        video_data = dict(
+            encoded_videos=[
+                constants.ENCODED_VIDEO_DICT_FISH_HLS
+            ],
+            **constants.VIDEO_DICT_FISH
+        )
+        response = self.client.post(
+            url, video_data, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        videos = self.client.get(url).data
+        self.assertEqual(len(videos), 1)
+        self.assertIn('https://www.tmnt.com/tmnt101.m3u8', videos[0]['encoded_videos'][0]['url'])
 
     # Tests for POST queries to database
 

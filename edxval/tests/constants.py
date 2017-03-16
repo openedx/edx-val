@@ -10,6 +10,7 @@ Generic Profiles for manually creating profile objects
 PROFILE_MOBILE = "mobile"
 PROFILE_DESKTOP = "desktop"
 PROFILE_YOUTUBE = "youtube"
+PROFILE_HLS = 'hls'
 """
 Encoded_videos for test_api, does not have profile.
 """
@@ -42,6 +43,11 @@ ENCODED_VIDEO_DICT_DESKTOP3 = dict(
     url="http://www.hiss.com",
     file_size=3333,
     bitrate=4444,
+)
+ENCODED_VIDEO_DICT_HLS = dict(
+    url='https://www.tmnt.com/tmnt101.m3u8',
+    file_size=100,
+    bitrate=0
 )
 """
 Validators
@@ -150,6 +156,12 @@ ENCODED_VIDEO_DICT_FISH_DESKTOP = dict(
     bitrate=4222,
     profile="desktop",
 )
+ENCODED_VIDEO_DICT_FISH_HLS = dict(
+    url='https://www.tmnt.com/tmnt101.m3u8',
+    file_size=100,
+    bitrate=100,
+    profile='hls',
+)
 ENCODED_VIDEO_DICT_UPDATE_FISH_MOBILE = dict(
     url="https://www.fishfellow.com",
     file_size=1,
@@ -161,6 +173,12 @@ ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP = dict(
     file_size=2,
     bitrate=2,
     profile="desktop",
+)
+ENCODED_VIDEO_DICT_UPDATE_FISH_HLS = dict(
+    url="https://www.comics.com/flash/intro.m3u8",
+    file_size=200,
+    bitrate=200,
+    profile="hls",
 )
 ENCODED_VIDEO_DICT_FISH_INVALID_PROFILE = dict(
     url="https://www.swordsplints.com",
@@ -176,6 +194,15 @@ COMPLETE_SET_FISH = dict(
     subtitles=[SUBTITLE_DICT_SRT, SUBTITLE_DICT_SJSON],
     **VIDEO_DICT_FISH
 )
+COMPLETE_SET_FISH_WITH_HLS = dict(
+    encoded_videos=[
+        ENCODED_VIDEO_DICT_FISH_MOBILE,
+        ENCODED_VIDEO_DICT_FISH_DESKTOP,
+        ENCODED_VIDEO_DICT_FISH_HLS,
+    ],
+    subtitles=[SUBTITLE_DICT_SRT, SUBTITLE_DICT_SJSON],
+    **VIDEO_DICT_FISH
+)
 COMPLETE_SET_TWO_MOBILE_FISH = dict(
     encoded_videos=[
         ENCODED_VIDEO_DICT_FISH_MOBILE,
@@ -187,7 +214,8 @@ COMPLETE_SET_TWO_MOBILE_FISH = dict(
 COMPLETE_SET_UPDATE_FISH = dict(
     encoded_videos=[
         ENCODED_VIDEO_DICT_UPDATE_FISH_MOBILE,
-        ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP
+        ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP,
+        ENCODED_VIDEO_DICT_UPDATE_FISH_HLS,
     ],
     subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_FISH
