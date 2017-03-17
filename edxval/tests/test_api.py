@@ -98,7 +98,8 @@ class CreateVideoTest(TestCase):
 
         video_data = dict(
             encoded_videos=[
-                constants.ENCODED_VIDEO_DICT_FISH_MOBILE
+                constants.ENCODED_VIDEO_DICT_FISH_MOBILE,
+                constants.ENCODED_VIDEO_DICT_FISH_HLS
             ],
             **constants.VIDEO_DICT_FISH
         )
@@ -198,12 +199,17 @@ class CreateProfileTest(TestCase):
         """
         api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
-        self.assertEqual(len(profiles), 6)
+        profile_names = [unicode(profile) for profile in profiles]
+        self.assertEqual(len(profiles), 7)
         self.assertIn(
             constants.PROFILE_DESKTOP,
-            [unicode(profile) for profile in profiles],
+            profile_names
         )
-        self.assertEqual(len(profiles), 6)
+        self.assertIn(
+            constants.PROFILE_HLS,
+            profile_names
+        )
+        self.assertEqual(len(profiles), 7)
 
     def test_invalid_create_profile(self):
         """
@@ -239,6 +245,11 @@ class GetVideoInfoTest(TestCase):
             video=video,
             profile=Profile.objects.get(profile_name="desktop"),
             **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        EncodedVideo.objects.create(
+            video=video,
+            profile=Profile.objects.get(profile_name="hls"),
+            **constants.ENCODED_VIDEO_DICT_HLS
         )
         self.course_id = 'test-course'
         CourseVideo.objects.create(video=video, course_id=self.course_id)
@@ -308,6 +319,13 @@ class GetUrlsForProfileTest(TestCase):
             profile=Profile.objects.get(profile_name="desktop"),
             **constants.ENCODED_VIDEO_DICT_DESKTOP
         )
+        EncodedVideo.objects.create(
+            video=Video.objects.get(
+                edx_video_id=constants.VIDEO_DICT_FISH.get("edx_video_id")
+            ),
+            profile=Profile.objects.get(profile_name="hls"),
+            **constants.ENCODED_VIDEO_DICT_HLS
+        )
         self.course_id = 'test-course'
         CourseVideo.objects.create(video=video, course_id=self.course_id)
 
@@ -315,12 +333,13 @@ class GetUrlsForProfileTest(TestCase):
         """
         Tests when the profiles to the video are found
         """
-        profiles = ["mobile", "desktop"]
+        profiles = ["mobile", "desktop", 'hls']
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         urls = api.get_urls_for_profiles(edx_video_id, profiles)
-        self.assertEqual(len(urls), 2)
+        self.assertEqual(len(urls), 3)
         self.assertEqual(urls["mobile"], u'http://www.meowmix.com')
         self.assertEqual(urls["desktop"], u'http://www.meowmagic.com')
+        self.assertEqual(urls["hls"], u'https://www.tmnt.com/tmnt101.m3u8')
 
     def test_get_urls_for_profiles_no_video(self):
         """
@@ -357,11 +376,12 @@ class GetVideoForCourseProfiles(TestCase):
         """
         Creates two courses for testing
 
-        Creates two videos with 2 encoded videos for the first course, and then
-        2 videos with 1 encoded video for the second course.
+        Creates two videos for first course where first video has 3 encodings and second
+        video has 2 encoding and then 2 videos with 1 encoded video for the second course.
         """
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         desktop_profile = Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
+        hls_profile = Profile.objects.get(profile_name=constants.PROFILE_HLS)
 
         self.course_id = 'test-course'
         # 1st video
@@ -375,6 +395,11 @@ class GetVideoForCourseProfiles(TestCase):
             video=video,
             profile=desktop_profile,
             **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        EncodedVideo.objects.create(
+            video=video,
+            profile=hls_profile,
+            **constants.ENCODED_VIDEO_DICT_HLS
         )
         CourseVideo.objects.create(video=video, course_id=self.course_id)
         # 2nd video
@@ -552,6 +577,24 @@ class GetVideoForCourseProfiles(TestCase):
             }
         ))
         self.assertEqual(videos, expected_dict)
+
+    def test_get_video_for_course_profiles_hls(self):
+        """
+        Tests get_video_info_for_course_and_profiles for hls profile
+        """
+        videos = api.get_video_info_for_course_and_profiles(
+            self.course_id,
+            ['hls']
+        )
+        self.assertEqual(
+            videos,
+            self._create_video_dict(
+                constants.VIDEO_DICT_FISH,
+                {
+                    constants.PROFILE_HLS: constants.ENCODED_VIDEO_DICT_HLS
+                }
+            )
+        )
 
 
 class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
@@ -991,6 +1034,7 @@ class ExportTest(TestCase):
     def setUp(self):
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         desktop_profile = Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
+        hls_profile = Profile.objects.get(profile_name=constants.PROFILE_HLS)
         Video.objects.create(**constants.VIDEO_DICT_STAR)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         EncodedVideo.objects.create(
@@ -1002,6 +1046,11 @@ class ExportTest(TestCase):
             video=video,
             profile=desktop_profile,
             **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        EncodedVideo.objects.create(
+            video=video,
+            profile=hls_profile,
+            **constants.ENCODED_VIDEO_DICT_HLS
         )
 
     def assert_xml_equal(self, left, right):
@@ -1038,6 +1087,7 @@ class ExportTest(TestCase):
             <video_asset client_video_id="Shallow Swordfish" duration="122.0">
                 <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
+                <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
             </video_asset>
         """)
         self.assert_xml_equal(
@@ -1112,7 +1162,7 @@ class ImportTest(TestCase):
 
         xml = self.make_import_xml(
             video_dict=constants.VIDEO_DICT_STAR,
-            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR]
+            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS]
         )
         api.import_from_xml(xml, constants.VIDEO_DICT_STAR["edx_video_id"], new_course_id)
 
@@ -1121,6 +1171,10 @@ class ImportTest(TestCase):
         self.assert_encoded_video_matches_dict(
             video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
             constants.ENCODED_VIDEO_DICT_STAR
+        )
+        self.assert_encoded_video_matches_dict(
+            video.encoded_videos.get(profile__profile_name=constants.PROFILE_HLS),
+            constants.ENCODED_VIDEO_DICT_FISH_HLS
         )
         video.courses.get(course_id=new_course_id)
 
