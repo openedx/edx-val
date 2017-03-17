@@ -8,7 +8,7 @@ import logging
 from lxml.etree import Element, SubElement
 from enum import Enum
 
-from django.conf.settings import UPLOADED_VIDEOS_PAGE_SIZE
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 
