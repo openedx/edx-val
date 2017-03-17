@@ -10,7 +10,6 @@ from lxml import etree
 from django.test import TestCase
 from django.db import DatabaseError
 from django.core.urlresolvers import reverse
-from django.core.paginator import InvalidPage, EmptyPage
 from rest_framework import status
 from ddt import ddt, data
 
@@ -628,10 +627,9 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         # Create 50 videos for 'test-course'
         for i in range(50):
             video = Video.objects.create(
-                        client_video_id="video_" + str(50 - i),
-                        duration=111.0,
-                        edx_video_id="video-" + str(i)
-                    )
+                client_video_id="video_" + str(50 - i),
+                duration=111.0,
+                edx_video_id="video-" + str(i))
             CourseVideo.objects.create(video=video, course_id=self.course_id)
 
     def sort_results(self, results, sort_dir, sort_field):
@@ -659,10 +657,9 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "created")
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    videos_data["sort_field"])
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           videos_data["sort_field"]))
 
     def test_get_videos_for_course_sort_desc(self):
         """
@@ -676,10 +673,9 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(videos_data["sort_order"], 'desc')
         self.assertEqual(videos_data["sort_field"], "created")
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    videos_data["sort_field"])
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           videos_data["sort_field"]))
 
     def test_get_videos_for_course_sort_asc_edx_id(self):
         """
@@ -692,10 +688,9 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "edx_video_id")
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    videos_data["sort_field"])
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           videos_data["sort_field"]))
 
     def test_get_videos_for_course_sort_desc_edx_id(self):
         """
@@ -709,10 +704,9 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(videos_data["sort_order"], 'desc')
         self.assertEqual(videos_data["sort_field"], "edx_video_id")
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    videos_data["sort_field"])
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           videos_data["sort_field"]))
 
     def test_get_videos_for_course_sort_asc_client_id(self):
         """
@@ -725,10 +719,9 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "client_video_id")
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    videos_data["sort_field"])
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           videos_data["sort_field"]))
 
     def test_get_videos_for_course_sort_desc_client_id(self):
         """
@@ -742,10 +735,9 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(videos_data["sort_order"], 'desc')
         self.assertEqual(videos_data["sort_field"], "client_video_id")
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    videos_data["sort_field"])
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           videos_data["sort_field"]))
 
     def test_get_videos_for_course_sort_duration(self):
         """
@@ -758,18 +750,16 @@ class GetPaginatedVideosForCourseTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(videos_data["sort_order"], 'asc')
         self.assertEqual(videos_data["sort_field"], "duration")
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    videos_data["sort_field"])
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           videos_data["sort_field"]))
 
         # Since duration is same for all videos
         # ordering must be refined by edx_video_id
         self.assertEqual(videos_data["results"],
-                self.sort_results(videos_data["results"],
-                    videos_data["sort_order"],
-                    "edx_video_id")
-            )
+                         self.sort_results(videos_data["results"],
+                                           videos_data["sort_order"],
+                                           "edx_video_id"))
 
     def test_get_videos_for_course_invalid_page(self):
         """

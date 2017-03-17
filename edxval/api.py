@@ -8,7 +8,7 @@ import logging
 from lxml.etree import Element, SubElement
 from enum import Enum
 
-from django.conf import settings
+from django.conf.settings import UPLOADED_VIDEOS_PAGE_SIZE
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 
@@ -325,7 +325,8 @@ def _get_videos_for_filter(
     """
     Returns a generator expression that contains the videos found, sorted by
     the given field and direction, with ties broken by edx_video_id to ensure a
-    total order.
+    total order. Returns paginated list with pagination parameters if paginated
+    flag is set.
     """
     videos_qs = Video.objects.filter(**video_filter)
     if sort_field:
@@ -338,7 +339,7 @@ def _get_videos_for_filter(
     paginated = kwargs.get("paginated", False)
     if paginated:
         page_no = kwargs.get("page", 1)
-        page_size = kwargs.get("page_size", settings.VAL_PAGE_SIZE)
+        page_size = kwargs.get("page_size", settings.UPLOADED_VIDEOS_PAGE_SIZE)
         search_key = kwargs.get("search_key", None)
 
         # Default sorting is based on creation time
@@ -372,11 +373,17 @@ def get_videos_for_course(
         course_id (String)
         sort_field (VideoSortField)
         sort_dir (SortDirection)
+        kwargs:
+            - paginated (True/False)
+            - page_no (Integer)
+            - page_size (Integer)
+            - search_key (String)
 
     Returns:
         A generator expression that contains the videos found, sorted by the
         given field and direction, with ties broken by edx_video_id to ensure a
-        total order.
+        total order. Returns paginated list with pagination parameters if paginated
+        flag is set.
     """
     return _get_videos_for_filter(
         {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
@@ -406,17 +413,23 @@ def get_videos_for_ids(
         **kwargs
 ):
     """
-    Returns an iterator of videos that match the given list of ids.
+    Returns a list of videos that match the given list of ids.
 
     Args:
         edx_video_ids (list)
         sort_field (VideoSortField)
         sort_dir (SortDirection)
+        kwargs:
+            - paginated (True/False)
+            - page_no (Integer)
+            - page_size (Integer)
+            - search_key (String)
 
     Returns:
-        A generator expression that contains the videos found, sorted by the
+        A list that contains the videos found, sorted by the
         given field and direction, with ties broken by edx_video_id to ensure a
-        total order
+        total order. Returns paginated list with pagination parameters if paginated
+        flag is set.
     """
     return _get_videos_for_filter(
         {"edx_video_id__in":edx_video_ids},
