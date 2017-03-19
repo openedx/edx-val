@@ -339,6 +339,10 @@ def _get_videos_for_filter(
     if paginated:
         page_no = int(kwargs.pop("page", 1))
         page_size = int(kwargs.pop("page_size", settings.VAL_PAGE_SIZE))
+        search_key = kwargs.pop("search_key", "")
+
+        if search_key:
+            videos_qs = videos_qs.filter(client_video_id__icontains=search_key)
 
         paginator = VideosPagination()
         videos = paginator.paginate_queryset(videos_qs, page_no, page_size)
