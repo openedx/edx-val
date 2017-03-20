@@ -8,10 +8,12 @@ import logging
 from lxml.etree import Element, SubElement
 from enum import Enum
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 
 from edxval.models import Video, EncodedVideo, CourseVideo, Profile
-from edxval.serializers import VideoSerializer
+from edxval.serializers import VideoSerializer, VideosPagination
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -317,26 +319,51 @@ def get_url_for_profile(edx_video_id, profile):
 def _get_videos_for_filter(
         video_filter,
         sort_field=None,
-        sort_dir=SortDirection.asc
+        sort_dir=SortDirection.asc,
+        **kwargs
 ):
     """
     Returns a generator expression that contains the videos found, sorted by
     the given field and direction, with ties broken by edx_video_id to ensure a
-    total order.
+    total order. Returns paginated list with pagination parameters if paginated
+    flag is set.
     """
-    videos = Video.objects.filter(**video_filter)
+    videos_qs = Video.objects.filter(**video_filter)
     if sort_field:
         # Refining by edx_video_id ensures a total order
-        videos = videos.order_by(sort_field.value, "edx_video_id")
-        if sort_dir == SortDirection.desc:
-            videos = videos.reverse()
-    return (VideoSerializer(video).data for video in videos)
+        videos_qs = videos_qs.order_by(sort_field.value, "edx_video_id")
+
+    if sort_dir == SortDirection.desc:
+        videos_qs = videos_qs.reverse()
+
+    paginated = kwargs.get("paginated", False)
+    if paginated:
+        page_no = kwargs.get("page", 1)
+        page_size = kwargs.get("page_size", settings.UPLOADED_VIDEOS_PAGE_SIZE)
+        search_key = kwargs.get("search_key", None)
+
+        # Default sorting is based on creation time
+        if not sort_field:
+            sort_field = VideoSortField.created
+
+        if search_key:
+            videos_qs = videos_qs.filter(client_video_id__icontains=search_key)
+
+        paginator = VideosPagination()
+        videos = paginator.paginate_queryset(videos_qs, page_no, page_size)
+        return paginator.get_paginated_response(
+            list(VideoSerializer(video).data for video in videos),
+            sort_dir,
+            sort_field)
+    else:
+        return (list(VideoSerializer(video).data for video in videos_qs))
 
 
 def get_videos_for_course(
     course_id,
     sort_field=None,
     sort_dir=SortDirection.asc,
+    **kwargs
 ):
     """
     Returns an iterator of videos for the given course id.
@@ -345,16 +372,23 @@ def get_videos_for_course(
         course_id (String)
         sort_field (VideoSortField)
         sort_dir (SortDirection)
+        kwargs:
+            - paginated (True/False)
+            - page_no (Integer)
+            - page_size (Integer)
+            - search_key (String)
 
     Returns:
         A generator expression that contains the videos found, sorted by the
         given field and direction, with ties broken by edx_video_id to ensure a
-        total order.
+        total order. Returns paginated list with pagination parameters if paginated
+        flag is set.
     """
     return _get_videos_for_filter(
         {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
         sort_field,
         sort_dir,
+        **kwargs
     )
 
 
@@ -374,25 +408,33 @@ def remove_video_for_course(course_id, edx_video_id):
 def get_videos_for_ids(
         edx_video_ids,
         sort_field=None,
-        sort_dir=SortDirection.asc
+        sort_dir=SortDirection.asc,
+        **kwargs
 ):
     """
-    Returns an iterator of videos that match the given list of ids.
+    Returns a list of videos that match the given list of ids.
 
     Args:
         edx_video_ids (list)
         sort_field (VideoSortField)
         sort_dir (SortDirection)
+        kwargs:
+            - paginated (True/False)
+            - page_no (Integer)
+            - page_size (Integer)
+            - search_key (String)
 
     Returns:
-        A generator expression that contains the videos found, sorted by the
+        A list that contains the videos found, sorted by the
         given field and direction, with ties broken by edx_video_id to ensure a
-        total order
+        total order. Returns paginated list with pagination parameters if paginated
+        flag is set.
     """
     return _get_videos_for_filter(
         {"edx_video_id__in":edx_video_ids},
         sort_field,
         sort_dir,
+        **kwargs
     )
 
 
