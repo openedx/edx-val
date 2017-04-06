@@ -130,6 +130,7 @@ INSTALLED_APPS = (
     # Third Party
     'django_nose',
     'rest_framework',
+    'storages',
 
     # Our App
     'edxval',
@@ -178,3 +179,14 @@ LOGGING = {
 # copied from edx-platform
 COURSE_KEY_PATTERN = r'(?P<course_key_string>[^/+]+(/|\+)[^/+]+(/|\+)[^/]+)'
 COURSE_ID_PATTERN = COURSE_KEY_PATTERN.replace('course_key_string', 'course_id')
+
+VIDEO_IMAGE_SETTINGS = dict(
+    # Backend storage
+    # STORAGE_CLASS='storages.backends.s3boto.S3BotoStorage',
+    # STORAGE_KWARGS=dict(bucket='video-image-bucket'),
+    # If you are changing prefix value then update the .gitignore accordingly
+    # so that images created during tests due to upload should be ignored
+    VIDEO_IMAGE_MAX_BYTES=2097152,
+    VIDEO_IMAGE_MIN_BYTES=100,
+    DIRECTORY_PREFIX='video-images/',
+)

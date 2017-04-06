@@ -1,67 +1,27 @@
 # pylint: disable=E1101
 # -*- coding: utf-8 -*-
 """
-The internal API for VAL. This is not yet stable
+The internal API for VAL.
 """
 import logging
 
 from lxml.etree import Element, SubElement
 from enum import Enum
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.core.files.base import ContentFile
 
-from edxval.models import Video, EncodedVideo, CourseVideo, Profile
+from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
 from edxval.serializers import VideoSerializer
+from edxval.exceptions import (  # pylint: disable=unused-import
+    ValError,
+    ValInternalError,
+    ValVideoNotFoundError,
+    ValCannotCreateError,
+    ValCannotUpdateError
+)
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
-
-
-class ValError(Exception):
-    """
-    An error that occurs during VAL actions.
-
-    This error is raised when the VAL API cannot perform a requested
-    action.
-
-    """
-    pass
-
-
-class ValInternalError(ValError):
-    """
-    An error internal to the VAL API has occurred.
-
-    This error is raised when an error occurs that is not caused by incorrect
-    use of the API, but rather internal implementation of the underlying
-    services.
-
-    """
-    pass
-
-
-class ValVideoNotFoundError(ValError):
-    """
-    This error is raised when a video is not found
-
-    If a state is specified in a call to the API that results in no matching
-    entry in database, this error may be raised.
-
-    """
-    pass
-
-
-class ValCannotCreateError(ValError):
-    """
-    This error is raised when an object cannot be created
-    """
-    pass
-
-
-class ValCannotUpdateError(ValError):
-    """
-    This error is raised when an object cannot be updated
-    """
-    pass
 
 
 class VideoSortField(Enum):
@@ -180,6 +140,40 @@ def update_video_status(edx_video_id, status):
 
     video.status = status
     video.save()
+
+
+def get_course_video_image_url(course_id, edx_video_id):
+    """
+    Returns course video image url or None if no image found
+    """
+    try:
+        video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
+        return video_image.image_url()
+    except ObjectDoesNotExist:
+        return None
+
+
+def update_video_image(edx_video_id, course_id, image_data, file_name):
+    """
+    Update video image for an existing video.
+
+    Arguments:
+        image_data (InMemoryUploadedFile): Image data to be saved for a course video.
+
+    Returns:
+        course video image url
+
+    Raises:
+        Raises ValVideoNotFoundError if the CourseVideo cannot be retrieved.
+    """
+    try:
+        course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)
+    except ObjectDoesNotExist:
+        error_message = u'CourseVideo not found for edx_video_id: {0}'.format(edx_video_id)
+        raise ValVideoNotFoundError(error_message)
+
+    video_image, _ = VideoImage.create_or_update(course_video, file_name, image_data)
+    return video_image.image_url()
 
 
 def create_profile(profile_name):
@@ -314,11 +308,7 @@ def get_url_for_profile(edx_video_id, profile):
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
 
-def _get_videos_for_filter(
-        video_filter,
-        sort_field=None,
-        sort_dir=SortDirection.asc
-):
+def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection.asc):
     """
     Returns a generator expression that contains the videos found, sorted by
     the given field and direction, with ties broken by edx_video_id to ensure a
@@ -333,11 +323,7 @@ def _get_videos_for_filter(
     return (VideoSerializer(video).data for video in videos)
 
 
-def get_videos_for_course(
-    course_id,
-    sort_field=None,
-    sort_dir=SortDirection.asc,
-):
+def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc):
     """
     Returns an iterator of videos for the given course id.
 
@@ -352,7 +338,7 @@ def get_videos_for_course(
         total order.
     """
     return _get_videos_for_filter(
-        {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
+        {'courses__course_id': unicode(course_id), 'courses__is_hidden': False},
         sort_field,
         sort_dir,
     )

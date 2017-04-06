@@ -580,7 +580,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         videos = self.client.get("/edxval/videos/").data
         self.assertEqual(len(videos), 1)
-        self.assertEqual(videos[0]['courses'], [course1, course2])
+        self.assertEqual(videos[0]['courses'], [{course1: None}, {course2: None}])
 
         url = reverse('video-list') + '?course=%s' % course1
         videos = self.client.get(url).data
