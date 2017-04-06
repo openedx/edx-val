@@ -13,10 +13,18 @@ invalid profile_name will be returned.
 
 import logging
 
+# from datetime import datetime
+from django.conf import settings
 from django.db import models
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
+from django.core.files.base import ContentFile
+from django.core.files.storage import get_storage_class
+from django.db import models, transaction
+from django.utils.functional import cached_property
+
+# from openedx.core.storage import get_storage
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -72,6 +80,62 @@ class Profile(models.Model):
         return self.profile_name
 
 
+def _create_path(directory, filename):
+    """
+    Returns the full path for the given directory and filename.
+    """
+    return '{}-{}'.format(directory, filename)
+
+
+def _directory_name(edx_video_id):
+    """
+    Returns the directory name for the given edx_video_id.
+    """
+    return '{}{}'.format(settings.VIDEO_THUMBNAIL_SETTINGS.get('DIRECTORY_PREFIX', ''), edx_video_id)
+
+
+def video_thumbnail_path_name(video_model, filename):  # pylint:disable=unused-argument
+    """
+    Returns path name to use for the given Video instance.
+    """
+    return _create_path(_directory_name(video_model.edx_video_id), filename)
+
+
+def get_video_thumbnail_storage():
+    """
+    Return the configured django storage backend.
+    """
+    return get_storage_class(
+         settings.VIDEO_THUMBNAIL_SETTINGS.get('STORAGE_CLASS'),
+    )(**settings.VIDEO_THUMBNAIL_SETTINGS.get('STORAGE_KWARGS', {}))
+
+
+class CustomizableFileField(models.FileField):
+    """
+    Subclass of FileField that allows custom settings to not
+    be serialized (hard-coded) in migrations. Otherwise,
+    migrations include optional settings for storage (such as
+    the storage class and bucket name); we don't want to
+    create new migration files for each configuration change.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.update(dict(
+            upload_to=video_thumbnail_path_name,
+            storage=get_video_thumbnail_storage(),
+            max_length=500,  # allocate enough for filepath
+            blank=True,
+            null=True
+        ))
+        super(CustomizableFileField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(CustomizableFileField, self).deconstruct()
+        del kwargs['upload_to']
+        del kwargs['storage']
+        del kwargs['max_length']
+        return name, path, args, kwargs
+
+
 class Video(models.Model):
     """
     Model for a Video group with the same content.
@@ -98,6 +162,18 @@ class Video(models.Model):
     client_video_id = models.CharField(max_length=255, db_index=True, blank=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
     status = models.CharField(max_length=255, db_index=True)
+    thumbnail = CustomizableFileField()
+
+    # def thumbnail_url(self, name, edx_video_id=None):
+    #     path = video_thumbnail_path_name(name, edx_video_id)
+    #     return self._storage.url(path)
+    #
+    # @cached_property
+    # def _storage(self):
+    #     """
+    #     Return the configured django storage backend.
+    #     """
+    #     return get_video_thumbnail_storage()
 
     def get_absolute_url(self):
         """

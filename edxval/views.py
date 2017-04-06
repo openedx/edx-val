@@ -56,8 +56,8 @@ class VideoList(generics.ListCreateAPIView):
     """
     GETs or POST video objects
     """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
-    permission_classes = (ReadRestrictedDjangoModelPermissions,)
+    # authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    # permission_classes = (ReadRestrictedDjangoModelPermissions,)
     queryset = Video.objects.all().prefetch_related("encoded_videos", "courses")
     lookup_field = "edx_video_id"
     serializer_class = VideoSerializer
