@@ -182,6 +182,30 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
+def update_video_thumbnail(edx_video_id, thumbnail):
+    """
+    Update video thumbail for an existing video.
+
+    Args:
+        edx_video_id: ID of the video
+        thumbnail: Thumbnail file for video.
+
+    Raises:
+        Raises ValVideoNotFoundError if the video cannot be retrieved.
+    """
+
+    try:
+        video = _get_video(edx_video_id)
+    except Video.DoesNotExist:
+        error_message = u"Video not found when trying to update thumbnail with edx_video_id: {0}".format(
+            edx_video_id
+        )
+        raise ValVideoNotFoundError(error_message)
+
+    video.thumbnail = thumbnail
+    video.save()
+
+
 def create_profile(profile_name):
     """
     Used to create Profile objects in the database
