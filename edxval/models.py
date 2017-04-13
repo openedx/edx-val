@@ -13,18 +13,12 @@ invalid profile_name will be returned.
 
 import logging
 
-# from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
-from django.core.files.base import ContentFile
 from django.core.files.storage import get_storage_class
-from django.db import models, transaction
-from django.utils.functional import cached_property
-
-# from openedx.core.storage import get_storage
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -94,11 +88,11 @@ def _directory_name(edx_video_id):
     return '{}{}'.format(settings.VIDEO_THUMBNAIL_SETTINGS.get('DIRECTORY_PREFIX', ''), edx_video_id)
 
 
-def video_thumbnail_path_name(video_model, filename):  # pylint:disable=unused-argument
+def video_thumbnail_path_name(thumbnail_model, filename):  # pylint:disable=unused-argument
     """
     Returns path name to use for the given Video instance.
     """
-    return _create_path(_directory_name(video_model.edx_video_id), filename)
+    return _create_path(_directory_name(thumbnail_model.video_id), filename)
 
 
 def get_video_thumbnail_storage():
@@ -110,7 +104,7 @@ def get_video_thumbnail_storage():
     )(**settings.VIDEO_THUMBNAIL_SETTINGS.get('STORAGE_KWARGS', {}))
 
 
-class CustomizableFileField(models.FileField):
+class CustomizableFileField(models.ImageField):
     """
     Subclass of FileField that allows custom settings to not
     be serialized (hard-coded) in migrations. Otherwise,
@@ -162,18 +156,6 @@ class Video(models.Model):
     client_video_id = models.CharField(max_length=255, db_index=True, blank=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
     status = models.CharField(max_length=255, db_index=True)
-    thumbnail = CustomizableFileField()
-
-    # def thumbnail_url(self, name, edx_video_id=None):
-    #     path = video_thumbnail_path_name(name, edx_video_id)
-    #     return self._storage.url(path)
-    #
-    # @cached_property
-    # def _storage(self):
-    #     """
-    #     Return the configured django storage backend.
-    #     """
-    #     return get_video_thumbnail_storage()
 
     def get_absolute_url(self):
         """
@@ -229,6 +211,15 @@ class EncodedVideo(models.Model):
 
     profile = models.ForeignKey(Profile, related_name="+")
     video = models.ForeignKey(Video, related_name="encoded_videos")
+
+
+class VideoImage(models.Model):
+    """
+    Image model for course video.
+    """
+    course_id = models.CharField(max_length=255)
+    video = models.ForeignKey(Video, related_name="thumbnails")
+    image = CustomizableFileField()
 
 
 SUBTITLE_FORMATS = (

@@ -10,10 +10,11 @@ from enum import Enum
 
 from django.core.exceptions import ValidationError
 
-from edxval.models import Video, EncodedVideo, CourseVideo, Profile
+from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
 from edxval.serializers import VideoSerializer
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
+from django.core.files.base import ContentFile
 
 
 class ValError(Exception):
@@ -182,13 +183,13 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
-def update_video_thumbnail(edx_video_id, thumbnail):
+def update_video_image(edx_video_id, course_id, serialized_data):
     """
-    Update video thumbail for an existing video.
+    Update video image for an existing video.
 
     Args:
         edx_video_id: ID of the video
-        thumbnail: Thumbnail file for video.
+        serialized_data: Serialized data of image for video.
 
     Raises:
         Raises ValVideoNotFoundError if the video cannot be retrieved.
@@ -197,13 +198,18 @@ def update_video_thumbnail(edx_video_id, thumbnail):
     try:
         video = _get_video(edx_video_id)
     except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update thumbnail with edx_video_id: {0}".format(
+        error_message = u"Video not found when trying to update video image with edx_video_id: {0}".format(
             edx_video_id
         )
         raise ValVideoNotFoundError(error_message)
 
-    video.thumbnail = thumbnail
-    video.save()
+    video_image, _ = VideoImage.objects.get_or_create(
+        video=video,
+        course_id=course_id
+    )
+
+    video_image.image.save('', ContentFile(serialized_data))
+    video_image.save()
 
 
 def create_profile(profile_name):

@@ -3,7 +3,7 @@ Admin file for django app edxval.
 """
 
 from django.contrib import admin
-from .models import Video, Profile, EncodedVideo, Subtitle, CourseVideo
+from .models import Video, Profile, EncodedVideo, Subtitle, CourseVideo, VideoImage
 
 
 class ProfileAdmin(admin.ModelAdmin):  # pylint: disable=C0111
@@ -30,6 +30,12 @@ class VideoAdmin(admin.ModelAdmin):  # pylint: disable=C0111
     admin_order_field = 'edx_video_id'
     inlines = [CourseVideoInline, EncodedVideoInline]
 
+class ImageVideoAdmin(admin.ModelAdmin):
+    model = VideoImage
+    verbose_name = "Video Image"
+    verbose_name_plural = "Video Images"
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Video, VideoAdmin)
 admin.site.register(Subtitle)
+admin.site.register(VideoImage, ImageVideoAdmin)
