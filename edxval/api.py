@@ -9,12 +9,14 @@ from lxml.etree import Element, SubElement
 from enum import Enum
 
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 
 from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
 from edxval.serializers import VideoSerializer
 
+from utils import get_video_image_storage
+
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
-from django.core.files.base import ContentFile
 
 
 class ValError(Exception):
@@ -183,17 +185,33 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
-def update_video_image(edx_video_id, course_id, serialized_data):
+def get_video_image_url(video_image, image_filename=None):
+    """
+    Returns video image url.
+    """
+    storage = get_video_image_storage()
+    # TODO: Is getting file path using video_image.image.name a good way? or Do we need to get file path using
+    # video_image_path_name(video_image, file_name)
+    file_name = video_image.image.name
+    video_image_url = storage.url(file_name)
+    return video_image_url
+
+
+
+def update_video_image(edx_video_id, course_id, serialized_data, file_name):
     """
     Update video image for an existing video.
 
     Args:
-        edx_video_id: ID of the video
+        edx_video_id: ID of the video.
+        course_id: ID of course.
         serialized_data: Serialized data of image for video.
+        file_name: File name of the image file.
 
     Raises:
         Raises ValVideoNotFoundError if the video cannot be retrieved.
     """
+    # TODO: Is sending file name a good way ?
 
     try:
         video = _get_video(edx_video_id)
@@ -207,9 +225,9 @@ def update_video_image(edx_video_id, course_id, serialized_data):
         video=video,
         course_id=course_id
     )
-
-    video_image.image.save('', ContentFile(serialized_data))
+    video_image.image.save(file_name, ContentFile(serialized_data))
     video_image.save()
+    return get_video_image_url(video_image, file_name)
 
 
 def create_profile(profile_name):

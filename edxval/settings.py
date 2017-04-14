@@ -180,9 +180,9 @@ LOGGING = {
 COURSE_KEY_PATTERN = r'(?P<course_key_string>[^/+]+(/|\+)[^/+]+(/|\+)[^/]+)'
 COURSE_ID_PATTERN = COURSE_KEY_PATTERN.replace('course_key_string', 'course_id')
 
-VIDEO_THUMBNAIL_SETTINGS = dict(
+VIDEO_IMAGE_SETTINGS = dict(
     # Backend storage
     # STORAGE_CLASS='storages.backends.s3boto.S3BotoStorage',
-    # STORAGE_KWARGS=dict(bucket='video-inage-test-bucket'),
+    # STORAGE_KWARGS=dict(bucket='video-image-test-bucket'),
     DIRECTORY_PREFIX='videoimage/',
 )
