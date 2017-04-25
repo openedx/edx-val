@@ -8,6 +8,7 @@ from rest_framework import serializers
 from rest_framework.fields import IntegerField, DateTimeField
 
 from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo
+from edxval.exceptions import ValVideoImageNotFoundError
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
@@ -111,6 +112,7 @@ class VideoSerializer(serializers.ModelSerializer):
         required=False,
         queryset=CourseVideo.objects.all()
     )
+    course_video_image_url = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
 
     # Django Rest Framework v3 converts datetimes to unicode by default.
@@ -121,6 +123,21 @@ class VideoSerializer(serializers.ModelSerializer):
         model = Video
         lookup_field = "edx_video_id"
         exclude = ('id',)
+
+    def get_course_video_image_url(self, video):
+        """
+        Return image associated with a course video or None if course_id is missing or if there is any error.
+        """
+        # Imported here to avoid circular dependency
+        from edxval.api import get_course_video_image_url
+
+        if self.context is None or 'course_id' not in self.context:
+            return None
+
+        try:
+            return get_course_video_image_url(self.context['course_id'], video.edx_video_id)
+        except ValVideoImageNotFoundError:
+            return None
 
     def get_url(self, obj):
         """

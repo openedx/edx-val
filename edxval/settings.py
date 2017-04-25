@@ -184,5 +184,7 @@ VIDEO_IMAGE_SETTINGS = dict(
     # Backend storage
     # STORAGE_CLASS='storages.backends.s3boto.S3BotoStorage',
     # STORAGE_KWARGS=dict(bucket='video-image-test-bucket'),
+    # If you are changing prefix value then update the .gitignore accordingly
+    # so that images created during tests due to upload should be ignored
     DIRECTORY_PREFIX='videoimage/',
 )

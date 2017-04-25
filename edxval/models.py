@@ -11,14 +11,18 @@ themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
+from contextlib import closing
 import logging
+import os
+
+from model_utils.models import TimeStampedModel
 
 from django.db import models
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
 
-from utils import video_image_path_name, get_video_image_storage
+from edxval.utils import video_image_path, get_video_image_storage
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -84,7 +88,7 @@ class CustomizableFileField(models.ImageField):
     """
     def __init__(self, *args, **kwargs):
         kwargs.update(dict(
-            upload_to=video_image_path_name,
+            upload_to=video_image_path,
             storage=get_video_image_storage(),
             max_length=500,  # allocate enough for filepath
             blank=True,
@@ -183,13 +187,34 @@ class EncodedVideo(models.Model):
     video = models.ForeignKey(Video, related_name="encoded_videos")
 
 
-class VideoImage(models.Model):
+class VideoImage(TimeStampedModel):
     """
     Image model for course video.
     """
-    course_id = models.CharField(max_length=255)
-    video = models.ForeignKey(Video, related_name="thumbnails")
+    course_video = models.OneToOneField(CourseVideo, related_name="video_image")
     image = CustomizableFileField()
+
+    @classmethod
+    def create(cls, course_video, image_data, file_name):
+        """
+        Create a VideoImage object for a CourseVideo.
+
+        Arguments:
+            course_video (CourseVideo): CourseVideo instance
+            image_data (InMemoryUploadedFile): Image data to be saved.
+            file_name (str): File name.
+
+        Returns:
+            Returns a tuple of (video_image, created).
+        """
+        video_image, created = cls.objects.get_or_create(course_video=course_video)
+        with closing(image_data) as image_file:
+            __, file_extension = os.path.splitext(file_name)
+            file_name = '{timestamp}{ext}'.format(timestamp=video_image.modified.strftime("%s"), ext=file_extension)
+            video_image.image.save(file_name, image_file)
+            video_image.save()
+
+        return video_image, created
 
 
 SUBTITLE_FORMATS = (

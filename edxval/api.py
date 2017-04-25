@@ -1,70 +1,29 @@
 # pylint: disable=E1101
 # -*- coding: utf-8 -*-
 """
-The internal API for VAL. This is not yet stable
+The internal API for VAL.
 """
 import logging
 
 from lxml.etree import Element, SubElement
 from enum import Enum
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.files.base import ContentFile
 
 from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
 from edxval.serializers import VideoSerializer
-
-from utils import get_video_image_storage
+from edxval.utils import get_video_image_storage
+from edxval.exceptions import (  # pylint: disable=unused-import
+    ValError,
+    ValInternalError,
+    ValVideoNotFoundError,
+    ValCannotCreateError,
+    ValCannotUpdateError,
+    ValVideoImageNotFoundError
+)
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
-
-
-class ValError(Exception):
-    """
-    An error that occurs during VAL actions.
-
-    This error is raised when the VAL API cannot perform a requested
-    action.
-
-    """
-    pass
-
-
-class ValInternalError(ValError):
-    """
-    An error internal to the VAL API has occurred.
-
-    This error is raised when an error occurs that is not caused by incorrect
-    use of the API, but rather internal implementation of the underlying
-    services.
-
-    """
-    pass
-
-
-class ValVideoNotFoundError(ValError):
-    """
-    This error is raised when a video is not found
-
-    If a state is specified in a call to the API that results in no matching
-    entry in database, this error may be raised.
-
-    """
-    pass
-
-
-class ValCannotCreateError(ValError):
-    """
-    This error is raised when an object cannot be created
-    """
-    pass
-
-
-class ValCannotUpdateError(ValError):
-    """
-    This error is raised when an object cannot be updated
-    """
-    pass
 
 
 class VideoSortField(Enum):
@@ -185,49 +144,51 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
-def get_video_image_url(video_image, image_filename=None):
+def get_course_video_image_url(course_id=None, edx_video_id=None, video_image=None):
     """
-    Returns video image url.
+    Returns course video image url.
+
+    Arguments:
+        course_id: ID of course
+        edx_video_id: ID of the video
+        video_image: VideoImage instance
+
+    Returns:
+        course video image url
     """
     storage = get_video_image_storage()
-    # TODO: Is getting file path using video_image.image.name a good way? or Do we need to get file path using
-    # video_image_path_name(video_image, file_name)
-    file_name = video_image.image.name
-    video_image_url = storage.url(file_name)
-    return video_image_url
+
+    try:
+        if video_image is None:
+            video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
+    except ObjectDoesNotExist:
+        raise ValVideoImageNotFoundError
+
+    return storage.url(video_image.image.name)
 
 
-
-def update_video_image(edx_video_id, course_id, serialized_data, file_name):
+def update_video_image(edx_video_id, course_id, image_data, file_name):
     """
     Update video image for an existing video.
 
-    Args:
+    Arguments:
         edx_video_id: ID of the video.
         course_id: ID of course.
-        serialized_data: Serialized data of image for video.
+        image_data: Image data for video.
         file_name: File name of the image file.
 
     Raises:
-        Raises ValVideoNotFoundError if the video cannot be retrieved.
+        Raises ValVideoNotFoundError if the CourseVideo cannot be retrieved.
+        Raises ValVideoImageNotFoundError if the VideoImage cannot be retrieved.
     """
-    # TODO: Is sending file name a good way ?
-
     try:
-        video = _get_video(edx_video_id)
+        course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)
     except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video image with edx_video_id: {0}".format(
-            edx_video_id
-        )
+        error_message = u"CourseVideo not found for edx_video_id: {0}".format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
 
-    video_image, _ = VideoImage.objects.get_or_create(
-        video=video,
-        course_id=course_id
-    )
-    video_image.image.save(file_name, ContentFile(serialized_data))
-    video_image.save()
-    return get_video_image_url(video_image, file_name)
+    video_image, _ = VideoImage.create(course_video, image_data, file_name)
+    return get_course_video_image_url(video_image=video_image)
 
 
 def create_profile(profile_name):
@@ -362,11 +323,7 @@ def get_url_for_profile(edx_video_id, profile):
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
 
-def _get_videos_for_filter(
-        video_filter,
-        sort_field=None,
-        sort_dir=SortDirection.asc
-):
+def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection.asc, context=None):
     """
     Returns a generator expression that contains the videos found, sorted by
     the given field and direction, with ties broken by edx_video_id to ensure a
@@ -378,14 +335,10 @@ def _get_videos_for_filter(
         videos = videos.order_by(sort_field.value, "edx_video_id")
         if sort_dir == SortDirection.desc:
             videos = videos.reverse()
-    return (VideoSerializer(video).data for video in videos)
+    return (VideoSerializer(video, context=context).data for video in videos)
 
 
-def get_videos_for_course(
-    course_id,
-    sort_field=None,
-    sort_dir=SortDirection.asc,
-):
+def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc):
     """
     Returns an iterator of videos for the given course id.
 
@@ -403,6 +356,7 @@ def get_videos_for_course(
         {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
         sort_field,
         sort_dir,
+        context={'course_id': course_id}
     )
 
 

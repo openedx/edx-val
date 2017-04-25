@@ -7,6 +7,7 @@ import mock
 from mock import patch
 from lxml import etree
 
+from django.core.files.images import ImageFile
 from django.test import TestCase
 from django.db import DatabaseError
 from django.core.urlresolvers import reverse
@@ -1192,3 +1193,76 @@ class VideoStatusUpdateTest(TestCase):
             'fail',
             video.edx_video_id
         )
+
+
+class CourseVideoImageTest(TestCase):
+    """
+    Tests to check course video image related functions works correctly
+    """
+
+    def setUp(self):
+        """
+        Creates video objects for courses
+        """
+        self.course_id = 'test-course'
+        self.course_id2 = 'test-course2'
+        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        self.edx_video_id = self.video.edx_video_id
+        self.course_video = CourseVideo.objects.create(video=self.video, course_id=self.course_id)
+        self.course_video2 = CourseVideo.objects.create(video=self.video, course_id=self.course_id2)
+        self.image_path1 = 'edxval/tests/data/image.jpg'
+        self.image_path2 = 'edxval/tests/data/edx.jpg'
+
+        self.image_url = self.upload_image(self.course_id, self.edx_video_id, self.image_path1)
+        self.image_url2 = self.upload_image(self.course_id2, self.edx_video_id, self.image_path2)
+
+    def upload_image(self, course_id, edx_video_id, image_path):
+        """
+        Upload image.
+
+        Arguemnts:
+            course_id: ID of course.
+            edx_video_id: ID of the video.
+            image_path: Physical path of image
+
+        Returns:
+            upload image url
+        """
+        return api.update_video_image(
+            edx_video_id,
+            course_id,
+            ImageFile(open(image_path)),
+            'image.jpg'
+        )
+
+    def test_update_video_image(self):
+        """
+        Verify that `update_video_image` api function works as expected.
+        """
+        self.assertEqual(self.course_video.video_image.image.name, self.image_url)
+        self.assertEqual(self.course_video2.video_image.image.name, self.image_url2)
+        self.assertEqual(ImageFile(open(self.image_path1)).size, ImageFile(open(self.image_url)).size)
+        self.assertEqual(ImageFile(open(self.image_path2)).size, ImageFile(open(self.image_url2)).size)
+
+    def test_get_course_video_image_url(self):
+        """
+        Verify that `get_course_video_image_url` api function works as expected.
+        """
+        image_url = api.get_course_video_image_url(self.course_id, self.edx_video_id)
+        self.assertEqual(self.image_url, image_url)
+
+    def test_get_videos_for_course(self):
+        """
+        Verify that `get_videos_for_course` api function has correct course_video_image_url.
+        """
+        video_data_generator = api.get_videos_for_course(self.course_id)
+        video_data = list(video_data_generator)[0]
+        self.assertEqual(video_data['course_video_image_url'], self.image_url)
+
+    def test_get_videos_for_ids(self):
+        """
+        Verify that `get_videos_for_ids` api function returns reponse with course_video_image_url set to None.
+        """
+        video_data_generator = api.get_videos_for_ids([self.edx_video_id])
+        video_data = list(video_data_generator)[0]
+        self.assertEqual(video_data['course_video_image_url'], None)

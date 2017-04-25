@@ -7,3 +7,4 @@ lxml==3.3.6
 django-storages==1.5.2
 boto==2.46.1
 Pillow==4.1.0
+django-model-utils==2.3.1
