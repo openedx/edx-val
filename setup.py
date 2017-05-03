@@ -3,8 +3,6 @@ from setuptools import setup
 
 PACKAGES = [
     'edxval',
-    'edxval.migrations',
-    'edxval.tests',
 ]
 
 def is_requirement(line):
@@ -39,7 +37,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edxval',
-    version='0.0.13',
+    version='0.0.13x',
     author='edX',
     url='http://github.com/edx/edx-val',
     description='edx-val',
