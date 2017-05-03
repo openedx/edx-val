@@ -17,6 +17,9 @@ def get_video_image_storage():
     """
     Return the configured django storage backend.
     """
-    return get_storage_class(
-        settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_CLASS'),
-    )(**settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {}))
+    if hasattr(settings, 'VIDEO_IMAGE_SETTINGS'):
+        return get_storage_class(
+            settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_CLASS'),
+        )(**settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {}))
+    else:
+        return get_storage_class()
