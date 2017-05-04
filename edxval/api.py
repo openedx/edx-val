@@ -187,7 +187,7 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
         error_message = u"CourseVideo not found for edx_video_id: {0}".format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
 
-    video_image, _ = VideoImage.create(course_video, image_data, file_name)
+    video_image, _ = VideoImage.create_or_update(course_video, image_data, file_name)
     return get_course_video_image_url(video_image=video_image)
 
 
@@ -353,7 +353,7 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
         total order.
     """
     return _get_videos_for_filter(
-        {"courses__course_id": unicode(course_id), "courses__is_hidden": False},
+        {'courses__course_id': unicode(course_id), 'courses__is_hidden': False},
         sort_field,
         sort_dir,
         context={'course_id': course_id}

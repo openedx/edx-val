@@ -1212,27 +1212,11 @@ class CourseVideoImageTest(TestCase):
         self.course_video2 = CourseVideo.objects.create(video=self.video, course_id=self.course_id2)
         self.image_path1 = 'edxval/tests/data/image.jpg'
         self.image_path2 = 'edxval/tests/data/edx.jpg'
-
-        self.image_url = self.upload_image(self.course_id, self.edx_video_id, self.image_path1)
-        self.image_url2 = self.upload_image(self.course_id2, self.edx_video_id, self.image_path2)
-
-    def upload_image(self, course_id, edx_video_id, image_path):
-        """
-        Upload image.
-
-        Arguemnts:
-            course_id: ID of course.
-            edx_video_id: ID of the video.
-            image_path: Physical path of image
-
-        Returns:
-            upload image url
-        """
-        return api.update_video_image(
-            edx_video_id,
-            course_id,
-            ImageFile(open(image_path)),
-            'image.jpg'
+        self.image_url = api.update_video_image(
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+        )
+        self.image_url2 = api.update_video_image(
+            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2)), 'image.jpg'
         )
 
     def test_update_video_image(self):

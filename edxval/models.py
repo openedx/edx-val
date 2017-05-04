@@ -15,12 +15,12 @@ from contextlib import closing
 import logging
 import os
 
-from model_utils.models import TimeStampedModel
-
 from django.db import models
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
+
+from model_utils.models import TimeStampedModel
 
 from edxval.utils import video_image_path, get_video_image_storage
 
@@ -76,32 +76,6 @@ class Profile(models.Model):
 
     def __unicode__(self):
         return self.profile_name
-
-
-class CustomizableFileField(models.ImageField):
-    """
-    Subclass of FileField that allows custom settings to not
-    be serialized (hard-coded) in migrations. Otherwise,
-    migrations include optional settings for storage (such as
-    the storage class and bucket name); we don't want to
-    create new migration files for each configuration change.
-    """
-    def __init__(self, *args, **kwargs):
-        kwargs.update(dict(
-            upload_to=video_image_path,
-            storage=get_video_image_storage(),
-            max_length=500,  # allocate enough for filepath
-            blank=True,
-            null=True
-        ))
-        super(CustomizableFileField, self).__init__(*args, **kwargs)
-
-    def deconstruct(self):
-        name, path, args, kwargs = super(CustomizableFileField, self).deconstruct()
-        del kwargs['upload_to']
-        del kwargs['storage']
-        del kwargs['max_length']
-        return name, path, args, kwargs
 
 
 class Video(models.Model):
@@ -187,15 +161,44 @@ class EncodedVideo(models.Model):
     video = models.ForeignKey(Video, related_name="encoded_videos")
 
 
+class CustomizableImageField(models.ImageField):
+    """
+    Subclass of ImageField that allows custom settings to not
+    be serialized (hard-coded) in migrations. Otherwise,
+    migrations include optional settings for storage (such as
+    the storage class and bucket name); we don't want to
+    create new migration files for each configuration change.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.update(dict(
+            upload_to=video_image_path,
+            storage=get_video_image_storage(),
+            max_length=500,  # allocate enough for filepath
+            blank=True,
+            null=True
+        ))
+        super(CustomizableImageField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        """
+        Override base class method.
+        """
+        name, path, args, kwargs = super(CustomizableImageField, self).deconstruct()
+        del kwargs['upload_to']
+        del kwargs['storage']
+        del kwargs['max_length']
+        return name, path, args, kwargs
+
+
 class VideoImage(TimeStampedModel):
     """
     Image model for course video.
     """
     course_video = models.OneToOneField(CourseVideo, related_name="video_image")
-    image = CustomizableFileField()
+    image = CustomizableImageField()
 
     @classmethod
-    def create(cls, course_video, image_data, file_name):
+    def create_or_update(cls, course_video, image_data, file_name):
         """
         Create a VideoImage object for a CourseVideo.
 

@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, verbose_name='created', editable=False)),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, verbose_name='modified', editable=False)),
-                ('image', edxval.models.CustomizableFileField(null=True, blank=True)),
+                ('image', edxval.models.CustomizableImageField(null=True, blank=True)),
                 ('course_video', models.OneToOneField(related_name='video_image', to='edxval.CourseVideo')),
             ],
             options={
