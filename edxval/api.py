@@ -61,6 +61,7 @@ def create_video(video_data):
                     file_size: size of the video in bytes
                     profile: ID of the profile
                 courses: Courses associated with this video
+                image: poster image file name for a particular course
          }
 
     Raises:
@@ -147,7 +148,9 @@ def get_course_video_image_url(course_id, edx_video_id):
     Returns course video image url or None if no image found
     """
     try:
-        video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
+        video_image = CourseVideo.objects.select_related('video_image').get(
+            course_id=course_id, video__edx_video_id=edx_video_id
+        ).video_image
         return video_image.image_url()
     except ObjectDoesNotExist:
         return None
@@ -156,6 +159,10 @@ def get_course_video_image_url(course_id, edx_video_id):
 def update_video_image(edx_video_id, course_id, image_data, file_name):
     """
     Update video image for an existing video.
+
+    NOTE: If `image_data` is None then `file_name` value will be used as it is, otherwise
+    a new file name is constructed based on uuid and extension from `file_name` value.
+    `image_data` will be None in case of course re-run and export.
 
     Arguments:
         image_data (InMemoryUploadedFile): Image data to be saved for a course video.
@@ -167,9 +174,14 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
         Raises ValVideoNotFoundError if the CourseVideo cannot be retrieved.
     """
     try:
-        course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)
+        course_video = CourseVideo.objects.select_related('video').get(
+            course_id=course_id, video__edx_video_id=edx_video_id
+        )
     except ObjectDoesNotExist:
-        error_message = u'CourseVideo not found for edx_video_id: {0}'.format(edx_video_id)
+        error_message = u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+            edx_video_id,
+            course_id
+        )
         raise ValVideoNotFoundError(error_message)
 
     video_image, _ = VideoImage.create_or_update(course_video, file_name, image_data)
@@ -476,21 +488,29 @@ def copy_course_videos(source_course_id, destination_course_id):
     if source_course_id == destination_course_id:
         return
 
-    videos = Video.objects.filter(courses__course_id=unicode(source_course_id))
+    course_videos = CourseVideo.objects.select_related('video', 'video_image').filter(
+        course_id=unicode(source_course_id)
+    )
 
-    for video in videos:
-        CourseVideo.objects.get_or_create(
-            video=video,
+    for course_video in course_videos:
+        destination_course_video, __ = CourseVideo.objects.get_or_create(
+            video=course_video.video,
             course_id=destination_course_id
         )
+        if hasattr(course_video, 'video_image'):
+            VideoImage.create_or_update(
+                course_video=destination_course_video,
+                file_name=course_video.video_image.image.name
+            )
 
 
-def export_to_xml(edx_video_id):
+def export_to_xml(edx_video_id, course_id=None):
     """
     Exports data about the given edx_video_id into the given xml object.
 
     Args:
         edx_video_id (str): The ID of the video to export
+        course_id (str): The ID of the course with which this video is associated
 
     Returns:
         An lxml video_asset element containing export data
@@ -498,12 +518,21 @@ def export_to_xml(edx_video_id):
     Raises:
         ValVideoNotFoundError: if the video does not exist
     """
+    video_image_name = ''
     video = _get_video(edx_video_id)
+
+    try:
+        course_video = CourseVideo.objects.select_related('video_image').get(course_id=course_id, video=video)
+        video_image_name = course_video.video_image.image.name
+    except ObjectDoesNotExist:
+        pass
+
     video_el = Element(
         'video_asset',
         attrib={
             'client_video_id': video.client_video_id,
             'duration': unicode(video.duration),
+            'image': video_image_name
         }
     )
     for encoded_video in video.encoded_videos.all():
@@ -548,7 +577,12 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             course_id,
         )
         if course_id:
-            CourseVideo.get_or_create_with_validation(video=video, course_id=course_id)
+            course_video, __ = CourseVideo.get_or_create_with_validation(video=video, course_id=course_id)
+
+            image_file_name = xml.get('image', '').strip()
+            if image_file_name:
+                VideoImage.create_or_update(course_video, image_file_name)
+
         return
     except ValidationError as err:
         logger.exception(err.message)
@@ -563,7 +597,7 @@ def import_from_xml(xml, edx_video_id, course_id=None):
         'duration': xml.get('duration'),
         'status': 'imported',
         'encoded_videos': [],
-        'courses': [course_id] if course_id else [],
+        'courses': [{course_id: xml.get('image')}] if course_id else [],
     }
     for encoded_video_el in xml.iterfind('encoded_video'):
         profile_name = encoded_video_el.get('profile')

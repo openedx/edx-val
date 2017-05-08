@@ -211,6 +211,10 @@ class VideoImage(TimeStampedModel):
         """
         Create a VideoImage object for a CourseVideo.
 
+        NOTE: If `image_data` is None then `file_name` value will be used as it is, otherwise
+        a new file name is constructed based on uuid and extension from `file_name` value.
+        `image_data` will be None in case of course re-run and export.
+
         Arguments:
             course_video (CourseVideo): CourseVideo instance
             file_name (str): File name of the image
@@ -224,14 +228,12 @@ class VideoImage(TimeStampedModel):
             with closing(image_data) as image_file:
                 file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
                 try:
-                    course_id = course_video.course_id
-                    edx_video_id = course_video.video.edx_video_id
                     video_image.image.save(file_name, image_file)
                 except Exception:  # pylint: disable=broad-except
                     logger.exception(
                         'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
-                        course_id,
-                        edx_video_id
+                        course_video.course_id,
+                        course_video.video.edx_video_id
                     )
                     raise
         else:

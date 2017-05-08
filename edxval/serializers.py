@@ -182,11 +182,11 @@ class VideoSerializer(serializers.ModelSerializer):
         # The CourseSerializer will already have converted the course data
         # to CourseVideo models, so we can just set the video and save.
         # Also create VideoImage objects if an image filename is present
-        for course_video, image in courses:
+        for course_video, image_name in courses:
             course_video.video = video
             course_video.save()
-            if image:
-                VideoImage.create_or_update(course_video, image)
+            if image_name:
+                VideoImage.create_or_update(course_video, image_name)
 
         return video
 
@@ -217,10 +217,10 @@ class VideoSerializer(serializers.ModelSerializer):
         # NOTE: for backwards compatibility with the DRF v2 behavior,
         # we do NOT delete existing course videos during the update.
         # Also update VideoImage objects if an image filename is present
-        for course_video, image in validated_data.get("courses", []):
+        for course_video, image_name in validated_data.get("courses", []):
             course_video.video = instance
             course_video.save()
-            if image:
-                VideoImage.create_or_update(course_video, image)
+            if image_name:
+                VideoImage.create_or_update(course_video, image_name)
 
         return instance
