@@ -10,5 +10,6 @@ script:
 branches:
     only:
       - master
+      - ammar/course-rerun-import-export
 after_success:
   coveralls

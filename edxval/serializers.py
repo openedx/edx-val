@@ -164,6 +164,7 @@ class VideoSerializer(serializers.ModelSerializer):
         Create the video and its nested resources.
         """
         courses = validated_data.pop("courses", [])
+        image = validated_data.pop("image", None)
         encoded_videos = validated_data.pop("encoded_videos", [])
         subtitles = validated_data.pop("subtitles", [])
 
@@ -213,6 +214,7 @@ class VideoSerializer(serializers.ModelSerializer):
             for subtitle_data in validated_data.get("subtitles", [])
         )
 
+        image = validated_data.get("image")
         # Set courses
         # NOTE: for backwards compatibility with the DRF v2 behavior,
         # we do NOT delete existing course videos during the update.
