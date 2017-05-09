@@ -12,7 +12,7 @@ from django.test import TestCase
 from django.db import DatabaseError
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from ddt import ddt, data
+from ddt import ddt, data, unpack
 
 from edxval.models import Profile, Video, EncodedVideo, CourseVideo, VideoImage
 from edxval import api as api
@@ -793,9 +793,11 @@ class TestCopyCourse(TestCase):
         Creates a course with 2 videos and a course with 1 video
         """
         self.course_id = 'test-course'
+        self.image_name1 = 'image.jpg'
         # 1st video
         self.video1 = Video.objects.create(**constants.VIDEO_DICT_FISH)
-        CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
+        self.course_video1 = CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
+        VideoImage.create_or_update(self.course_video1, None, self.image_name1)
         # 2nd video
         self.video2 = Video.objects.create(**constants.VIDEO_DICT_STAR)
         CourseVideo.objects.create(video=self.video2, course_id=self.course_id)
@@ -807,9 +809,12 @@ class TestCopyCourse(TestCase):
 
     def test_successful_copy(self):
         """Tests a successful copy course"""
-        api.copy_course_videos('test-course', 'course-copy1')
+        destination_course_id = 'course-copy1'
+        api.copy_course_videos('test-course', destination_course_id)
         original_videos = Video.objects.filter(courses__course_id='test-course')
-        copied_videos = Video.objects.filter(courses__course_id='course-copy1')
+        copied_videos = Video.objects.filter(courses__course_id=destination_course_id)
+        course_video_with_image = CourseVideo.objects.get(video=self.video1, course_id=destination_course_id)
+        course_video_without_image = CourseVideo.objects.get(video=self.video2, course_id=destination_course_id)
 
         self.assertEqual(len(original_videos), 2)
         self.assertEqual(
@@ -817,6 +822,8 @@ class TestCopyCourse(TestCase):
             {constants.VIDEO_DICT_FISH["edx_video_id"], constants.VIDEO_DICT_STAR["edx_video_id"]}
         )
         self.assertTrue(set(original_videos) == set(copied_videos))
+        self.assertEqual(course_video_with_image.video_image.image.name, self.image_name1)
+        self.assertFalse(hasattr(course_video_without_image, 'video_image'))
 
     def test_same_course_ids(self):
         """
@@ -853,6 +860,7 @@ class TestCopyCourse(TestCase):
         self.assertTrue(set(copied_videos) == set(original_videos))
 
 
+@ddt
 class ExportTest(TestCase):
     """Tests export_to_xml"""
     def setUp(self):
@@ -861,6 +869,9 @@ class ExportTest(TestCase):
         hls_profile = Profile.objects.get(profile_name=constants.PROFILE_HLS)
         Video.objects.create(**constants.VIDEO_DICT_STAR)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        course_video = CourseVideo.objects.create(video=video, course_id='test-course')
+        VideoImage.create_or_update(course_video, None, 'image.jpg')
+
         EncodedVideo.objects.create(
             video=video,
             profile=mobile_profile,
@@ -899,23 +910,29 @@ class ExportTest(TestCase):
 
     def test_no_encodings(self):
         expected = self.parse_xml("""
-            <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0"/>
+            <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
         """)
         self.assert_xml_equal(
             api.export_to_xml(constants.VIDEO_DICT_STAR["edx_video_id"]),
             expected
         )
 
-    def test_basic(self):
+    @data(
+        {'course_id': None, 'image':''},
+        {'course_id': 'test-course', 'image':'image.jpg'},
+    )
+    @unpack
+    def test_basic(self, course_id, image):
         expected = self.parse_xml("""
-            <video_asset client_video_id="Shallow Swordfish" duration="122.0">
+            <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="{image}">
                 <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
             </video_asset>
-        """)
+        """.format(image=image))
+
         self.assert_xml_equal(
-            api.export_to_xml(constants.VIDEO_DICT_FISH["edx_video_id"]),
+            api.export_to_xml(constants.VIDEO_DICT_FISH["edx_video_id"], course_id),
             expected
         )
 
@@ -928,6 +945,7 @@ class ExportTest(TestCase):
 class ImportTest(TestCase):
     """Tests import_from_xml"""
     def setUp(self):
+        self.image_name = 'image.jpg'
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
@@ -938,7 +956,7 @@ class ImportTest(TestCase):
         )
         CourseVideo.objects.create(video=video, course_id='existing_course_id')
 
-    def make_import_xml(self, video_dict, encoded_video_dicts=None):
+    def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None):
         ret = etree.Element(
             "video_asset",
             attrib={
@@ -946,6 +964,10 @@ class ImportTest(TestCase):
                 for key in ["client_video_id", "duration"]
             }
         )
+
+        if image:
+            ret.attrib['image'] = image
+
         for encoding_dict in (encoded_video_dicts or []):
             etree.SubElement(
                 ret,
@@ -986,8 +1008,10 @@ class ImportTest(TestCase):
 
         xml = self.make_import_xml(
             video_dict=constants.VIDEO_DICT_STAR,
-            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS]
+            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS],
+            image=self.image_name
         )
+
         api.import_from_xml(xml, constants.VIDEO_DICT_STAR["edx_video_id"], new_course_id)
 
         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR["edx_video_id"])
@@ -1000,7 +1024,8 @@ class ImportTest(TestCase):
             video.encoded_videos.get(profile__profile_name=constants.PROFILE_HLS),
             constants.ENCODED_VIDEO_DICT_FISH_HLS
         )
-        video.courses.get(course_id=new_course_id)
+        course_video = video.courses.get(course_id=new_course_id)
+        self.assertTrue(course_video.video_image.image.name, self.image_name)
 
     def test_new_video_minimal(self):
         edx_video_id = "test_edx_video_id"
