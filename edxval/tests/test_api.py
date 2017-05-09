@@ -797,7 +797,7 @@ class TestCopyCourse(TestCase):
         # 1st video
         self.video1 = Video.objects.create(**constants.VIDEO_DICT_FISH)
         self.course_video1 = CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
-        VideoImage.create_or_update(self.course_video1, None, self.image_name1)
+        VideoImage.create_or_update(self.course_video1, self.image_name1)
         # 2nd video
         self.video2 = Video.objects.create(**constants.VIDEO_DICT_STAR)
         CourseVideo.objects.create(video=self.video2, course_id=self.course_id)
@@ -870,7 +870,7 @@ class ExportTest(TestCase):
         Video.objects.create(**constants.VIDEO_DICT_STAR)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         course_video = CourseVideo.objects.create(video=video, course_id='test-course')
-        VideoImage.create_or_update(course_video, None, 'image.jpg')
+        VideoImage.create_or_update(course_video, 'image.jpg')
 
         EncodedVideo.objects.create(
             video=video,
@@ -1062,7 +1062,8 @@ class ImportTest(TestCase):
                     "bitrate": 1597804,
                     "profile": "mobile",
                 },
-            ]
+            ],
+            image=self.image_name
         )
         api.import_from_xml(xml, constants.VIDEO_DICT_FISH["edx_video_id"], course_id)
 
@@ -1076,6 +1077,8 @@ class ImportTest(TestCase):
             video.encoded_videos.filter(profile__profile_name=constants.PROFILE_DESKTOP).exists()
         )
         self.assertTrue(video.courses.filter(course_id=course_id).exists())
+        course_video = video.courses.get(course_id=course_id)
+        self.assertTrue(course_video.video_image.image.name, self.image_name)
 
 
     def test_existing_video_with_invalid_course_id(self):

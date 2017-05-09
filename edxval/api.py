@@ -489,7 +489,6 @@ def copy_course_videos(source_course_id, destination_course_id):
         try:
             VideoImage.create_or_update(
                 course_video=dest_course_video,
-                image_data=None,
                 file_name=course_video.video_image.image.name
             )
         except VideoImage.DoesNotExist:
@@ -573,7 +572,8 @@ def import_from_xml(xml, edx_video_id, course_id=None):
 
             image_file_name = xml.get('image', '').strip()
             if image_file_name:
-                VideoImage.create_or_update(course_video, None, image_file_name)
+                VideoImage.create_or_update(course_video, image_file_name)
+
         return
     except ValidationError as err:
         logger.exception(err.message)
@@ -586,10 +586,9 @@ def import_from_xml(xml, edx_video_id, course_id=None):
         'edx_video_id': edx_video_id,
         'client_video_id': xml.get('client_video_id'),
         'duration': xml.get('duration'),
-        'image': xml.get('image'),
         'status': 'imported',
         'encoded_videos': [],
-        'courses': [course_id] if course_id else [],
+        'courses': [{course_id: xml.get('image')}] if course_id else [],
     }
     for encoded_video_el in xml.iterfind('encoded_video'):
         profile_name = encoded_video_el.get('profile')
