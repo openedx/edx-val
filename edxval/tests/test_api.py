@@ -1241,12 +1241,12 @@ class CourseVideoImageTest(TestCase):
         """
         video_data_generator = api.get_videos_for_course(self.course_id)
         video_data = list(video_data_generator)[0]
-        self.assertEqual(video_data['course_video_image_url'], self.image_url)
+        self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
 
     def test_get_videos_for_ids(self):
         """
-        Verify that `get_videos_for_ids` api function returns reponse with course_video_image_url set to None.
+        Verify that `get_videos_for_ids` api function returns response with course_video_image_url set to None.
         """
         video_data_generator = api.get_videos_for_ids([self.edx_video_id])
         video_data = list(video_data_generator)[0]
-        self.assertEqual(video_data['course_video_image_url'], None)
+        self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)

@@ -187,7 +187,7 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
         error_message = u"CourseVideo not found for edx_video_id: {0}".format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
 
-    video_image, _ = VideoImage.create_or_update(course_video, image_data, file_name)
+    video_image, _ = VideoImage.create_or_update(course_video, file_name, image_data)
     return get_course_video_image_url(video_image=video_image)
 
 
@@ -323,7 +323,7 @@ def get_url_for_profile(edx_video_id, profile):
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
 
-def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection.asc, context=None):
+def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection.asc):
     """
     Returns a generator expression that contains the videos found, sorted by
     the given field and direction, with ties broken by edx_video_id to ensure a
@@ -335,7 +335,7 @@ def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection
         videos = videos.order_by(sort_field.value, "edx_video_id")
         if sort_dir == SortDirection.desc:
             videos = videos.reverse()
-    return (VideoSerializer(video, context=context).data for video in videos)
+    return (VideoSerializer(video).data for video in videos)
 
 
 def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc):
@@ -356,7 +356,6 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
         {'courses__course_id': unicode(course_id), 'courses__is_hidden': False},
         sort_field,
         sort_dir,
-        context={'course_id': course_id}
     )
 
 

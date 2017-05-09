@@ -7,8 +7,7 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from rest_framework.fields import IntegerField, DateTimeField
 
-from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo
-from edxval.exceptions import ValVideoImageNotFoundError
+from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo, VideoImage
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
@@ -88,14 +87,27 @@ class CourseSerializer(serializers.RelatedField):
     """
     Field for CourseVideo
     """
-    def to_representation(self, value):
-        return value.course_id
+    def to_representation(self, course_video):
+        """
+        Returns a serializable representation of a CourseVideo instance.
+        """
+        return {
+            course_video.course_id: VideoImage.image_url(course_video)
+        }
 
     def to_internal_value(self, data):
-        if data:
-            course_video = CourseVideo(course_id=data)
-            course_video.full_clean(exclude=["video"])
-            return course_video
+        """
+        Convert data into CourseVideo instance and image filename tuple.
+        """
+        if isinstance(data, basestring):
+            course_id, image = data, None
+        elif  isinstance(data, dict):
+            (course_id, image), = data.items()
+
+        course_video = CourseVideo(course_id=course_id)
+        course_video.full_clean(exclude=["video"])
+
+        return course_video, image
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -112,7 +124,6 @@ class VideoSerializer(serializers.ModelSerializer):
         required=False,
         queryset=CourseVideo.objects.all()
     )
-    course_video_image_url = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
 
     # Django Rest Framework v3 converts datetimes to unicode by default.
@@ -123,21 +134,6 @@ class VideoSerializer(serializers.ModelSerializer):
         model = Video
         lookup_field = "edx_video_id"
         exclude = ('id',)
-
-    def get_course_video_image_url(self, video):
-        """
-        Return image associated with a course video or None if course_id is missing or if there is any error.
-        """
-        # Imported here to avoid circular dependency
-        from edxval.api import get_course_video_image_url
-
-        if self.context is None or 'course_id' not in self.context:
-            return None
-
-        try:
-            return get_course_video_image_url(self.context['course_id'], video.edx_video_id)
-        except ValVideoImageNotFoundError:
-            return None
 
     def get_url(self, obj):
         """
@@ -185,9 +181,12 @@ class VideoSerializer(serializers.ModelSerializer):
 
         # The CourseSerializer will already have converted the course data
         # to CourseVideo models, so we can just set the video and save.
-        for course_video in courses:
+        # Also create VideoImage objects if an image filename is present
+        for course_video, image in courses:
             course_video.video = video
             course_video.save()
+            if image:
+                VideoImage.create_or_update(course_video, image)
 
         return video
 
@@ -217,8 +216,11 @@ class VideoSerializer(serializers.ModelSerializer):
         # Set courses
         # NOTE: for backwards compatibility with the DRF v2 behavior,
         # we do NOT delete existing course videos during the update.
-        for course_video in validated_data.get("courses", []):
+        # Also update VideoImage objects if an image filename is present
+        for course_video, image in validated_data.get("courses", []):
             course_video.video = instance
             course_video.save()
+            if image:
+                VideoImage.create_or_update(course_video, image)
 
         return instance

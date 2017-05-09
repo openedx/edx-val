@@ -14,6 +14,7 @@ invalid profile_name will be returned.
 from contextlib import closing
 import logging
 import os
+from uuid import uuid4
 
 from django.db import models
 from django.dispatch import receiver
@@ -41,6 +42,7 @@ class ModelFactoryWithValidation(object):
         ret_val = cls(*args, **kwargs)
         ret_val.full_clean()
         ret_val.save()
+        return ret_val
 
     @classmethod
     def get_or_create_with_validation(cls, *args, **kwargs):
@@ -198,26 +200,37 @@ class VideoImage(TimeStampedModel):
     image = CustomizableImageField()
 
     @classmethod
-    def create_or_update(cls, course_video, image_data, file_name):
+    def create_or_update(cls, course_video, file_name, image_data=None):
         """
         Create a VideoImage object for a CourseVideo.
 
         Arguments:
             course_video (CourseVideo): CourseVideo instance
+            file_name (str): File name of the image
             image_data (InMemoryUploadedFile): Image data to be saved.
-            file_name (str): File name.
 
         Returns:
             Returns a tuple of (video_image, created).
         """
         video_image, created = cls.objects.get_or_create(course_video=course_video)
-        with closing(image_data) as image_file:
-            __, file_extension = os.path.splitext(file_name)
-            file_name = '{timestamp}{ext}'.format(timestamp=video_image.modified.strftime("%s"), ext=file_extension)
-            video_image.image.save(file_name, image_file)
-            video_image.save()
+        if image_data:
+            with closing(image_data) as image_file:
+                file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
+                video_image.image.save(file_name, image_file)
+        else:
+            video_image.image.name = file_name
 
+        video_image.save()
         return video_image, created
+
+    @classmethod
+    def image_url(cls, course_video):
+        """
+        Return image url for a course video image.
+        """
+        storage = get_video_image_storage()
+        if hasattr(course_video, 'video_image'):
+            return storage.url(course_video.video_image.image.name)
 
 
 SUBTITLE_FORMATS = (
