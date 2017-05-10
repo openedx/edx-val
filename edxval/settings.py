@@ -186,5 +186,7 @@ VIDEO_IMAGE_SETTINGS = dict(
     # STORAGE_KWARGS=dict(bucket='video-image-bucket'),
     # If you are changing prefix value then update the .gitignore accordingly
     # so that images created during tests due to upload should be ignored
-    DIRECTORY_PREFIX='video-image/',
+    VIDEO_IMAGE_MAX_BYTES=2097152,
+    VIDEO_IMAGE_MIN_BYTES=100,
+    DIRECTORY_PREFIX='video-images/',
 )

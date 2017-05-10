@@ -184,7 +184,7 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
     try:
         course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)
     except Video.DoesNotExist:
-        error_message = u"CourseVideo not found for edx_video_id: {0}".format(edx_video_id)
+        error_message = u'CourseVideo not found for edx_video_id: {0}'.format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
 
     video_image, _ = VideoImage.create_or_update(course_video, file_name, image_data)

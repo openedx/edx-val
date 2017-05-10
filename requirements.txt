@@ -6,5 +6,4 @@ lxml==3.3.6
 -e git+https://github.com/edx/django-rest-framework-oauth.git@f0b503fda8c254a38f97fef802ded4f5fe367f7a#egg=djangorestframework-oauth
 django-storages==1.5.2
 boto==2.46.1
-Pillow==4.1.0
 django-model-utils==2.3.1

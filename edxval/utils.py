@@ -22,4 +22,6 @@ def get_video_image_storage():
             settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_CLASS'),
         )(**settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {}))
     else:
-        return get_storage_class()
+        # during edx-platform loading this method gets called but settings are not ready yet
+        # so in that case we will return default(FileSystemStorage) storage class instance
+        return get_storage_class()()
