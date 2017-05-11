@@ -19,8 +19,7 @@ from edxval.exceptions import (  # pylint: disable=unused-import
     ValInternalError,
     ValVideoNotFoundError,
     ValCannotCreateError,
-    ValCannotUpdateError,
-    ValVideoImageNotFoundError
+    ValCannotUpdateError
 )
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
@@ -154,7 +153,7 @@ def get_course_video_image_url(course_id=None, edx_video_id=None, video_image=No
         video_image: VideoImage instance
 
     Returns:
-        course video image url
+        course video image url or None if no image found
     """
     storage = get_video_image_storage()
 
@@ -162,7 +161,7 @@ def get_course_video_image_url(course_id=None, edx_video_id=None, video_image=No
         if video_image is None:
             video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
     except ObjectDoesNotExist:
-        raise ValVideoImageNotFoundError
+        return None
 
     return storage.url(video_image.image.name)
 
@@ -179,7 +178,6 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
 
     Raises:
         Raises ValVideoNotFoundError if the CourseVideo cannot be retrieved.
-        Raises ValVideoImageNotFoundError if the VideoImage cannot be retrieved.
     """
     try:
         course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)

@@ -48,10 +48,3 @@ class ValCannotUpdateError(ValError):
     This error is raised when an object cannot be updated
     """
     pass
-
-
-class ValVideoImageNotFoundError(ValError):
-    """
-    This error is raised when a video image is not found
-    """
-    pass

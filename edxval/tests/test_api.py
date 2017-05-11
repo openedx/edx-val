@@ -1235,6 +1235,14 @@ class CourseVideoImageTest(TestCase):
         image_url = api.get_course_video_image_url(self.course_id, self.edx_video_id)
         self.assertEqual(self.image_url, image_url)
 
+    def test_get_course_video_image_url_no_image(self):
+        """
+        Verify that `get_course_video_image_url` api function returns None when no image is found.
+        """
+        self.course_video.video_image.delete()
+        image_url = api.get_course_video_image_url(self.course_id, self.edx_video_id)
+        self.assertIsNone(image_url)
+
     def test_get_videos_for_course(self):
         """
         Verify that `get_videos_for_course` api function has correct course_video_image_url.
