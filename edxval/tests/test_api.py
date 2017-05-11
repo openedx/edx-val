@@ -810,8 +810,8 @@ class TestCopyCourse(TestCase):
     def test_successful_copy(self):
         """Tests a successful copy course"""
         destination_course_id = 'course-copy1'
-        api.copy_course_videos('test-course', destination_course_id)
-        original_videos = Video.objects.filter(courses__course_id='test-course')
+        api.copy_course_videos(self.course_id, destination_course_id)
+        original_videos = Video.objects.filter(courses__course_id=self.course_id)
         copied_videos = Video.objects.filter(courses__course_id=destination_course_id)
         course_video_with_image = CourseVideo.objects.get(video=self.video1, course_id=destination_course_id)
         course_video_without_image = CourseVideo.objects.get(video=self.video2, course_id=destination_course_id)
@@ -932,7 +932,7 @@ class ExportTest(TestCase):
         """.format(image=image))
 
         self.assert_xml_equal(
-            api.export_to_xml(constants.VIDEO_DICT_FISH["edx_video_id"], course_id),
+            api.export_to_xml(constants.VIDEO_DICT_FISH['edx_video_id'], course_id),
             expected
         )
 
