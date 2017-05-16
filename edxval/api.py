@@ -13,7 +13,6 @@ from django.core.files.base import ContentFile
 
 from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
 from edxval.serializers import VideoSerializer
-from edxval.utils import get_video_image_storage
 from edxval.exceptions import (  # pylint: disable=unused-import
     ValError,
     ValInternalError,
@@ -145,25 +144,15 @@ def update_video_status(edx_video_id, status):
 
 def get_course_video_image_url(course_id=None, edx_video_id=None, video_image=None):
     """
-    Returns course video image url.
-
-    Arguments:
-        course_id: ID of course
-        edx_video_id: ID of the video
-        video_image: VideoImage instance
-
-    Returns:
-        course video image url or None if no image found
+    Returns course video image url or None if no image found
     """
-    storage = get_video_image_storage()
-
     try:
         if video_image is None:
             video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
     except ObjectDoesNotExist:
         return None
 
-    return storage.url(video_image.image.name)
+    return video_image.image_url()
 
 
 def update_video_image(edx_video_id, course_id, image_data, file_name):
@@ -171,22 +160,22 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
     Update video image for an existing video.
 
     Arguments:
-        edx_video_id: ID of the video.
-        course_id: ID of course.
-        image_data: Image data for video.
-        file_name: File name of the image file.
+        image_data (InMemoryUploadedFile): Image data to be saved for a course video.
+
+    Returns:
+        course video image url
 
     Raises:
         Raises ValVideoNotFoundError if the CourseVideo cannot be retrieved.
     """
     try:
         course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)
-    except Video.DoesNotExist:
+    except ObjectDoesNotExist:
         error_message = u'CourseVideo not found for edx_video_id: {0}'.format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
 
     video_image, _ = VideoImage.create_or_update(course_video, file_name, image_data)
-    return get_course_video_image_url(video_image=video_image)
+    return video_image.image_url()
 
 
 def create_profile(profile_name):

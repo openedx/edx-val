@@ -36,8 +36,8 @@ class VideoAdmin(admin.ModelAdmin):  # pylint: disable=C0111
 
 class VideoImageAdmin(admin.ModelAdmin):
     model = VideoImage
-    verbose_name = "Video Image"
-    verbose_name_plural = "Video Images"
+    verbose_name = 'Video Image'
+    verbose_name_plural = 'Video Images'
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Video, VideoAdmin)

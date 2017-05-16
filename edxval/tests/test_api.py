@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from ddt import ddt, data
 
-from edxval.models import Profile, Video, EncodedVideo, CourseVideo
+from edxval.models import Profile, Video, EncodedVideo, CourseVideo, VideoImage
 from edxval import api as api
 from edxval.api import (
     SortDirection,
@@ -1258,3 +1258,17 @@ class CourseVideoImageTest(TestCase):
         video_data_generator = api.get_videos_for_ids([self.edx_video_id])
         video_data = list(video_data_generator)[0]
         self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
+
+    @patch('edxval.models.logger')
+    def test_create_or_update_logging(self, mock_logger):
+        """
+        Tests correct message is logged when save to storge is failed in `create_or_update`
+        """
+        with self.assertRaises(Exception) as save_exception:  # pylint: disable=unused-variable
+            VideoImage.create_or_update(self.course_video, 'test.jpg', open(self.image_path2))
+
+        mock_logger.exception.assert_called_with(
+            'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
+            self.course_video.course_id,
+            self.course_video.video.edx_video_id
+        )

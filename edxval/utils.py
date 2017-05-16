@@ -9,8 +9,12 @@ from django.core.files.storage import get_storage_class
 def video_image_path(video_image_instance, filename):  # pylint:disable=unused-argument
     """
     Returns video image path.
+
+    Arguments:
+        video_image_instance (VideoImage): This is passed automatically by models.CustomizableImageField
+        filename (str): name of image file
     """
-    return '{}{}'.format(settings.VIDEO_IMAGE_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
+    return u'{}{}'.format(settings.VIDEO_IMAGE_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
 
 
 def get_video_image_storage():

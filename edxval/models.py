@@ -145,6 +145,15 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
         """
         unique_together = ("course_id", "video")
 
+    def image_url(self):
+        """
+        Return image url for a course video image.
+        """
+        try:
+            return self.video_image.image_url()
+        except VideoImage.DoesNotExist:
+            pass
+
     def __unicode__(self):
         return self.course_id
 
@@ -216,21 +225,29 @@ class VideoImage(TimeStampedModel):
         if image_data:
             with closing(image_data) as image_file:
                 file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
-                video_image.image.save(file_name, image_file)
+                try:
+                    course_id = course_video.course_id
+                    edx_video_id = course_video.video.edx_video_id
+                    video_image.image.save(file_name, image_file)
+                except Exception:  # pylint: disable=broad-except
+                    logger.exception(
+                        'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
+                        course_id,
+                        edx_video_id
+                    )
+                    raise
         else:
             video_image.image.name = file_name
 
         video_image.save()
         return video_image, created
 
-    @classmethod
-    def image_url(cls, course_video):
+    def image_url(self):
         """
         Return image url for a course video image.
         """
         storage = get_video_image_storage()
-        if hasattr(course_video, 'video_image'):
-            return storage.url(course_video.video_image.image.name)
+        return storage.url(self.image.name)
 
 
 SUBTITLE_FORMATS = (

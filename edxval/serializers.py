@@ -92,7 +92,7 @@ class CourseSerializer(serializers.RelatedField):
         Returns a serializable representation of a CourseVideo instance.
         """
         return {
-            course_video.course_id: VideoImage.image_url(course_video)
+            course_video.course_id: course_video.image_url()
         }
 
     def to_internal_value(self, data):
