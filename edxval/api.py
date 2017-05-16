@@ -148,7 +148,9 @@ def get_course_video_image_url(course_id, edx_video_id):
     Returns course video image url or None if no image found
     """
     try:
-        video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
+        video_image = CourseVideo.objects.select_related('video_image').get(
+            course_id=course_id, video__edx_video_id=edx_video_id
+        ).video_image
         return video_image.image_url()
     except ObjectDoesNotExist:
         return None
@@ -168,7 +170,9 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
         Raises ValVideoNotFoundError if the CourseVideo cannot be retrieved.
     """
     try:
-        course_video = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id)
+        course_video = CourseVideo.objects.select_related('video').get(
+            course_id=course_id, video__edx_video_id=edx_video_id
+        )
     except ObjectDoesNotExist:
         error_message = u'CourseVideo not found for edx_video_id: {0}'.format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
@@ -482,13 +486,13 @@ def copy_course_videos(source_course_id, destination_course_id):
     )
 
     for course_video in course_videos:
-        dest_course_video, __ = CourseVideo.objects.get_or_create(
+        destination_course_video, __ = CourseVideo.objects.get_or_create(
             video=course_video.video,
             course_id=destination_course_id
         )
         try:
             VideoImage.create_or_update(
-                course_video=dest_course_video,
+                course_video=destination_course_video,
                 file_name=course_video.video_image.image.name
             )
         except VideoImage.DoesNotExist:
@@ -509,12 +513,12 @@ def export_to_xml(edx_video_id, course_id=None):
     Raises:
         ValVideoNotFoundError: if the video does not exist
     """
-    image = ''
+    video_image_name = ''
     video = _get_video(edx_video_id)
 
     try:
         course_video = CourseVideo.objects.select_related('video_image').get(course_id=course_id, video=video)
-        image = course_video.video_image.image.name
+        video_image_name = course_video.video_image.image.name
     except ObjectDoesNotExist:
         pass
 
@@ -523,7 +527,7 @@ def export_to_xml(edx_video_id, course_id=None):
         attrib={
             'client_video_id': video.client_video_id,
             'duration': unicode(video.duration),
-            'image': image
+            'image': video_image_name
         }
     )
     for encoded_video in video.encoded_videos.all():

@@ -808,7 +808,9 @@ class TestCopyCourse(TestCase):
         CourseVideo.objects.create(video=self.video3, course_id=self.course_id2)
 
     def test_successful_copy(self):
-        """Tests a successful copy course"""
+        """
+        Tests a successful copy course
+        """
         destination_course_id = 'course-copy1'
         api.copy_course_videos(self.course_id, destination_course_id)
         original_videos = Video.objects.filter(courses__course_id=self.course_id)
@@ -957,7 +959,7 @@ class ImportTest(TestCase):
         CourseVideo.objects.create(video=video, course_id='existing_course_id')
 
     def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None):
-        ret = etree.Element(
+        import_xml = etree.Element(
             "video_asset",
             attrib={
                 key: unicode(video_dict[key])
@@ -966,18 +968,18 @@ class ImportTest(TestCase):
         )
 
         if image:
-            ret.attrib['image'] = image
+            import_xml.attrib['image'] = image
 
         for encoding_dict in (encoded_video_dicts or []):
             etree.SubElement(
-                ret,
+                import_xml,
                 "encoded_video",
                 attrib={
                     key: unicode(val)
                     for key, val in encoding_dict.items()
                 }
             )
-        return ret
+        return import_xml
 
     def assert_obj_matches_dict_for_keys(self, obj, dict_, keys):
         for key in keys:
@@ -1270,6 +1272,22 @@ class CourseVideoImageTest(TestCase):
         self.course_video.video_image.delete()
         image_url = api.get_course_video_image_url(self.course_id, self.edx_video_id)
         self.assertIsNone(image_url)
+
+    def test_num_queries_update_video_image(self):
+        """
+        Test number of queries executed to upload a course video image.
+        """
+        with self.assertNumQueries(4):
+            api.update_video_image(
+                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+            )
+
+    def test_num_queries_get_course_video_image_url(self):
+        """
+        Test number of queries executed to get a course video image url.
+        """
+        with self.assertNumQueries(1):
+            api.get_course_video_image_url(self.course_id, self.edx_video_id)
 
     def test_get_videos_for_course(self):
         """
