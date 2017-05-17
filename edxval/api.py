@@ -174,7 +174,10 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
             course_id=course_id, video__edx_video_id=edx_video_id
         )
     except ObjectDoesNotExist:
-        error_message = u'CourseVideo not found for edx_video_id: {0}'.format(edx_video_id)
+        error_message = u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+            edx_video_id,
+            course_id
+        )
         raise ValVideoNotFoundError(error_message)
 
     video_image, _ = VideoImage.create_or_update(course_video, file_name, image_data)
@@ -490,13 +493,11 @@ def copy_course_videos(source_course_id, destination_course_id):
             video=course_video.video,
             course_id=destination_course_id
         )
-        try:
+        if hasattr(course_video, 'video_image'):
             VideoImage.create_or_update(
                 course_video=destination_course_video,
                 file_name=course_video.video_image.image.name
             )
-        except VideoImage.DoesNotExist:
-            pass
 
 
 def export_to_xml(edx_video_id, course_id=None):

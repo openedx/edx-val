@@ -1227,12 +1227,12 @@ class VideoStatusUpdateTest(TestCase):
 
 class CourseVideoImageTest(TestCase):
     """
-    Tests to check course video image related functions works correctly
+    Tests to check course video image related functions works correctly.
     """
 
     def setUp(self):
         """
-        Creates video objects for courses
+        Creates video objects for courses.
         """
         self.course_id = 'test-course'
         self.course_id2 = 'test-course2'
@@ -1308,7 +1308,7 @@ class CourseVideoImageTest(TestCase):
     @patch('edxval.models.logger')
     def test_create_or_update_logging(self, mock_logger):
         """
-        Tests correct message is logged when save to storge is failed in `create_or_update`
+        Tests correct message is logged when save to storge is failed in `create_or_update`.
         """
         with self.assertRaises(Exception) as save_exception:  # pylint: disable=unused-variable
             VideoImage.create_or_update(self.course_video, 'test.jpg', open(self.image_path2))
@@ -1317,4 +1317,21 @@ class CourseVideoImageTest(TestCase):
             'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
             self.course_video.course_id,
             self.course_video.video.edx_video_id
+        )
+
+    def test_update_video_image_exception(self):
+        """
+        Tests exception message when we hit by an exception in `update_video_image`.
+        """
+        does_not_course_id = 'does_not_exist'
+
+        with self.assertRaises(Exception) as get_exception:
+            api.update_video_image(self.edx_video_id, does_not_course_id, open(self.image_path2), 'test.jpg')
+
+        self.assertEqual(
+            get_exception.exception.message,
+            u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+                self.edx_video_id,
+                does_not_course_id
+            )
         )
