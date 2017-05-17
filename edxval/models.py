@@ -147,12 +147,10 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
 
     def image_url(self):
         """
-        Return image url for a course video image.
+        Return image url for a course video image or None if no image.
         """
-        try:
+        if hasattr(self, 'video_image'):
             return self.video_image.image_url()
-        except VideoImage.DoesNotExist:
-            pass
 
     def __unicode__(self):
         return self.course_id

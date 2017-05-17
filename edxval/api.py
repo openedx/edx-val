@@ -142,17 +142,15 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
-def get_course_video_image_url(course_id=None, edx_video_id=None, video_image=None):
+def get_course_video_image_url(course_id, edx_video_id):
     """
     Returns course video image url or None if no image found
     """
     try:
-        if video_image is None:
-            video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
+        video_image = CourseVideo.objects.get(course_id=course_id, video__edx_video_id=edx_video_id).video_image
+        return video_image.image_url()
     except ObjectDoesNotExist:
         return None
-
-    return video_image.image_url()
 
 
 def update_video_image(edx_video_id, course_id, image_data, file_name):
