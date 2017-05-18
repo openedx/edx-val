@@ -7,6 +7,7 @@ import mock
 from mock import patch
 from lxml import etree
 
+from django.core.exceptions import ValidationError
 from django.core.files.images import ImageFile
 from django.test import TestCase
 from django.db import DatabaseError
@@ -14,7 +15,7 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from ddt import ddt, data, unpack
 
-from edxval.models import Profile, Video, EncodedVideo, CourseVideo, VideoImage
+from edxval.models import Profile, Video, EncodedVideo, CourseVideo, VideoImage, LIST_MAX_ITEMS
 from edxval import api as api
 from edxval.api import (
     SortDirection,
@@ -1335,3 +1336,53 @@ class CourseVideoImageTest(TestCase):
                 does_not_course_id
             )
         )
+
+    def test_video_image_urls_field(self):
+        """
+        Test `VideoImage.generated_images` field works as expected.
+        """
+        image_urls = ['video-images/a.png', 'video-images/b.png']
+
+        # an empty list should be returned when there is no value for urls
+        self.assertEqual(self.course_video.video_image.generated_images, [])
+
+        # set a list with data and expect the same list to be returned
+        course_video = CourseVideo.objects.create(video=self.video, course_id='course101')
+        video_image = VideoImage.objects.create(course_video=course_video)
+        video_image.generated_images = image_urls
+        video_image.save()
+        self.assertEqual(video_image.generated_images, image_urls)
+        self.assertEqual(course_video.video_image.generated_images, image_urls)
+
+    def test_video_image_urls_field_validation(self):
+        """
+        Test `VideoImage.generated_images` field validation.
+        """
+        course_video = CourseVideo.objects.create(video=self.video, course_id='course101')
+        video_image = VideoImage.objects.create(course_video=course_video)
+
+        # expect a validation error if we try to set a list with more than 3 items
+        with self.assertRaises(ValidationError) as set_exception:
+            video_image.generated_images = ['a', 'b', 'c', 'd']
+
+        self.assertEqual(
+            set_exception.exception.message,
+            u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS)
+        )
+
+        # expect a validation error if we try to a list with non-string items
+        with self.assertRaises(ValidationError) as set_exception:
+            video_image.generated_images = ['a', 1, 2]
+
+        self.assertEqual(set_exception.exception.message, u'list must only contain strings.')
+
+        # expect a validation error if we try to set non list data
+        exception_messages = set()
+        for item in ('a string', 555, {'a': 1}, (1,), video_image):
+            with self.assertRaises(ValidationError) as set_exception:
+                video_image.generated_images = item
+
+            exception_messages.add(set_exception.exception.message)
+
+        self.assertEqual(len(exception_messages), 1)
+        self.assertEqual(exception_messages.pop(), u'Must be a valid list of strings.')
