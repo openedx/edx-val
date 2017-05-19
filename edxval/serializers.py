@@ -7,7 +7,7 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from rest_framework.fields import IntegerField, DateTimeField
 
-from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo
+from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo, VideoImage
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
@@ -87,14 +87,27 @@ class CourseSerializer(serializers.RelatedField):
     """
     Field for CourseVideo
     """
-    def to_representation(self, value):
-        return value.course_id
+    def to_representation(self, course_video):
+        """
+        Returns a serializable representation of a CourseVideo instance.
+        """
+        return {
+            course_video.course_id: course_video.image_url()
+        }
 
     def to_internal_value(self, data):
-        if data:
-            course_video = CourseVideo(course_id=data)
-            course_video.full_clean(exclude=["video"])
-            return course_video
+        """
+        Convert data into CourseVideo instance and image filename tuple.
+        """
+        if isinstance(data, basestring):
+            course_id, image = data, None
+        elif  isinstance(data, dict):
+            (course_id, image), = data.items()
+
+        course_video = CourseVideo(course_id=course_id)
+        course_video.full_clean(exclude=["video"])
+
+        return course_video, image
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -168,9 +181,12 @@ class VideoSerializer(serializers.ModelSerializer):
 
         # The CourseSerializer will already have converted the course data
         # to CourseVideo models, so we can just set the video and save.
-        for course_video in courses:
+        # Also create VideoImage objects if an image filename is present
+        for course_video, image_name in courses:
             course_video.video = video
             course_video.save()
+            if image_name:
+                VideoImage.create_or_update(course_video, image_name)
 
         return video
 
@@ -200,8 +216,11 @@ class VideoSerializer(serializers.ModelSerializer):
         # Set courses
         # NOTE: for backwards compatibility with the DRF v2 behavior,
         # we do NOT delete existing course videos during the update.
-        for course_video in validated_data.get("courses", []):
+        # Also update VideoImage objects if an image filename is present
+        for course_video, image_name in validated_data.get("courses", []):
             course_video.video = instance
             course_video.save()
+            if image_name:
+                VideoImage.create_or_update(course_video, image_name)
 
         return instance

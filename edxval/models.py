@@ -11,16 +11,26 @@ themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
+from contextlib import closing
+import json
 import logging
+import os
+from uuid import uuid4
 
 from django.db import models
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
+
+from model_utils.models import TimeStampedModel
+
+from edxval.utils import video_image_path, get_video_image_storage
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
 URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
+LIST_MAX_ITEMS = 3
 
 
 class ModelFactoryWithValidation(object):
@@ -35,6 +45,7 @@ class ModelFactoryWithValidation(object):
         ret_val = cls(*args, **kwargs)
         ret_val.full_clean()
         ret_val.save()
+        return ret_val
 
     @classmethod
     def get_or_create_with_validation(cls, *args, **kwargs):
@@ -137,6 +148,13 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
         """
         unique_together = ("course_id", "video")
 
+    def image_url(self):
+        """
+        Return image url for a course video image or None if no image.
+        """
+        if hasattr(self, 'video_image'):
+            return self.video_image.image_url()
+
     def __unicode__(self):
         return self.course_id
 
@@ -153,6 +171,144 @@ class EncodedVideo(models.Model):
 
     profile = models.ForeignKey(Profile, related_name="+")
     video = models.ForeignKey(Video, related_name="encoded_videos")
+
+
+class CustomizableImageField(models.ImageField):
+    """
+    Subclass of ImageField that allows custom settings to not
+    be serialized (hard-coded) in migrations. Otherwise,
+    migrations include optional settings for storage (such as
+    the storage class and bucket name); we don't want to
+    create new migration files for each configuration change.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.update(dict(
+            upload_to=video_image_path,
+            storage=get_video_image_storage(),
+            max_length=500,  # allocate enough for filepath
+            blank=True,
+            null=True
+        ))
+        super(CustomizableImageField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        """
+        Override base class method.
+        """
+        name, path, args, kwargs = super(CustomizableImageField, self).deconstruct()
+        del kwargs['upload_to']
+        del kwargs['storage']
+        del kwargs['max_length']
+        return name, path, args, kwargs
+
+
+class ListField(models.TextField):
+    """
+    ListField use to store and retrieve list data.
+    """
+    __metaclass__ = models.SubfieldBase
+
+    def get_prep_value(self, value):
+        """
+        Converts a list to its json represetation to store in database as text.
+        """
+        return json.dumps(value)
+
+    def to_python(self, value):
+        """
+        Converts the value into a list.
+        """
+        if not value:
+            value = []
+
+        # If a list is set then validated its items
+        if isinstance(value, list):
+            return self.validate(value)
+        else:  # try to de-serialize value and expect list and then validate
+            try:
+                py_list = json.loads(value)
+
+                if not isinstance(py_list, list):
+                    raise TypeError
+
+                self.validate(py_list)
+            except (ValueError, TypeError):
+                raise ValidationError(u'Must be a valid list of strings.')
+
+        return py_list
+
+    def validate(self, value):
+        """
+        Validate data before saving to database.
+
+        Arguemtns:
+            value(list): list to be validated
+
+        Returns:
+            list if validation is successful
+
+        Raises:
+            ValidationError
+        """
+        if len(value) > LIST_MAX_ITEMS:
+            raise ValidationError(u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS))
+
+        if all(isinstance(item, str) for item in value) is False:
+            raise ValidationError(u'list must only contain strings.')
+
+        return value
+
+
+class VideoImage(TimeStampedModel):
+    """
+    Image model for course video.
+    """
+    course_video = models.OneToOneField(CourseVideo, related_name="video_image")
+    image = CustomizableImageField()
+    generated_images = ListField()
+
+    @classmethod
+    def create_or_update(cls, course_video, file_name, image_data=None):
+        """
+        Create a VideoImage object for a CourseVideo.
+
+        NOTE: If `image_data` is None then `file_name` value will be used as it is, otherwise
+        a new file name is constructed based on uuid and extension from `file_name` value.
+        `image_data` will be None in case of course re-run and export.
+
+        Arguments:
+            course_video (CourseVideo): CourseVideo instance
+            file_name (str): File name of the image
+            image_data (InMemoryUploadedFile): Image data to be saved.
+
+        Returns:
+            Returns a tuple of (video_image, created).
+        """
+        video_image, created = cls.objects.get_or_create(course_video=course_video)
+        if image_data:
+            with closing(image_data) as image_file:
+                file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
+                try:
+                    video_image.image.save(file_name, image_file)
+                except Exception:  # pylint: disable=broad-except
+                    logger.exception(
+                        'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
+                        course_video.course_id,
+                        course_video.video.edx_video_id
+                    )
+                    raise
+        else:
+            video_image.image.name = file_name
+
+        video_image.save()
+        return video_image, created
+
+    def image_url(self):
+        """
+        Return image url for a course video image.
+        """
+        storage = get_video_image_storage()
+        return storage.url(self.image.name)
 
 
 SUBTITLE_FORMATS = (

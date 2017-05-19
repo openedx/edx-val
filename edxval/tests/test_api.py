@@ -7,13 +7,15 @@ import mock
 from mock import patch
 from lxml import etree
 
+from django.core.exceptions import ValidationError
+from django.core.files.images import ImageFile
 from django.test import TestCase
 from django.db import DatabaseError
 from django.core.urlresolvers import reverse
 from rest_framework import status
-from ddt import ddt, data
+from ddt import ddt, data, unpack
 
-from edxval.models import Profile, Video, EncodedVideo, CourseVideo
+from edxval.models import Profile, Video, EncodedVideo, CourseVideo, VideoImage, LIST_MAX_ITEMS
 from edxval import api as api
 from edxval.api import (
     SortDirection,
@@ -792,9 +794,11 @@ class TestCopyCourse(TestCase):
         Creates a course with 2 videos and a course with 1 video
         """
         self.course_id = 'test-course'
+        self.image_name1 = 'image.jpg'
         # 1st video
         self.video1 = Video.objects.create(**constants.VIDEO_DICT_FISH)
-        CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
+        self.course_video1 = CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
+        VideoImage.create_or_update(self.course_video1, self.image_name1)
         # 2nd video
         self.video2 = Video.objects.create(**constants.VIDEO_DICT_STAR)
         CourseVideo.objects.create(video=self.video2, course_id=self.course_id)
@@ -805,10 +809,15 @@ class TestCopyCourse(TestCase):
         CourseVideo.objects.create(video=self.video3, course_id=self.course_id2)
 
     def test_successful_copy(self):
-        """Tests a successful copy course"""
-        api.copy_course_videos('test-course', 'course-copy1')
-        original_videos = Video.objects.filter(courses__course_id='test-course')
-        copied_videos = Video.objects.filter(courses__course_id='course-copy1')
+        """
+        Tests a successful copy course
+        """
+        destination_course_id = 'course-copy1'
+        api.copy_course_videos(self.course_id, destination_course_id)
+        original_videos = Video.objects.filter(courses__course_id=self.course_id)
+        copied_videos = Video.objects.filter(courses__course_id=destination_course_id)
+        course_video_with_image = CourseVideo.objects.get(video=self.video1, course_id=destination_course_id)
+        course_video_without_image = CourseVideo.objects.get(video=self.video2, course_id=destination_course_id)
 
         self.assertEqual(len(original_videos), 2)
         self.assertEqual(
@@ -816,6 +825,8 @@ class TestCopyCourse(TestCase):
             {constants.VIDEO_DICT_FISH["edx_video_id"], constants.VIDEO_DICT_STAR["edx_video_id"]}
         )
         self.assertTrue(set(original_videos) == set(copied_videos))
+        self.assertEqual(course_video_with_image.video_image.image.name, self.image_name1)
+        self.assertFalse(hasattr(course_video_without_image, 'video_image'))
 
     def test_same_course_ids(self):
         """
@@ -852,6 +863,7 @@ class TestCopyCourse(TestCase):
         self.assertTrue(set(copied_videos) == set(original_videos))
 
 
+@ddt
 class ExportTest(TestCase):
     """Tests export_to_xml"""
     def setUp(self):
@@ -860,6 +872,9 @@ class ExportTest(TestCase):
         hls_profile = Profile.objects.get(profile_name=constants.PROFILE_HLS)
         Video.objects.create(**constants.VIDEO_DICT_STAR)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        course_video = CourseVideo.objects.create(video=video, course_id='test-course')
+        VideoImage.create_or_update(course_video, 'image.jpg')
+
         EncodedVideo.objects.create(
             video=video,
             profile=mobile_profile,
@@ -898,23 +913,29 @@ class ExportTest(TestCase):
 
     def test_no_encodings(self):
         expected = self.parse_xml("""
-            <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0"/>
+            <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
         """)
         self.assert_xml_equal(
             api.export_to_xml(constants.VIDEO_DICT_STAR["edx_video_id"]),
             expected
         )
 
-    def test_basic(self):
+    @data(
+        {'course_id': None, 'image':''},
+        {'course_id': 'test-course', 'image':'image.jpg'},
+    )
+    @unpack
+    def test_basic(self, course_id, image):
         expected = self.parse_xml("""
-            <video_asset client_video_id="Shallow Swordfish" duration="122.0">
+            <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="{image}">
                 <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
             </video_asset>
-        """)
+        """.format(image=image))
+
         self.assert_xml_equal(
-            api.export_to_xml(constants.VIDEO_DICT_FISH["edx_video_id"]),
+            api.export_to_xml(constants.VIDEO_DICT_FISH['edx_video_id'], course_id),
             expected
         )
 
@@ -927,6 +948,7 @@ class ExportTest(TestCase):
 class ImportTest(TestCase):
     """Tests import_from_xml"""
     def setUp(self):
+        self.image_name = 'image.jpg'
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
@@ -937,24 +959,28 @@ class ImportTest(TestCase):
         )
         CourseVideo.objects.create(video=video, course_id='existing_course_id')
 
-    def make_import_xml(self, video_dict, encoded_video_dicts=None):
-        ret = etree.Element(
+    def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None):
+        import_xml = etree.Element(
             "video_asset",
             attrib={
                 key: unicode(video_dict[key])
                 for key in ["client_video_id", "duration"]
             }
         )
+
+        if image:
+            import_xml.attrib['image'] = image
+
         for encoding_dict in (encoded_video_dicts or []):
             etree.SubElement(
-                ret,
+                import_xml,
                 "encoded_video",
                 attrib={
                     key: unicode(val)
                     for key, val in encoding_dict.items()
                 }
             )
-        return ret
+        return import_xml
 
     def assert_obj_matches_dict_for_keys(self, obj, dict_, keys):
         for key in keys:
@@ -985,8 +1011,10 @@ class ImportTest(TestCase):
 
         xml = self.make_import_xml(
             video_dict=constants.VIDEO_DICT_STAR,
-            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS]
+            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS],
+            image=self.image_name
         )
+
         api.import_from_xml(xml, constants.VIDEO_DICT_STAR["edx_video_id"], new_course_id)
 
         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR["edx_video_id"])
@@ -999,7 +1027,8 @@ class ImportTest(TestCase):
             video.encoded_videos.get(profile__profile_name=constants.PROFILE_HLS),
             constants.ENCODED_VIDEO_DICT_FISH_HLS
         )
-        video.courses.get(course_id=new_course_id)
+        course_video = video.courses.get(course_id=new_course_id)
+        self.assertTrue(course_video.video_image.image.name, self.image_name)
 
     def test_new_video_minimal(self):
         edx_video_id = "test_edx_video_id"
@@ -1036,7 +1065,8 @@ class ImportTest(TestCase):
                     "bitrate": 1597804,
                     "profile": "mobile",
                 },
-            ]
+            ],
+            image=self.image_name
         )
         api.import_from_xml(xml, constants.VIDEO_DICT_FISH["edx_video_id"], course_id)
 
@@ -1050,6 +1080,8 @@ class ImportTest(TestCase):
             video.encoded_videos.filter(profile__profile_name=constants.PROFILE_DESKTOP).exists()
         )
         self.assertTrue(video.courses.filter(course_id=course_id).exists())
+        course_video = video.courses.get(course_id=course_id)
+        self.assertTrue(course_video.video_image.image.name, self.image_name)
 
 
     def test_existing_video_with_invalid_course_id(self):
@@ -1192,3 +1224,165 @@ class VideoStatusUpdateTest(TestCase):
             'fail',
             video.edx_video_id
         )
+
+
+class CourseVideoImageTest(TestCase):
+    """
+    Tests to check course video image related functions works correctly.
+    """
+
+    def setUp(self):
+        """
+        Creates video objects for courses.
+        """
+        self.course_id = 'test-course'
+        self.course_id2 = 'test-course2'
+        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        self.edx_video_id = self.video.edx_video_id
+        self.course_video = CourseVideo.objects.create(video=self.video, course_id=self.course_id)
+        self.course_video2 = CourseVideo.objects.create(video=self.video, course_id=self.course_id2)
+        self.image_path1 = 'edxval/tests/data/image.jpg'
+        self.image_path2 = 'edxval/tests/data/edx.jpg'
+        self.image_url = api.update_video_image(
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+        )
+        self.image_url2 = api.update_video_image(
+            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2)), 'image.jpg'
+        )
+
+    def test_update_video_image(self):
+        """
+        Verify that `update_video_image` api function works as expected.
+        """
+        self.assertEqual(self.course_video.video_image.image.name, self.image_url)
+        self.assertEqual(self.course_video2.video_image.image.name, self.image_url2)
+        self.assertEqual(ImageFile(open(self.image_path1)).size, ImageFile(open(self.image_url)).size)
+        self.assertEqual(ImageFile(open(self.image_path2)).size, ImageFile(open(self.image_url2)).size)
+
+    def test_get_course_video_image_url(self):
+        """
+        Verify that `get_course_video_image_url` api function works as expected.
+        """
+        image_url = api.get_course_video_image_url(self.course_id, self.edx_video_id)
+        self.assertEqual(self.image_url, image_url)
+
+    def test_get_course_video_image_url_no_image(self):
+        """
+        Verify that `get_course_video_image_url` api function returns None when no image is found.
+        """
+        self.course_video.video_image.delete()
+        image_url = api.get_course_video_image_url(self.course_id, self.edx_video_id)
+        self.assertIsNone(image_url)
+
+    def test_num_queries_update_video_image(self):
+        """
+        Test number of queries executed to upload a course video image.
+        """
+        with self.assertNumQueries(4):
+            api.update_video_image(
+                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+            )
+
+    def test_num_queries_get_course_video_image_url(self):
+        """
+        Test number of queries executed to get a course video image url.
+        """
+        with self.assertNumQueries(1):
+            api.get_course_video_image_url(self.course_id, self.edx_video_id)
+
+    def test_get_videos_for_course(self):
+        """
+        Verify that `get_videos_for_course` api function has correct course_video_image_url.
+        """
+        video_data_generator = api.get_videos_for_course(self.course_id)
+        video_data = list(video_data_generator)[0]
+        self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
+
+    def test_get_videos_for_ids(self):
+        """
+        Verify that `get_videos_for_ids` api function returns response with course_video_image_url set to None.
+        """
+        video_data_generator = api.get_videos_for_ids([self.edx_video_id])
+        video_data = list(video_data_generator)[0]
+        self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
+
+    @patch('edxval.models.logger')
+    def test_create_or_update_logging(self, mock_logger):
+        """
+        Tests correct message is logged when save to storge is failed in `create_or_update`.
+        """
+        with self.assertRaises(Exception) as save_exception:  # pylint: disable=unused-variable
+            VideoImage.create_or_update(self.course_video, 'test.jpg', open(self.image_path2))
+
+        mock_logger.exception.assert_called_with(
+            'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
+            self.course_video.course_id,
+            self.course_video.video.edx_video_id
+        )
+
+    def test_update_video_image_exception(self):
+        """
+        Tests exception message when we hit by an exception in `update_video_image`.
+        """
+        does_not_course_id = 'does_not_exist'
+
+        with self.assertRaises(Exception) as get_exception:
+            api.update_video_image(self.edx_video_id, does_not_course_id, open(self.image_path2), 'test.jpg')
+
+        self.assertEqual(
+            get_exception.exception.message,
+            u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+                self.edx_video_id,
+                does_not_course_id
+            )
+        )
+
+    def test_video_image_urls_field(self):
+        """
+        Test `VideoImage.generated_images` field works as expected.
+        """
+        image_urls = ['video-images/a.png', 'video-images/b.png']
+
+        # an empty list should be returned when there is no value for urls
+        self.assertEqual(self.course_video.video_image.generated_images, [])
+
+        # set a list with data and expect the same list to be returned
+        course_video = CourseVideo.objects.create(video=self.video, course_id='course101')
+        video_image = VideoImage.objects.create(course_video=course_video)
+        video_image.generated_images = image_urls
+        video_image.save()
+        self.assertEqual(video_image.generated_images, image_urls)
+        self.assertEqual(course_video.video_image.generated_images, image_urls)
+
+    def test_video_image_urls_field_validation(self):
+        """
+        Test `VideoImage.generated_images` field validation.
+        """
+        course_video = CourseVideo.objects.create(video=self.video, course_id='course101')
+        video_image = VideoImage.objects.create(course_video=course_video)
+
+        # expect a validation error if we try to set a list with more than 3 items
+        with self.assertRaises(ValidationError) as set_exception:
+            video_image.generated_images = ['a', 'b', 'c', 'd']
+
+        self.assertEqual(
+            set_exception.exception.message,
+            u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS)
+        )
+
+        # expect a validation error if we try to a list with non-string items
+        with self.assertRaises(ValidationError) as set_exception:
+            video_image.generated_images = ['a', 1, 2]
+
+        self.assertEqual(set_exception.exception.message, u'list must only contain strings.')
+
+        # expect a validation error if we try to set non list data
+        exception_messages = set()
+        for item in ('a string', 555, {'a': 1}, (1,), video_image):
+            with self.assertRaises(ValidationError) as set_exception:
+                video_image.generated_images = item
+
+            exception_messages.add(set_exception.exception.message)
+
+        self.assertEqual(len(exception_messages), 1)
+        self.assertEqual(exception_messages.pop(), u'Must be a valid list of strings.')
