@@ -12,12 +12,14 @@ invalid profile_name will be returned.
 """
 
 from contextlib import closing
+import json
 import logging
 import os
 from uuid import uuid4
 
 from django.db import models
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
 
@@ -28,6 +30,7 @@ from edxval.utils import video_image_path, get_video_image_storage
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
 URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
+LIST_MAX_ITEMS = 3
 
 
 class ModelFactoryWithValidation(object):
@@ -199,12 +202,70 @@ class CustomizableImageField(models.ImageField):
         return name, path, args, kwargs
 
 
+class ListField(models.TextField):
+    """
+    ListField use to store and retrieve list data.
+    """
+    __metaclass__ = models.SubfieldBase
+
+    def get_prep_value(self, value):
+        """
+        Converts a list to its json represetation to store in database as text.
+        """
+        return json.dumps(value)
+
+    def to_python(self, value):
+        """
+        Converts the value into a list.
+        """
+        if not value:
+            value = []
+
+        # If a list is set then validated its items
+        if isinstance(value, list):
+            return self.validate(value)
+        else:  # try to de-serialize value and expect list and then validate
+            try:
+                py_list = json.loads(value)
+
+                if not isinstance(py_list, list):
+                    raise TypeError
+
+                self.validate(py_list)
+            except (ValueError, TypeError):
+                raise ValidationError(u'Must be a valid list of strings.')
+
+        return py_list
+
+    def validate(self, value):
+        """
+        Validate data before saving to database.
+
+        Arguemtns:
+            value(list): list to be validated
+
+        Returns:
+            list if validation is successful
+
+        Raises:
+            ValidationError
+        """
+        if len(value) > LIST_MAX_ITEMS:
+            raise ValidationError(u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS))
+
+        if all(isinstance(item, str) for item in value) is False:
+            raise ValidationError(u'list must only contain strings.')
+
+        return value
+
+
 class VideoImage(TimeStampedModel):
     """
     Image model for course video.
     """
     course_video = models.OneToOneField(CourseVideo, related_name="video_image")
     image = CustomizableImageField()
+    generated_images = ListField()
 
     @classmethod
     def create_or_update(cls, course_video, file_name, image_data=None):
