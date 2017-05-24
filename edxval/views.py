@@ -1,15 +1,19 @@
 """
 Views file for django app edxval.
 """
+from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.authentication import SessionAuthentication
 from rest_framework_oauth.authentication import OAuth2Authentication
 from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.response import Response
+from rest_framework import status
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 from django.views.decorators.http import last_modified
 
-from edxval.models import Video, Profile, Subtitle
+from edxval.models import Video, Profile, Subtitle, CourseVideo, VideoImage
 from edxval.serializers import (
     VideoSerializer,
     SubtitleSerializer
@@ -97,6 +101,52 @@ class SubtitleDetail(MultipleFieldLookupMixin, generics.RetrieveUpdateDestroyAPI
     lookup_fields = ("video__edx_video_id", "language")
     queryset = Subtitle.objects.all()
     serializer_class = SubtitleSerializer
+
+
+class VideoImagesView(APIView):
+    """
+    View to update course video images.
+    """
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+
+    def post(self, request):
+        """
+        Update a course video image instance with auto generated image names.
+        """
+        attrs = ('course_id', 'generated_images')
+        missing = [attr for attr in attrs if attr not in request.data]
+        if missing:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    'message': u'{missing} must be specified to update a video image.'.format(
+                        missing=' and '.join(missing)
+                    )
+                }
+            )
+
+        course_id = request.data['course_id']
+        generated_images = request.data['generated_images']
+
+        try:
+            course_video = CourseVideo.objects.select_related('video_image').get(
+                course_id=unicode(course_id)
+            )
+        except CourseVideo.DoesNotExist:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': u'CourseVideo not found for course_id: {course_id}'.format(course_id=course_id)}
+            )
+
+        try:
+            VideoImage.create_or_update(course_video, generated_images=generated_images)
+        except ValidationError as ex:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': str(ex)}
+            )
+
+        return Response()
 
 
 def _last_modified_subtitle(request, edx_video_id, language):  # pylint: disable=W0613

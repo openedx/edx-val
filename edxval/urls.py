@@ -28,4 +28,9 @@ urlpatterns = patterns(
         views.get_subtitle,
         name="subtitle-content"
     ),
+    url(
+        r'^videos/video-images/update/$',
+        views.VideoImagesView.as_view(),
+        name='update-video-images'
+    ),
 )
