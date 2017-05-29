@@ -286,6 +286,13 @@ class VideoImage(TimeStampedModel):
         """
         video_image, created = cls.objects.get_or_create(course_video=course_video)
         if image_data:
+            # Delete the existing image only if this image is not used by anyone else. This is necessary because
+            # after a course re-run, a video in original course and the new course points to same image, So when
+            # we update an image in new course and delete the existing image. This will delete the image from
+            # original course as well, thus leaving video with having no image.
+            if not created and VideoImage.objects.filter(image=video_image.image).count() == 1:
+                video_image.image.delete()
+
             with closing(image_data) as image_file:
                 file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
                 try:

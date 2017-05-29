@@ -1278,7 +1278,7 @@ class CourseVideoImageTest(TestCase):
         """
         Test number of queries executed to upload a course video image.
         """
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(6):
             api.update_video_image(
                 self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
             )
@@ -1386,3 +1386,47 @@ class CourseVideoImageTest(TestCase):
 
         self.assertEqual(len(exception_messages), 1)
         self.assertEqual(exception_messages.pop(), u'Must be a valid list of strings.')
+
+    def test_video_image_deletion_single(self):
+        """
+        Test video image deletion works as expected when an image is used by only the video being updated.
+        """
+        existing_image_name = self.course_video.video_image.image.name
+
+        # This will replace the image for self.course_video and delete the existing image
+        image_url = api.update_video_image(
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg'
+        )
+
+        # Verify that new image is set to course_video
+        course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
+        self.assertEqual(course_video.video_image.image.name, image_url)
+
+        # Verify that an exception is raised if we try to open a delete image file
+        with self.assertRaises(IOError) as file_open_exception:
+            ImageFile(open(existing_image_name))
+
+        self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
+
+    def test_video_image_deletion_multiple(self):
+        """
+        Test video image deletion works as expected if an image is used by multiple course videos.
+        """
+        # Set and verify both course video images to have same image
+        shared_image = self.course_video.video_image.image.name = self.course_video2.video_image.image.name
+        self.course_video.video_image.save()
+        self.assertEqual(self.course_video.video_image.image.name, self.course_video2.video_image.image.name)
+
+        # This will replace the image for self.course_video but image will
+        # not be deleted because it is also used by self.course_video2
+        api.update_video_image(self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg')
+
+        # Verify image for course_video has changed
+        course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
+        self.assertNotEqual(course_video.video_image.image.name, shared_image)
+
+        # Verify image for self.course_video2 has not changed
+        self.assertEqual(self.course_video2.video_image.image.name, shared_image)
+
+        # Open the shared image file to verify it is not deleted
+        ImageFile(open(shared_image))
