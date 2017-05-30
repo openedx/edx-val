@@ -2,6 +2,8 @@
 """
 Tests for Video Abstraction Layer views
 """
+from ddt import ddt, data, unpack
+
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
@@ -794,3 +796,76 @@ class SubtitleDetailTest(APIAuthTestCase):
             url, video_subtitles, format='json'
         )
         self.assertEqual(self.client.get(video_subtitles['content_url']).content, '{"start": "00:00:00"}')
+
+@ddt
+class VideoImagesViewTest(APIAuthTestCase):
+    """
+    Tests VideoImage update requests.
+    """
+
+    def setUp(self):
+        """
+        Used for manually creating profile objects which EncodedVideos require.
+        """
+        self.course_id = 'test_course_id'
+        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        self.course_video = CourseVideo.objects.create(video=self.video, course_id=self.course_id)
+        super(VideoImagesViewTest, self).setUp()
+
+    def test_update_auto_generated_images(self):
+        """
+        Tests POSTing generated images successfully.
+        """
+        generated_images = ['video-images/a.png', 'video-images/b.png', 'video-images/c.png']
+        url = reverse('update-video-images')
+        response = self.client.post(
+            url,
+            {'course_id': self.course_id, 'generated_images': generated_images},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.course_video.video_image.image.name, generated_images[0])
+        self.assertEqual(self.course_video.video_image.generated_images, generated_images)
+
+        # verify that if we post again then `VideoImage.image.name` should not be updated
+        # but `VideoImage.generated_images` should be updated with new names.
+        new_generated_images = ['a.png', 'b.png', 'c.png']
+        response = self.client.post(
+            url,
+            {'course_id': self.course_id, 'generated_images': new_generated_images},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.course_video.video_image.image.name, generated_images[0])
+        course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
+        self.assertEqual(course_video.video_image.generated_images, new_generated_images)
+
+    @data(
+        {
+            'post_data': {},
+            'message': u'course_id and generated_images must be specified to update a video image.'
+        },
+        {
+            'post_data': {'course_id': 'does_not_exit_course', 'generated_images': []},
+            'message': u'CourseVideo not found for course_id: does_not_exit_course'
+        },
+        {
+            'post_data': {'course_id': 'test_course_id', 'generated_images': [1, 2, 3]},
+            'message': "[u'list must only contain strings.']"
+        },
+    )
+    @unpack
+    def test_update_error_responses(self, post_data, message):
+        """
+        Tests error responses occurred during POSTing.
+        """
+        url = reverse('update-video-images')
+
+        response = self.client.post(url, post_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['message'],
+            message
+        )
