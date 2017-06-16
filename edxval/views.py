@@ -113,7 +113,7 @@ class VideoImagesView(APIView):
         """
         Update a course video image instance with auto generated image names.
         """
-        attrs = ('course_id', 'generated_images')
+        attrs = ('course_id', 'edx_video_id', 'generated_images')
         missing = [attr for attr in attrs if attr not in request.data]
         if missing:
             return Response(
@@ -126,11 +126,12 @@ class VideoImagesView(APIView):
             )
 
         course_id = request.data['course_id']
+        edx_video_id = request.data['edx_video_id']
         generated_images = request.data['generated_images']
 
         try:
             course_video = CourseVideo.objects.select_related('video_image').get(
-                course_id=unicode(course_id)
+                course_id=unicode(course_id), video__edx_video_id=edx_video_id
             )
         except CourseVideo.DoesNotExist:
             return Response(
