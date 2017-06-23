@@ -498,7 +498,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data.get("edx_video_id")[0],
-            "This field must be unique."
+            u'video with this edx video id already exists.'
         )
         videos = len(self.client.get("/edxval/videos/").data)
         self.assertEqual(videos, 1)
