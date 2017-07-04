@@ -808,8 +808,10 @@ class VideoImagesViewTest(APIAuthTestCase):
         Used for manually creating profile objects which EncodedVideos require.
         """
         self.course_id = 'test_course_id'
-        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
-        self.course_video = CourseVideo.objects.create(video=self.video, course_id=self.course_id)
+        self.video1 = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        self.video2 = Video.objects.create(**constants.VIDEO_DICT_DIFFERENT_ID_FISH)
+        self.course_video1 = CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
+        self.course_video2 = CourseVideo.objects.create(video=self.video2, course_id=self.course_id)
         super(VideoImagesViewTest, self).setUp()
 
     def test_update_auto_generated_images(self):
@@ -820,39 +822,51 @@ class VideoImagesViewTest(APIAuthTestCase):
         url = reverse('update-video-images')
         response = self.client.post(
             url,
-            {'course_id': self.course_id, 'generated_images': generated_images},
+            {
+                'course_id': self.course_id,
+                'edx_video_id': self.video1.edx_video_id,
+                'generated_images': generated_images
+            },
             format='json'
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.course_video.video_image.image.name, generated_images[0])
-        self.assertEqual(self.course_video.video_image.generated_images, generated_images)
+        self.assertEqual(self.course_video1.video_image.image.name, generated_images[0])
+        self.assertEqual(self.course_video1.video_image.generated_images, generated_images)
 
         # verify that if we post again then `VideoImage.image.name` should not be updated
         # but `VideoImage.generated_images` should be updated with new names.
         new_generated_images = ['a.png', 'b.png', 'c.png']
         response = self.client.post(
             url,
-            {'course_id': self.course_id, 'generated_images': new_generated_images},
+            {
+                'course_id': self.course_id,
+                'edx_video_id': self.video1.edx_video_id,
+                'generated_images': new_generated_images
+            },
             format='json'
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.course_video.video_image.image.name, generated_images[0])
-        course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
+        self.assertEqual(self.course_video1.video_image.image.name, generated_images[0])
+        course_video = CourseVideo.objects.get(video=self.video1, course_id=self.course_id)
         self.assertEqual(course_video.video_image.generated_images, new_generated_images)
 
     @data(
         {
             'post_data': {},
-            'message': u'course_id and generated_images must be specified to update a video image.'
+            'message': u'course_id and edx_video_id and generated_images must be specified to update a video image.'
         },
         {
-            'post_data': {'course_id': 'does_not_exit_course', 'generated_images': []},
+            'post_data': {'course_id': 'does_not_exit_course', 'edx_video_id': 'super-soaker', 'generated_images': []},
             'message': u'CourseVideo not found for course_id: does_not_exit_course'
         },
         {
-            'post_data': {'course_id': 'test_course_id', 'generated_images': [1, 2, 3]},
+            'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'does_not_exit_video', 'generated_images': []},
+            'message': u'CourseVideo not found for course_id: test_course_id'
+        },
+        {
+            'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': [1, 2, 3]},
             'message': "[u'list must only contain strings.']"
         },
     )
