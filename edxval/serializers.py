@@ -99,13 +99,14 @@ class CourseSerializer(serializers.RelatedField):
         """
         Convert data into CourseVideo instance and image filename tuple.
         """
-        if isinstance(data, basestring):
-            course_id, image = data, None
-        elif  isinstance(data, dict):
-            (course_id, image), = data.items()
+        course_id = data
+        course_video = image = None
+        if data:
+            if isinstance(data, dict):
+                (course_id, image), = data.items()
 
-        course_video = CourseVideo(course_id=course_id)
-        course_video.full_clean(exclude=["video"])
+            course_video = CourseVideo(course_id=course_id)
+            course_video.full_clean(exclude=['video'])
 
         return course_video, image
 
@@ -156,6 +157,10 @@ class VideoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("profile required for deserializing")
         except TypeError:
             raise serializers.ValidationError("profile field needs to be a profile_name (str)")
+
+        # Clean course_video list from any invalid data.
+        course_videos = [(course_video, image) for course_video, image in data.get('courses', []) if course_video]
+        data['courses'] = course_videos
 
         return data
 

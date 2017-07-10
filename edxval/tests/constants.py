@@ -310,6 +310,14 @@ COMPLETE_SET_WITH_COURSE_KEY = dict(
     subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
+COMPLETE_SET_WITH_SOME_INVALID_COURSE_KEY = dict(
+    courses=[None, False, '', 'edX/DemoX/Astonomy'],
+    encoded_videos=[
+        ENCODED_VIDEO_DICT_STAR
+    ],
+    subtitles=[SUBTITLE_DICT_SRT],
+    **VIDEO_DICT_STAR
+)
 COMPLETE_SET_WITH_OTHER_COURSE_KEYS = dict(
     courses=['edX/DemoX/Astonomy', 'edX/DemoX/Zoology'],
     encoded_videos=[

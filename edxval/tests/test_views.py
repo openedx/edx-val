@@ -2,6 +2,7 @@
 """
 Tests for Video Abstraction Layer views
 """
+import json
 from ddt import ddt, data, unpack
 
 from django.core.urlresolvers import reverse
@@ -456,6 +457,19 @@ class VideoListTest(APIAuthTestCase):
         video = self.client.get("/edxval/videos/").data
         self.assertEqual(len(video), 1)
         self.assertEqual(len(video[0].get("encoded_videos")), 0)
+
+    def test_post_video_invalid_course_key(self):
+        """
+        Tests POSTing a new Video with course video list containing some invalid course keys.
+        """
+        url = reverse('video-list')
+        response = self.client.post(
+            url, constants.COMPLETE_SET_WITH_SOME_INVALID_COURSE_KEY, format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = json.loads(response.content)
+        # Check that invalid course keys have been filtered out.
+        self.assertEqual(response['courses'], [{u'edX/DemoX/Astonomy': None}])
 
     def test_post_non_latin_client_video_id(self):
         """
