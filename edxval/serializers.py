@@ -100,7 +100,7 @@ class CourseSerializer(serializers.RelatedField):
         Convert data into CourseVideo instance and image filename tuple.
         """
         course_id = data
-        course_video = image = None
+        course_video = image = ''
         if data:
             if isinstance(data, dict):
                 (course_id, image), = data.items()
