@@ -1,14 +1,24 @@
 language: python
 python:
-  - "2.7"
+- '2.7'
 install:
-  - "pip install -r requirements.txt"
-  - "pip install -r test-requirements.txt"
-  - "pip install coveralls"
+- pip install -r requirements.txt
+- pip install -r test-requirements.txt
+- pip install coveralls
 script:
-  - "python manage.py test"
+- tox
 branches:
-    only:
-      - master
-after_success:
-  coveralls
+  only:
+  - master
+after_success: coveralls
+# Set password via "travis encrypt --add deploy.password"; for details, see
+# https://docs.travis-ci.com/user/deployment/pypi
+deploy:
+  provider: pypi
+  user: edx
+  distributions: sdist bdist_wheel
+  skip_upload_docs: true
+  on:
+    tags: true
+  password:
+    secure: JGKw0H2Hl1i3OuJ+54hGX/YImhWe+MvkkeFZDynpBKir8XD+E/fbz2lvvmggIrMsawkE5qlOjK8f4d4LMzwL51Ln0EmuIkhUceXLDihrEymZu97uAWbT5qR55RrfwZk/qaYV8JHAszBD3yLA5VOyDLTiDt9s2ilZDQqQqecX514=

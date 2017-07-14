@@ -30,3 +30,16 @@ Returns (dict):
 }
 ```
  
+Developing
+-----------------
+First, create a virtual environment:
+```
+virtualenv venvs/val
+source venvs/val/bin/activate
+```
+
+To run tests:
+```
+pip install -r test-requirements.txt
+tox  # to run only a single environment, do e.g. tox -e django18
+```

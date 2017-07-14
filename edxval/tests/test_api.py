@@ -2,6 +2,7 @@
 """
 Tests for the API for Video Abstraction Layer
 """
+import json
 
 import mock
 from mock import patch
@@ -1306,8 +1307,10 @@ class CourseVideoImageTest(TestCase):
         video_data = list(video_data_generator)[0]
         self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
 
+    # attr_class is django magic: https://github.com/django/django/blob/master/django/db/models/fields/files.py#L214
+    @patch('edxval.models.CustomizableImageField.attr_class.save', side_effect = Exception("pretend save doesn't work"))
     @patch('edxval.models.logger')
-    def test_create_or_update_logging(self, mock_logger):
+    def test_create_or_update_logging(self, mock_logger, mock_image_save):
         """
         Tests correct message is logged when save to storge is failed in `create_or_update`.
         """
@@ -1364,6 +1367,7 @@ class CourseVideoImageTest(TestCase):
         # expect a validation error if we try to set a list with more than 3 items
         with self.assertRaises(ValidationError) as set_exception:
             video_image.generated_images = ['a', 'b', 'c', 'd']
+            video_image.save()
 
         self.assertEqual(
             set_exception.exception.message,
@@ -1373,19 +1377,45 @@ class CourseVideoImageTest(TestCase):
         # expect a validation error if we try to a list with non-string items
         with self.assertRaises(ValidationError) as set_exception:
             video_image.generated_images = ['a', 1, 2]
+            video_image.save()
 
         self.assertEqual(set_exception.exception.message, u'list must only contain strings.')
 
         # expect a validation error if we try to set non list data
-        exception_messages = set()
-        for item in ('a string', 555, {'a': 1}, (1,), video_image):
-            with self.assertRaises(ValidationError) as set_exception:
+        for item in ('a string', 555, {'a': 1}, (1,)):
+            with self.assertRaisesRegexp(ValidationError, 'is not a list') as set_exception:
                 video_image.generated_images = item
+                video_image.save()
 
-            exception_messages.add(set_exception.exception.message)
+    def test_video_image_urls_field_to_python_exceptions(self):
+        """
+        Test that `VideoImage.generated_images` field raises ValidationErrors
+        when bad data is somehow in the database for this field.
+        """
+        course_video = CourseVideo.objects.create(video=self.video, course_id='course101')
+        video_image = VideoImage.objects.create(course_video=course_video)
 
-        self.assertEqual(len(exception_messages), 1)
-        self.assertEqual(exception_messages.pop(), u'Must be a valid list of strings.')
+        # Tests that a TypeError is raised and turned into a ValidationError
+        # when the value is not a list (but still JSON serializable).
+        # We patch ListField.get_prep_value() to just do a json dumps without
+        # doing any type checking.
+        video_image.generated_images = {'key': 'image.jpeg'}
+        with patch('edxval.models.ListField.get_prep_value', lambda _, value: json.dumps(value)):
+            video_image.save()
+
+        with self.assertRaisesRegexp(ValidationError, 'Must be a valid list of strings'):
+            video_image.refresh_from_db()
+
+        # Tests that a ValueError is raised and turned into a ValidationError
+        # when the value is not JSON serializable.
+        # We patch ListField.get_prep_value() to let anything
+        # be saved in this field.
+        video_image.generated_images = 'image.jpeg'
+        with patch('edxval.models.ListField.get_prep_value', lambda _, value: value):
+            video_image.save()
+
+        with self.assertRaisesRegexp(ValidationError, 'Must be a valid list of strings'):
+            video_image.refresh_from_db()
 
     def test_video_image_deletion_single(self):
         """

@@ -2,14 +2,12 @@
 Url file for django app edxval.
 """
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from edxval import views
 
-urlpatterns = patterns(
-    '',
-    url(
-        r'^videos/$',
+urlpatterns = [
+    url(r'^videos/$',
         views.VideoList.as_view(),
         name="video-list"
     ),
@@ -33,4 +31,4 @@ urlpatterns = patterns(
         views.VideoImagesView.as_view(),
         name='update-video-images'
     ),
-)
+]
