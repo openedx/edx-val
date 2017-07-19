@@ -206,13 +206,19 @@ class ListField(models.TextField):
     """
     ListField use to store and retrieve list data.
     """
-    __metaclass__ = models.SubfieldBase
-
     def get_prep_value(self, value):
         """
         Converts a list to its json represetation to store in database as text.
         """
-        return json.dumps(value)
+        if value and not isinstance(value, list):
+            raise ValidationError(u'ListField value {} is not a list.'.format(value))
+        return json.dumps(self.validate(value) or [])
+
+    def from_db_value(self, value, expression, connection, context):
+        """
+        Converts a json list representation in a database to a python object.
+        """
+        return self.to_python(value)
 
     def to_python(self, value):
         """

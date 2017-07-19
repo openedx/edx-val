@@ -66,5 +66,6 @@ logs/*/*.log*
 .vagrant
 
 venv/
+venvs/
 
 video-images/
