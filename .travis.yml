@@ -1,15 +1,16 @@
 language: python
 python:
 - '2.7'
+env:
+- TOXENV=django18
+- TOXENV=django110
+- TOXENV=django111
 install:
 - pip install -r requirements.txt
 - pip install -r test-requirements.txt
 - pip install coveralls
 script:
 - tox
-branches:
-  only:
-  - master
 after_success: coveralls
 # Set password via "travis encrypt --add deploy.password"; for details, see
 # https://docs.travis-ci.com/user/deployment/pypi
