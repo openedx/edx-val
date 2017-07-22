@@ -22,6 +22,7 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.urlresolvers import reverse
+from django.utils.six import python_2_unicode_compatible
 
 from model_utils.models import TimeStampedModel
 
@@ -60,6 +61,7 @@ class ModelFactoryWithValidation(object):
             return cls.create_with_validation(*args, **kwargs), True
 
 
+@python_2_unicode_compatible
 class Profile(models.Model):
     """
     Details for pre-defined encoding format
@@ -79,7 +81,7 @@ class Profile(models.Model):
         ]
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.profile_name
 
 
@@ -131,6 +133,7 @@ class Video(models.Model):
         return qset
 
 
+@python_2_unicode_compatible
 class CourseVideo(models.Model, ModelFactoryWithValidation):
     """
     Model for the course_id associated with the video content.
@@ -155,7 +158,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
         if hasattr(self, 'video_image'):
             return self.video_image.image_url()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.course_id
 
 
