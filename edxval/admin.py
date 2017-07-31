@@ -39,7 +39,15 @@ class VideoImageAdmin(admin.ModelAdmin):
     verbose_name = 'Video Image'
     verbose_name_plural = 'Video Images'
 
+
+class CourseVideoAdmin(admin.ModelAdmin):
+    model = CourseVideo
+    verbose_name = 'Course Video'
+    verbose_name_plural = 'Course Videos'
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Video, VideoAdmin)
 admin.site.register(Subtitle)
 admin.site.register(VideoImage, VideoImageAdmin)
+admin.site.register(CourseVideo, CourseVideoAdmin)
