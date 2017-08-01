@@ -11,22 +11,23 @@ themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
-from contextlib import closing
 import json
 import logging
 import os
+from contextlib import closing
 from uuid import uuid4
 
+from django.core.exceptions import ValidationError
+from django.core.urlresolvers import reverse
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.dispatch import receiver
-from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, RegexValidator
-from django.core.urlresolvers import reverse
 from django.utils.six import python_2_unicode_compatible
-
 from model_utils.models import TimeStampedModel
 
-from edxval.utils import video_image_path, get_video_image_storage
+from edxval.utils import (get_video_image_storage,
+                          get_video_transcript_storage, video_image_path,
+                          video_transcript_path)
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -129,7 +130,7 @@ class Video(models.Model):
         qset = cls.objects.filter(
             encoded_videos__profile__profile_name='youtube',
             encoded_videos__url=youtube_id
-        ).prefetch_related('encoded_videos', 'courses', 'subtitles')
+        ).prefetch_related('encoded_videos', 'courses')
         return qset
 
 
@@ -333,6 +334,123 @@ class VideoImage(TimeStampedModel):
         """
         storage = get_video_image_storage()
         return storage.url(self.image.name)
+
+
+class TranscriptProviderType(object):
+    CUSTOM = 'Custom'
+    THREE_PLAY_MEDIA = '3PlayMedia'
+    CIELO24 = 'Cielo24'
+
+    CHOICES = (
+        (CUSTOM, CUSTOM),
+        (THREE_PLAY_MEDIA, THREE_PLAY_MEDIA),
+        (CIELO24, CIELO24),
+    )
+
+
+class TranscriptFormat(object):
+    SRT = 'srt'
+    SJSON = 'sjson'
+
+    CHOICES = (
+        (SRT, 'SubRip'),
+        (SJSON, 'SRT JSON')
+    )
+
+
+class CustomizableFileField(models.FileField):
+    """
+    Subclass of FileField that allows custom settings to not
+    be serialized (hard-coded) in migrations. Otherwise,
+    migrations include optional settings for storage (such as
+    the storage class and bucket name); we don't want to
+    create new migration files for each configuration change.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.update(dict(
+            upload_to=video_transcript_path,
+            storage=get_video_transcript_storage(),
+            max_length=255,  # enoungh for uuid
+            blank=True,
+            null=True
+        ))
+        super(CustomizableFileField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        """
+        Override base class method.
+        """
+        name, path, args, kwargs = super(CustomizableFileField, self).deconstruct()
+        del kwargs['upload_to']
+        del kwargs['storage']
+        del kwargs['max_length']
+        return name, path, args, kwargs
+
+
+class VideoTranscript(TimeStampedModel):
+    """
+    Transcript for a video
+    """
+    video_id = models.CharField(max_length=255, help_text='It can be an edx_video_id or an external video id')
+    transcript = CustomizableFileField()
+    language_code = models.CharField(max_length=8, db_index=True)
+    provider = models.CharField(
+        max_length=30,
+        choices=TranscriptProviderType.CHOICES,
+        default=TranscriptProviderType.CUSTOM,
+    )
+    file_format = models.CharField(max_length=20, db_index=True, choices=TranscriptFormat.CHOICES)
+
+    class Meta:
+        unique_together = ('video_id', 'language_code')
+
+    @classmethod
+    def create_or_update(cls, video_id, language_code, file_name, file_format, provider, file_data=None):
+        """
+        Create or update Transcript object.
+
+        Arguments:
+            video_id (str): unique id for a video
+            language_code (str): language code
+            file_name (str): File name of the image
+            file_format (str): Format of transcript
+            provider (str): Transcript provider
+            file_data (InMemoryUploadedFile): File data to be saved
+
+        Returns:
+            Returns a tuple of (video_transcript, created).
+        """
+        video_transcript, created = cls.objects.get_or_create(video_id=video_id, language_code=language_code)
+
+        # delete the existing transcript file
+        if not created and file_data:
+            video_transcript.transcript.delete()
+
+        video_transcript.transcript.name = file_name
+        video_transcript.file_format = file_format
+        video_transcript.provider = provider
+
+        if file_data:
+            with closing(file_data) as transcript_file_data:
+                file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
+                try:
+                    video_transcript.transcript.save(file_name, transcript_file_data)
+                except Exception:  # pylint: disable=broad-except
+                    logger.exception('VAL: Transcript save failed to storage for video_id [%s]', video_id)
+                    raise
+
+        video_transcript.save()
+        return video_transcript, created
+
+    def url(self):
+        """
+        Returns language transcript url for a particular language.
+        """
+        storage = get_video_transcript_storage()
+        return storage.url(self.transcript.name)
+
+    def __unicode__(self):
+        return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video_id)
 
 
 SUBTITLE_FORMATS = (

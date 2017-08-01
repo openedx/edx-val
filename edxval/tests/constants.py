@@ -3,6 +3,8 @@
 """
 Constants used for tests.
 """
+from edxval.models import TranscriptFormat, TranscriptProviderType
+
 EDX_VIDEO_ID = "itchyjacket"
 """
 Generic Profiles for manually creating profile objects
@@ -387,4 +389,20 @@ VIDEO_DICT_UPDATE_ANIMAL = dict(
     status="test",
     encoded_videos=[],
     subtitles=[]
+)
+
+VIDEO_TRANSCRIPT_CIELO24 = dict(
+    video_id='super-soaker',
+    language_code='en',
+    transcript='wow.srt',
+    provider=TranscriptProviderType.CIELO24,
+    file_format=TranscriptFormat.SRT,
+)
+
+VIDEO_TRANSCRIPT_3PLAY = dict(
+    video_id='super-soaker',
+    language_code='de',
+    transcript='wow.sjson',
+    provider=TranscriptProviderType.THREE_PLAY_MEDIA,
+    file_format=TranscriptFormat.SJSON,
 )

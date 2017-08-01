@@ -5,21 +5,18 @@ The internal API for VAL.
 """
 import logging
 
-from lxml.etree import Element, SubElement
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from enum import Enum
+from lxml.etree import Element, SubElement
 
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.core.files.base import ContentFile
-
-from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
-from edxval.serializers import VideoSerializer
-from edxval.exceptions import (  # pylint: disable=unused-import
-    ValError,
-    ValInternalError,
-    ValVideoNotFoundError,
-    ValCannotCreateError,
-    ValCannotUpdateError
-)
+from edxval.exceptions import (InvalidTranscriptFormat,
+                               InvalidTranscriptProvider, ValCannotCreateError,
+                               ValCannotUpdateError, ValInternalError,
+                               ValVideoNotFoundError)
+from edxval.models import (CourseVideo, EncodedVideo, Profile,
+                           TranscriptFormat, TranscriptProviderType, Video,
+                           VideoImage, VideoTranscript)
+from edxval.serializers import TranscriptSerializer, VideoSerializer
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -143,6 +140,92 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
+def get_video_transcript(video_id, language_code):
+    """
+    Get a video's transcript
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language_code: it will the language code of the requested transcript.
+    """
+    try:
+        transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
+    except VideoTranscript.DoesNotExist:
+        transcript = None
+
+    return transcript
+
+
+def get_video_transcripts(video_id):
+    """
+    Get a video's transcripts
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+    """
+    transcripts_set = VideoTranscript.objects.filter(video_id=video_id)
+
+    transcripts = []
+    if transcripts_set.exists():
+        transcripts = TranscriptSerializer(transcripts_set, many=True).data
+
+    return transcripts
+
+
+def get_video_transcript_url(video_id, language_code):
+    """
+    Returns course video transcript url or None if no transcript
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language_code: language code of a video transcript
+    """
+    video_transcript = get_video_transcript(video_id, language_code)
+
+    if video_transcript:
+        return video_transcript.url()
+
+
+def create_or_update_video_transcript(
+        video_id,
+        language_code,
+        file_name,
+        file_format,
+        provider,
+        file_data=None,
+    ):
+    """
+    Create or Update video transcript for an existing video.
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language_code: language code of a video transcript
+        file_name: file name of a video transcript
+        file_data (InMemoryUploadedFile): Transcript data to be saved for a course video.
+        file_format: format of the transcript
+        provider: transcript provider
+
+    Returns:
+        video transcript url
+    """
+    if file_format not in dict(TranscriptFormat.CHOICES).keys():
+        raise InvalidTranscriptFormat('{} transcript format is not supported'.format(file_format))
+
+    if provider not in dict(TranscriptProviderType.CHOICES).keys():
+        raise InvalidTranscriptProvider('{} transcript provider is not supported'.format(provider))
+
+    video_transcript, __ = VideoTranscript.create_or_update(
+        video_id,
+        language_code,
+        file_name,
+        file_format,
+        provider,
+        file_data,
+    )
+
+    return video_transcript.url()
+
+
 def get_course_video_image_url(course_id, edx_video_id):
     """
     Returns course video image url or None if no image found
@@ -246,11 +329,6 @@ def get_video_info(edx_video_id):
                     url: url of the video
                     file_size: size of the video in bytes
                     profile: ID of the profile
-                subtitles: a list of Subtitle dicts
-                    fmt: file format (SRT or SJSON)
-                    language: language code
-                    content_url: url of file
-                    url: api url to subtitle
             }
 
     Raises:

@@ -1,23 +1,26 @@
 """
 Views file for django app edxval.
 """
-from rest_framework.views import APIView
-from rest_framework import generics
-from rest_framework.authentication import SessionAuthentication
-from rest_framework_oauth.authentication import OAuth2Authentication
-from rest_framework.permissions import DjangoModelPermissions
-from rest_framework.response import Response
-from rest_framework import status
+import logging
+
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.core.exceptions import ValidationError
 from django.views.decorators.http import last_modified
+from rest_framework import generics, status
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_oauth.authentication import OAuth2Authentication
 
-from edxval.models import Video, Profile, Subtitle, CourseVideo, VideoImage
-from edxval.serializers import (
-    VideoSerializer,
-    SubtitleSerializer
-)
+from edxval.api import create_or_update_video_transcript, get_video_transcript, create_or_update_video_transcript
+from edxval.models import (CourseVideo, Profile, TranscriptFormat,
+                           TranscriptProviderType, Video, VideoImage,
+                           VideoTranscript)
+from edxval.serializers import TranscriptSerializer, VideoSerializer
+
+LOGGER = logging.getLogger(__name__)  # pylint: disable=C0103
 
 
 class ReadRestrictedDjangoModelPermissions(DjangoModelPermissions):
@@ -92,15 +95,68 @@ class VideoDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VideoSerializer
 
 
-class SubtitleDetail(MultipleFieldLookupMixin, generics.RetrieveUpdateDestroyAPIView):
+class VideoTranscriptView(APIView):
     """
-    Gets a subtitle instance given its id
+    A Transcription View, used by edx-video-pipeline to create video transcripts.
     """
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
-    permission_classes = (ReadRestrictedDjangoModelPermissions,)
-    lookup_fields = ("video__edx_video_id", "language")
-    queryset = Subtitle.objects.all()
-    serializer_class = SubtitleSerializer
+
+    # noinspection PyMethodMayBeStatic
+    def post(self, request):
+        """
+        Creates a video transcript instance with the given information.
+
+        Arguments:
+            request: A WSGI request.
+        """
+        attrs = ('video_id', 'name', 'language_code', 'provider', 'file_format')
+        missing = [attr for attr in attrs if attr not in request.data]
+        if missing:
+            LOGGER.warn(
+                '[VAL] Required transcript params are missing. %s', ' and '.join(missing)
+            )
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=dict(message=u'{missing} must be specified.'.format(missing=' and '.join(missing)))
+            )
+
+        video_id = request.data['video_id']
+        language_code = request.data['language_code']
+        transcript_name = request.data['name']
+        provider = request.data['provider']
+        file_format = request.data['file_format']
+
+        supported_formats = sorted(dict(TranscriptFormat.CHOICES).keys())
+        if file_format not in supported_formats:
+            message = (
+                u'"{format}" transcript file type is not supported. Supported formats are "{supported_formats}"'
+            ).format(format=file_format, supported_formats=supported_formats)
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
+
+        supported_providers = sorted(dict(TranscriptProviderType.CHOICES).keys())
+        if provider not in supported_providers:
+            message = (
+                u'"{provider}" provider is not supported. Supported transcription providers are "{supported_providers}"'
+            ).format(provider=provider, supported_providers=supported_providers)
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
+
+        transcript = get_video_transcript(video_id, language_code)
+        if transcript is None:
+            create_or_update_video_transcript(
+                video_id,
+                language_code,
+                transcript_name,
+                file_format,
+                provider,
+            )
+            response = Response(status=status.HTTP_200_OK)
+        else:
+            message = (
+                u'Can not override existing transcript for video "{video_id}" and language code "{language}".'
+            ).format(video_id=video_id, language=language_code)
+            response = Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
+
+        return response
 
 
 class VideoImagesView(APIView):
@@ -148,19 +204,3 @@ class VideoImagesView(APIView):
             )
 
         return Response()
-
-
-def _last_modified_subtitle(request, edx_video_id, language):  # pylint: disable=W0613
-    """
-    Returns the last modified subtitle
-    """
-    return Subtitle.objects.get(video__edx_video_id=edx_video_id, language=language).modified
-
-@last_modified(last_modified_func=_last_modified_subtitle)
-def get_subtitle(request, edx_video_id, language): # pylint: disable=W0613
-    """
-    Return content of subtitle by id
-    """
-    sub = Subtitle.objects.get(video__edx_video_id=edx_video_id, language=language)
-    response = HttpResponse(sub.content, content_type=sub.content_type)
-    return response
