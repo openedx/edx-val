@@ -3,7 +3,7 @@ Admin file for django app edxval.
 """
 
 from django.contrib import admin
-from .models import Video, Profile, EncodedVideo, Subtitle, CourseVideo, VideoImage
+from .models import Video, Profile, EncodedVideo, Transcript, CourseVideo, VideoImage
 
 
 class ProfileAdmin(admin.ModelAdmin):  # pylint: disable=C0111
@@ -48,6 +48,6 @@ class CourseVideoAdmin(admin.ModelAdmin):
 
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Video, VideoAdmin)
-admin.site.register(Subtitle)
+admin.site.register(Transcript)
 admin.site.register(VideoImage, VideoImageAdmin)
 admin.site.register(CourseVideo, CourseVideoAdmin)

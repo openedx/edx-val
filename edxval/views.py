@@ -13,10 +13,11 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import last_modified
 
-from edxval.models import Video, Profile, Subtitle, CourseVideo, VideoImage
+from edxval.api import get_video_transcript, update_video_transcript, create_video_transcript
+from edxval.models import Video, Profile, Transcript, CourseVideo, VideoImage, TranscriptFormat, TranscriptProviderType
 from edxval.serializers import (
     VideoSerializer,
-    SubtitleSerializer
+    TranscriptSerializer,
 )
 
 
@@ -92,15 +93,73 @@ class VideoDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = VideoSerializer
 
 
-class SubtitleDetail(MultipleFieldLookupMixin, generics.RetrieveUpdateDestroyAPIView):
+class VideoTranscriptView(APIView):
     """
-    Gets a subtitle instance given its id
+    A Transcription View, used by VEDA to create video transcripts.
     """
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
-    permission_classes = (ReadRestrictedDjangoModelPermissions,)
-    lookup_fields = ("video__edx_video_id", "language")
-    queryset = Subtitle.objects.all()
-    serializer_class = SubtitleSerializer
+
+    # noinspection PyMethodMayBeStatic
+    def post(self, request):
+        """
+        Creates a video transcript instance with the given information.
+
+        Arguments:
+            request: A WSGI request.
+        """
+        attrs = ('video_id', 'language', 'url', 'format', 'provider')
+        missing = [attr for attr in attrs if attr not in request.data]
+        if missing:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=dict(message=u'{missing} must be specified.'.format(missing=' and '.join(missing)))
+            )
+
+        video_id = request.data['video_id']
+        language = request.data['language']
+        transcript_url = request.data['url']
+        transcript_format = request.data['format']
+        provider = request.data['provider']
+
+        supported_formats = dict(TranscriptFormat.CHOICES).keys()
+        if transcript_format not in supported_formats:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=dict(
+                    message=(u'This transcript file type is not supported. Supported formats are'
+                             u'{supported_formats}').format(supported_formats=supported_formats)
+                )
+            )
+
+        supported_providers = dict(TranscriptProviderType.CHOICES).keys()
+        if provider not in supported_providers:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=dict(
+                    message=(u'This provider is not supported. Supported transcription providers are'
+                             u'{supported_providers}').format(supported_providers=supported_providers)
+                )
+            )
+
+        transcript = get_video_transcript(video_id, language)
+        if not transcript:
+            serialized_transcript = create_video_transcript(
+                video_id=video_id,
+                language=language,
+                transcript_url=transcript_url,
+                transcript_format=transcript_format,
+            )
+            response = Response(data=serialized_transcript, status=status.HTTP_200_OK)
+        else:
+            response = Response(
+                data=dict(
+                    message=(u'Transcript for video "{video_id}" and lang code "{language}" already exists. '
+                             u'It can not be overwritten.').format(video_id=video_id, language=language)
+                ),
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return response
 
 
 class VideoImagesView(APIView):
@@ -148,19 +207,3 @@ class VideoImagesView(APIView):
             )
 
         return Response()
-
-
-def _last_modified_subtitle(request, edx_video_id, language):  # pylint: disable=W0613
-    """
-    Returns the last modified subtitle
-    """
-    return Subtitle.objects.get(video__edx_video_id=edx_video_id, language=language).modified
-
-@last_modified(last_modified_func=_last_modified_subtitle)
-def get_subtitle(request, edx_video_id, language): # pylint: disable=W0613
-    """
-    Return content of subtitle by id
-    """
-    sub = Subtitle.objects.get(video__edx_video_id=edx_video_id, language=language)
-    response = HttpResponse(sub.content, content_type=sub.content_type)
-    return response

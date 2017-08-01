@@ -9,16 +9,22 @@ from lxml.etree import Element, SubElement
 from enum import Enum
 
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.core.files.base import ContentFile
 
-from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
-from edxval.serializers import VideoSerializer
+from edxval.models import (
+    Video,
+    EncodedVideo,
+    CourseVideo,
+    Profile,
+    VideoImage,
+    Transcript,
+    TranscriptProviderType,
+)
+from edxval.serializers import VideoSerializer, TranscriptSerializer
 from edxval.exceptions import (  # pylint: disable=unused-import
-    ValError,
     ValInternalError,
     ValVideoNotFoundError,
     ValCannotCreateError,
-    ValCannotUpdateError
+    ValCannotUpdateError,
 )
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
@@ -143,6 +149,87 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
+def get_video_transcript(video_id, lang_code):
+    """
+    Get a video's transcript
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        lang_code: it will the language code of the requested transcript.
+    """
+    try:
+        transcript = Transcript.objects.get(video_id=video_id, language=lang_code)
+    except Transcript.DoesNotExist:
+        transcript = None
+
+    return transcript
+
+
+def get_video_transcripts(video_id):
+    """
+    Get a video's transcripts
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+    """
+    transcripts_set = Transcript.objects.filter(video_id=video_id)
+
+    transcripts = []
+    if transcripts_set.exists():
+        transcripts = TranscriptSerializer(transcripts_set, many=True).data
+
+    return transcripts
+
+
+def create_video_transcript(video_id, language, transcript_url, transcript_format, provider=TranscriptProviderType.CUSTOM):
+    """
+    Creates a transcript record for a video.
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language: language code of a video transcript
+        transcript_url: url of a video transcript
+        transcript_format: format of the transcript
+        provider: transcript provider
+
+    Raises:
+        IntegrityError: raises IntegrityError if there is an existing transcript with same video_id and lang_code.
+    """
+    transcript = Transcript.objects.create(
+        video_id=video_id,
+        language=language,
+        transcript_url=transcript_url,
+        fmt=transcript_format,
+        provider=provider,
+    )
+
+    return TranscriptSerializer(transcript).data
+
+
+def update_video_transcript(video_id, language, transcript_url, transcript_format, provider=TranscriptProviderType.CUSTOM):
+    """
+    Update a transcript for a video
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language: language code of a video transcript
+        transcript_url: url of a video transcript
+        transcript_format: format of the transcript
+        provider: transcript provider
+
+    Raises:
+        DoesNotExist: raises DoesNotExist if there is not any transcript for the given video_id and lang_code.
+    """
+    transcript = Transcript.objects.get(video_id=video_id, language=language)
+    transcript.language = language
+    transcript.transcript_url = transcript_url
+    transcript.fmt = transcript_format
+    transcript.provider = provider
+    transcript.save()
+
+    return TranscriptSerializer(transcript).data
+
+
 def get_course_video_image_url(course_id, edx_video_id):
     """
     Returns course video image url or None if no image found
@@ -246,11 +333,11 @@ def get_video_info(edx_video_id):
                     url: url of the video
                     file_size: size of the video in bytes
                     profile: ID of the profile
-                subtitles: a list of Subtitle dicts
+                transcripts: a list of Subtitle dicts
                     fmt: file format (SRT or SJSON)
                     language: language code
-                    content_url: url of file
-                    url: api url to subtitle
+                    provider: transcript provider 3Play/Cielo24/Custom
+                    transcript_url: URL of the transcript file
             }
 
     Raises:
@@ -276,7 +363,12 @@ def get_video_info(edx_video_id):
             ]
         }
     """
-    return VideoSerializer(_get_video(edx_video_id)).data
+    serialized_video = VideoSerializer(_get_video(edx_video_id)).data
+    serialized_video.update({
+        'transcripts': get_video_transcripts(edx_video_id)
+    })
+
+    return serialized_video
 
 
 def get_urls_for_profiles(edx_video_id, profiles):

@@ -17,14 +17,9 @@ urlpatterns = [
         name="video-detail"
     ),
     url(
-        r'^videos/(?P<video__edx_video_id>[-\w]+)/(?P<language>[-_\w]+)$',
-        views.SubtitleDetail.as_view(),
-        name="subtitle-detail"
-    ),
-    url(
-        r'^videos/(?P<edx_video_id>[-\w]+)/(?P<language>[-_\w]+)/subtitle$',
-        views.get_subtitle,
-        name="subtitle-content"
+        r'^videos/video-transcripts/create/$',
+        views.VideoTranscriptView.as_view(),
+        name='create-video-transcript'
     ),
     url(
         r'^videos/video-images/update/$',

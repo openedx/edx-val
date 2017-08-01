@@ -335,45 +335,59 @@ class VideoImage(TimeStampedModel):
         return storage.url(self.image.name)
 
 
-SUBTITLE_FORMATS = (
-    ('srt', 'SubRip'),
-    ('sjson', 'SRT JSON')
-)
+class TranscriptProviderType(object):
+    CUSTOM = 'Custom'
+    THREE_PLAY_MEDIA = '3PlayMedia'
+    CIELO24 = 'Cielo24'
+
+    CHOICES = (
+        (CUSTOM, CUSTOM),
+        (THREE_PLAY_MEDIA, THREE_PLAY_MEDIA),
+        (CIELO24, CIELO24),
+    )
 
 
-class Subtitle(models.Model):
+class TranscriptFormat(object):
+    SRT = 'srt'
+    SJSON = 'sjson'
+
+    CHOICES = (
+        (SRT, 'SubRip'),
+        (SJSON, 'SRT JSON')
+    )
+
+
+class Transcript(TimeStampedModel):
     """
-    Subtitle for video
+    Transcript for a video
 
     Attributes:
-        video: the video that the subtitles are for
-        fmt: the format of the subttitles file
+        video_id: this is transcript's video.
+        language: language of this transcript.
+        provider: source of this transcript (Custom/3PlayMedia/Cielo24 uploaded)
+        fmt: format of this transcript srt/sjson
+        status: status of the transcript (pending/in progress/ready)
+        transcript_url: relative path to transcript from an S3 bucket
     """
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    video = models.ForeignKey(Video, related_name="subtitles")
-    fmt = models.CharField(max_length=20, db_index=True, choices=SUBTITLE_FORMATS)
+    # It can be an edx_video_id or an external video id (e.g. in case of external URLs - YT/MP4/WEBM etc.)
+    video_id = models.CharField(max_length=255)
+    transcript_url = models.TextField(null=True, blank=True)
     language = models.CharField(max_length=8, db_index=True)
-    content = models.TextField(default='')
+    provider = models.CharField(
+        max_length=30,
+        choices=TranscriptProviderType.CHOICES,
+        default=TranscriptProviderType.CUSTOM,
+    )
+    fmt = models.CharField(max_length=20, db_index=True, choices=TranscriptFormat.CHOICES)
+
+    class Meta:
+        """
+        course_id is listed first in this composite index
+        """
+        unique_together = ("video_id", "language")
 
     def __str__(self):
-        return '%s Subtitle for %s' % (self.language, self.video)
-
-    def get_absolute_url(self):
-        """
-        Returns the full url link to the edx_video_id
-        """
-        return reverse('subtitle-content', args=[self.video.edx_video_id, self.language])
-
-    @property
-    def content_type(self):
-        """
-        Sjson is returned as application/json, otherwise text/plain
-        """
-        if self.fmt == 'sjson':
-            return 'application/json'
-        else:
-            return 'text/plain'
+        return '{lang} Transcript for {video}'.format(lang=self.language, video=self.video_id)
 
 
 @receiver(models.signals.post_save, sender=Video)
