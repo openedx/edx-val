@@ -198,7 +198,7 @@ def create_video_transcript(video_id, language, transcript_url, transcript_forma
     transcript = Transcript.objects.create(
         video_id=video_id,
         language=language,
-        transcript_url=transcript_url,
+        transcript=transcript_url,
         fmt=transcript_format,
         provider=provider,
     )
@@ -222,12 +222,17 @@ def update_video_transcript(video_id, language, transcript_url, transcript_forma
     """
     transcript = Transcript.objects.get(video_id=video_id, language=language)
     transcript.language = language
-    transcript.transcript_url = transcript_url
+    transcript.transcript = transcript_url
     transcript.fmt = transcript_format
     transcript.provider = provider
     transcript.save()
 
     return TranscriptSerializer(transcript).data
+
+
+def create_update_video_transcript(video_id, language, file_data, file_name=None):
+    video_transcript, _ = Transcript.create_or_update(video_id=video_id,language=language, file_data=file_data,file_name=file_name)
+    return video_transcript.transcript_url()
 
 
 def get_course_video_image_url(course_id, edx_video_id):

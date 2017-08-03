@@ -29,3 +29,28 @@ def get_video_image_storage():
         # during edx-platform loading this method gets called but settings are not ready yet
         # so in that case we will return default(FileSystemStorage) storage class instance
         return get_storage_class()()
+
+
+def video_transcript_path(video_transcript_instance, filename):  # pylint:disable=unused-argument
+    """
+    Returns video transcript path.
+
+    Arguments:
+        video_transcript_instance (VideoImage): This is passed automatically by models.CustomizableImageField
+        filename (str): name of image file
+    """
+    return u'{}{}'.format(settings.VIDEO_TRANSCRIPTS_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
+
+
+def get_video_transcript_storage():
+    """
+    Return the configured django storage backend.
+    """
+    if hasattr(settings, 'VIDEO_TRANSCRIPTS_SETTINGS'):
+        return get_storage_class(
+            settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_CLASS'),
+        )(**settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_KWARGS', {}))
+    else:
+        # during edx-platform loading this method gets called but settings are not ready yet
+        # so in that case we will return default(FileSystemStorage) storage class instance
+        return get_storage_class()()

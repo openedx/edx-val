@@ -26,7 +26,7 @@ from django.utils.six import python_2_unicode_compatible
 
 from model_utils.models import TimeStampedModel
 
-from edxval.utils import video_image_path, get_video_image_storage
+from edxval.utils import video_image_path, get_video_image_storage, video_transcript_path, get_video_transcript_storage
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -357,6 +357,35 @@ class TranscriptFormat(object):
     )
 
 
+class CustomizableFileField(models.FileField):
+    """
+    Subclass of FileField that allows custom settings to not
+    be serialized (hard-coded) in migrations. Otherwise,
+    migrations include optional settings for storage (such as
+    the storage class and bucket name); we don't want to
+    create new migration files for each configuration change.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.update(dict(
+            upload_to=video_transcript_path,
+            storage=get_video_transcript_storage(),
+            max_length=500,  # allocate enough for filepath
+            blank=True,
+            null=True
+        ))
+        super(CustomizableFileField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        """
+        Override base class method.
+        """
+        name, path, args, kwargs = super(CustomizableFileField, self).deconstruct()
+        del kwargs['upload_to']
+        del kwargs['storage']
+        del kwargs['max_length']
+        return name, path, args, kwargs
+
+
 class Transcript(TimeStampedModel):
     """
     Transcript for a video
@@ -371,7 +400,7 @@ class Transcript(TimeStampedModel):
     """
     # It can be an edx_video_id or an external video id (e.g. in case of external URLs - YT/MP4/WEBM etc.)
     video_id = models.CharField(max_length=255)
-    transcript_url = models.TextField(null=True, blank=True)
+    transcript = CustomizableFileField()
     language = models.CharField(max_length=8, db_index=True)
     provider = models.CharField(
         max_length=30,
@@ -388,6 +417,31 @@ class Transcript(TimeStampedModel):
 
     def __str__(self):
         return '{lang} Transcript for {video}'.format(lang=self.language, video=self.video_id)
+
+    def transcript_url(self):
+        """
+        Return transcript url for a course video transcript.
+        """
+        storage = get_video_transcript_storage()
+        return storage.url(self.transcript.name)
+
+    @classmethod
+    def create_or_update(cls, video_id, language, file_name=None, file_data=None):
+        """
+        Create Transcript object.
+        """
+        video_transcript, created = cls.objects.get_or_create(video_id=video_id, language=language, fmt=TranscriptFormat.SJSON)
+
+        with closing(file_data) as transcript_file_data:
+            file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
+            try:
+                video_transcript.transcript.save(file_name, transcript_file_data)
+            except Exception:  # pylint: disable=broad-except
+                logger.exception('VAL: Video Transcript save failed to storage for video_id [%s]', video_id)
+                raise
+
+        return video_transcript, created
+
 
 
 @receiver(models.signals.post_save, sender=Video)

@@ -190,3 +190,13 @@ VIDEO_IMAGE_SETTINGS = dict(
     VIDEO_IMAGE_MIN_BYTES=100,
     DIRECTORY_PREFIX='video-images/',
 )
+
+VIDEO_TRANSCRIPTS_SETTINGS = dict(
+    # Backend storage
+    # STORAGE_CLASS='storages.backends.s3boto.S3BotoStorage',
+    # STORAGE_KWARGS=dict(bucket='video-transcripts-bucket'),
+    # If you are changing prefix value then update the .gitignore accordingly
+    # so that transcripts created during tests due to upload should be ignored
+    VIDEO_TRANSCRIPTS_MAX_BYTES=3145728,
+    DIRECTORY_PREFIX='video-transcripts/',
+)
