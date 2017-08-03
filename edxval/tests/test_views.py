@@ -990,3 +990,48 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         response = self.client.post(self.url, post_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['message'], message)
+
+
+@ddt
+class VideoStatusViewTest(APIAuthTestCase):
+    """
+    VideoStatusView Tests.
+    """
+    def setUp(self):
+        """
+        Tests setup.
+        """
+        self.url = reverse('video-status-update')
+        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        super(VideoStatusViewTest, self).setUp()
+
+    @data(
+        {
+            'patch_data': {},
+            'message': u'"edx_video_id and status" params must be specified.',
+            'status_code': status.HTTP_400_BAD_REQUEST,
+        },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'fake'},
+            'message': u'"fake" is not a valid Video status.',
+            'status_code': status.HTTP_400_BAD_REQUEST,
+        },
+        {
+            'patch_data': {'edx_video_id': 'fake', 'status': 'transcription_ready'},
+            'message': u'Video is not found for specified edx_video_id: fake',
+            'status_code': status.HTTP_400_BAD_REQUEST,
+        },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'transcription_ready'},
+            'message': None,
+            'status_code': status.HTTP_200_OK,
+        },
+    )
+    @unpack
+    def test_transcript_status(self, patch_data, message, status_code):
+        """
+        Tests PATCHing video transcript status.
+        """
+        response = self.client.patch(self.url, patch_data, format='json')
+        self.assertEqual(response.status_code, status_code)
+        self.assertEqual(response.data.get('message'), message)

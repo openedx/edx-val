@@ -210,13 +210,17 @@ class ListField(models.TextField):
     """
     ListField use to store and retrieve list data.
     """
+    def __init__(self, max_items=LIST_MAX_ITEMS, *args, **kwargs):
+        self.max_items = max_items
+        super(ListField, self).__init__(*args, **kwargs)
+
     def get_prep_value(self, value):
         """
-        Converts a list to its json represetation to store in database as text.
+        Converts a list to its json representation to store in database as text.
         """
         if value and not isinstance(value, list):
             raise ValidationError(u'ListField value {} is not a list.'.format(value))
-        return json.dumps(self.validate(value) or [])
+        return json.dumps(self.validate_list(value) or [])
 
     def from_db_value(self, value, expression, connection, context):
         """
@@ -233,7 +237,7 @@ class ListField(models.TextField):
 
         # If a list is set then validated its items
         if isinstance(value, list):
-            return self.validate(value)
+            py_list = self.validate_list(value)
         else:  # try to de-serialize value and expect list and then validate
             try:
                 py_list = json.loads(value)
@@ -241,13 +245,13 @@ class ListField(models.TextField):
                 if not isinstance(py_list, list):
                     raise TypeError
 
-                self.validate(py_list)
+                self.validate_list(py_list)
             except (ValueError, TypeError):
                 raise ValidationError(u'Must be a valid list of strings.')
 
         return py_list
 
-    def validate(self, value):
+    def validate_list(self, value):
         """
         Validate data before saving to database.
 
@@ -260,13 +264,22 @@ class ListField(models.TextField):
         Raises:
             ValidationError
         """
-        if len(value) > LIST_MAX_ITEMS:
-            raise ValidationError(u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS))
+        if len(value) > self.max_items:
+            raise ValidationError(
+                u'list must not contain more than {max_items} items.'.format(max_items=self.max_items)
+            )
 
         if all(isinstance(item, basestring) for item in value) is False:
             raise ValidationError(u'list must only contain strings.')
 
         return value
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(ListField, self).deconstruct()
+        # Only include kwarg if it's not the default
+        if self.max_items != LIST_MAX_ITEMS:
+            kwargs['max_items'] = self.max_items
+        return name, path, args, kwargs
 
 
 class VideoImage(TimeStampedModel):
@@ -492,6 +505,88 @@ class Subtitle(models.Model):
             return 'application/json'
         else:
             return 'text/plain'
+
+
+class Cielo24Turnaround(object):
+    """
+    Cielo24 turnarounds.
+    """
+    STANDARD = 'STANDARD'
+    PRIORITY = 'PRIORITY'
+    CHOICES = (
+        (STANDARD, 'Standard, 48h'),
+        (PRIORITY, 'Priority, 24h'),
+    )
+
+
+class Cielo24Fidelity(object):
+    """
+    Cielo24 fidelity.
+    """
+    MECHANICAL = 'MECHANICAL'
+    PREMIUM = 'PREMIUM'
+    PROFESSIONAL = 'PROFESSIONAL'
+    CHOICES = (
+        (MECHANICAL, 'Mechanical, 75% Accuracy'),
+        (PREMIUM, 'Premium, 95% Accuracy'),
+        (PROFESSIONAL, 'Professional, 99% Accuracy'),
+    )
+
+
+class ThreePlayTurnaround(object):
+    """
+    3PlayMedia turnarounds.
+    """
+    EXTENDED_SERVICE = 'extended_service'
+    DEFAULT = 'default'
+    EXPEDITED_SERVICE = 'expedited_service'
+    RUSH_SERVICE = 'rush_service'
+    SAME_DAY_SERVICE = 'same_day_service'
+
+    CHOICES = (
+        (EXTENDED_SERVICE, '10-Day/Extended'),
+        (DEFAULT, '4-Day/Default'),
+        (EXPEDITED_SERVICE, '2-Day/Expedited'),
+        (RUSH_SERVICE, '24 hour/Rush'),
+        (SAME_DAY_SERVICE, 'Same Day'),
+    )
+
+
+class TranscriptPreference(TimeStampedModel):
+    """
+    Third Party Transcript Preferences for a Course
+    """
+    course_id = models.CharField(verbose_name='Course ID', max_length=255, unique=True)
+    provider = models.CharField(
+        verbose_name='Provider',
+        max_length=20,
+        choices=TranscriptProviderType.CHOICES,
+    )
+    cielo24_fidelity = models.CharField(
+        verbose_name='Cielo24 Fidelity',
+        max_length=20,
+        choices=Cielo24Fidelity.CHOICES,
+        null=True,
+        blank=True,
+    )
+    cielo24_turnaround = models.CharField(
+        verbose_name='Cielo24 Turnaround',
+        max_length=20,
+        choices=Cielo24Turnaround.CHOICES,
+        null=True,
+        blank=True,
+    )
+    three_play_turnaround = models.CharField(
+        verbose_name='3PlayMedia Turnaround',
+        max_length=20,
+        choices=ThreePlayTurnaround.CHOICES,
+        null=True,
+        blank=True,
+    )
+    preferred_languages = ListField(verbose_name='Preferred Languages', max_items=50, default=[], blank=True)
+
+    def __unicode__(self):
+        return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
 
 
 @receiver(models.signals.post_save, sender=Video)

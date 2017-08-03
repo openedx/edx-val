@@ -4,9 +4,9 @@
 The internal API for VAL.
 """
 import logging
+from enum import Enum
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from enum import Enum
 from lxml.etree import Element, SubElement
 
 from edxval.exceptions import (InvalidTranscriptFormat,
@@ -14,9 +14,11 @@ from edxval.exceptions import (InvalidTranscriptFormat,
                                ValCannotUpdateError, ValInternalError,
                                ValVideoNotFoundError)
 from edxval.models import (CourseVideo, EncodedVideo, Profile,
-                           TranscriptFormat, TranscriptProviderType, Video,
-                           VideoImage, VideoTranscript)
-from edxval.serializers import TranscriptSerializer, VideoSerializer
+                           TranscriptFormat, TranscriptPreference,
+                           TranscriptProviderType, Video, VideoImage,
+                           VideoTranscript)
+from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
+from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -224,6 +226,44 @@ def create_or_update_video_transcript(
     )
 
     return video_transcript.url()
+
+
+def get_3rd_party_transcription_plans():
+    """
+    Retrieves 3rd party transcription plans.
+    """
+    return THIRD_PARTY_TRANSCRIPTION_PLANS
+
+
+def get_transcript_preferences(course_id):
+    """
+    Retrieves course wide transcript preferences
+
+    Arguments:
+        course_id (str): course id
+    """
+    try:
+        transcript_preference = TranscriptPreference.objects.get(course_id=course_id)
+    except TranscriptPreference.DoesNotExist:
+        return
+
+    return TranscriptPreferenceSerializer(transcript_preference).data
+
+
+def create_or_update_transcript_preferences(course_id, **preferences):
+    """
+    Creates or updates course-wide transcript preferences
+
+    Arguments:
+        course_id(str): course id
+
+    Keyword Arguments:
+        preferences(dict): keyword arguments
+    """
+    transcript_preference, __ = TranscriptPreference.objects.update_or_create(
+        course_id=course_id, defaults=preferences
+    )
+    return TranscriptPreferenceSerializer(transcript_preference).data
 
 
 def get_course_video_image_url(course_id, edx_video_id):

@@ -7,7 +7,7 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from rest_framework.fields import DateTimeField, IntegerField
 
-from edxval.models import (CourseVideo, EncodedVideo, Profile, Video,
+from edxval.models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference, Video,
                            VideoImage, VideoTranscript)
 
 
@@ -67,6 +67,7 @@ class TranscriptSerializer(serializers.ModelSerializer):
         Retrieves the transcript url.
         """
         return transcript.url()
+
 
 class CourseSerializer(serializers.RelatedField):
     """
@@ -200,3 +201,29 @@ class VideoSerializer(serializers.ModelSerializer):
                 VideoImage.create_or_update(course_video, image_name)
 
         return instance
+
+
+class TranscriptPreferenceSerializer(serializers.ModelSerializer):
+    """
+    Serializer for TranscriptPreference
+    """
+
+    class Meta:  # pylint: disable=C1001, C0111
+        model = TranscriptPreference
+        fields = (
+            'course_id',
+            'provider',
+            'cielo24_fidelity',
+            'cielo24_turnaround',
+            'three_play_turnaround',
+            'preferred_languages',
+            'modified'
+        )
+
+    preferred_languages = serializers.SerializerMethodField()
+
+    def get_preferred_languages(self, transcript_preference):
+        """
+        Returns python list for preferred_languages model field.
+        """
+        return transcript_preference.preferred_languages
