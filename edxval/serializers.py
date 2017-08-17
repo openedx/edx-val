@@ -54,10 +54,18 @@ class TranscriptSerializer(serializers.ModelSerializer):
     """
     Serializer for Transcript objects
     """
+    transcript_url = serializers.SerializerMethodField()
+
     class Meta:  # pylint: disable=C1001, C0111
         model = Transcript
         lookup_field = 'video_id'
-        fields = ('video_id', 'transcript_url', 'language', 'provider', 'fmt')
+        fields = ('video_id', 'language', 'provider', 'fmt', 'transcript_url')
+
+    def get_transcript_url(self, obj):
+        """
+        Return relative url for the object
+        """
+        return obj.transcript_url
 
 
 class CourseSerializer(serializers.RelatedField):
