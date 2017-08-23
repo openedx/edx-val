@@ -22,8 +22,8 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.dispatch import receiver
-from django.utils.six import python_2_unicode_compatible
+from django.dispatch import receiverfrom django.utils.six import python_2_unicode_compatible
+, string_types
 from model_utils.models import TimeStampedModel
 
 from edxval.utils import (get_video_image_storage,
@@ -268,7 +268,7 @@ class ListField(models.TextField):
         if len(value) > self.max_items:
             raise ValidationError('list must not contain more than {max_items} items.'.format(max_items=self.max_items))
 
-        if all(isinstance(item, basestring) for item in value) is False:
+        if all(isinstance(item, string_types) for item in value) is False:
             raise ValidationError('list must only contain strings.')
 
         return value
