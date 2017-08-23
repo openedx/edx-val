@@ -2,6 +2,7 @@
 """
 Tests for the API for Video Abstraction Layer
 """
+from __future__ import unicode_literals
 import json
 
 import mock
@@ -215,7 +216,7 @@ class CreateProfileTest(TestCase):
         """
         api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
-        profile_names = [unicode(profile) for profile in profiles]
+        profile_names = [str(profile) for profile in profiles]
         self.assertEqual(len(profiles), 7)
         self.assertIn(
             constants.PROFILE_DESKTOP,
@@ -290,12 +291,12 @@ class GetVideoInfoTest(TestCase):
         with self.assertRaises(api.ValVideoNotFoundError):
             api.get_video_info("")
 
-    def test_unicode_input(self):
+    def test_str_input(self):
         """
         Tests if unicode inputs are handled correctly
         """
         with self.assertRaises(api.ValVideoNotFoundError):
-            api.get_video_info(u"๓ﻉѻฝ๓ٱซ")
+            api.get_video_info("๓ﻉѻฝ๓ٱซ")
 
     @mock.patch.object(Video, '__init__')
     def test_force_database_error(self, mock_get):
@@ -353,9 +354,9 @@ class GetUrlsForProfileTest(TestCase):
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         urls = api.get_urls_for_profiles(edx_video_id, profiles)
         self.assertEqual(len(urls), 3)
-        self.assertEqual(urls["mobile"], u'http://www.meowmix.com')
-        self.assertEqual(urls["desktop"], u'http://www.meowmagic.com')
-        self.assertEqual(urls["hls"], u'https://www.tmnt.com/tmnt101.m3u8')
+        self.assertEqual(urls["mobile"], 'http://www.meowmix.com')
+        self.assertEqual(urls["desktop"], 'http://www.meowmagic.com')
+        self.assertEqual(urls["hls"], 'https://www.tmnt.com/tmnt101.m3u8')
 
     def test_get_urls_for_profiles_no_video(self):
         """
@@ -382,7 +383,7 @@ class GetUrlsForProfileTest(TestCase):
         profile = "mobile"
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         url = api.get_url_for_profile(edx_video_id, profile)
-        self.assertEqual(url, u'http://www.meowmix.com')
+        self.assertEqual(url, 'http://www.meowmix.com')
 
 
 class GetVideoForCourseProfiles(TestCase):
@@ -1048,7 +1049,7 @@ class ImportTest(TestCase):
         import_xml = etree.Element(
             "video_asset",
             attrib={
-                key: unicode(video_dict[key])
+                key: str(video_dict[key])
                 for key in ["client_video_id", "duration"]
             }
         )
@@ -1061,7 +1062,7 @@ class ImportTest(TestCase):
                 import_xml,
                 "encoded_video",
                 attrib={
-                    key: unicode(val)
+                    key: str(val)
                     for key, val in encoding_dict.items()
                 }
             )
@@ -1536,7 +1537,7 @@ class CourseVideoImageTest(TestCase):
 
         self.assertEqual(
             get_exception.exception.message,
-            u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+            'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
                 self.edx_video_id,
                 does_not_course_id
             )
@@ -1573,7 +1574,7 @@ class CourseVideoImageTest(TestCase):
 
         self.assertEqual(
             set_exception.exception.message,
-            u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS)
+            'list must not contain more than {} items.'.format(LIST_MAX_ITEMS)
         )
 
         # expect a validation error if we try to a list with non-string items
@@ -1581,7 +1582,7 @@ class CourseVideoImageTest(TestCase):
             video_image.generated_images = ['a', 1, 2]
             video_image.save()
 
-        self.assertEqual(set_exception.exception.message, u'list must only contain strings.')
+        self.assertEqual(set_exception.exception.message, 'list must only contain strings.')
 
         # expect a validation error if we try to set non list data
         for item in ('a string', 555, {'a': 1}, (1,)):
@@ -1638,7 +1639,7 @@ class CourseVideoImageTest(TestCase):
         with self.assertRaises(IOError) as file_open_exception:
             ImageFile(open(existing_image_name))
 
-        self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
+        self.assertEqual(file_open_exception.exception.strerror, 'No such file or directory')
 
     def test_video_image_deletion_multiple(self):
         """

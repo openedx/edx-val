@@ -1,5 +1,7 @@
  # pylint: disable=E1103, W0105
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 """
 Constants used for tests.
 """
