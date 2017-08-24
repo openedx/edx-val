@@ -22,8 +22,8 @@ from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.dispatch import receiverfrom django.utils.six import python_2_unicode_compatible
-, string_types
+from django.dispatch import receiver
+from django.utils.six import python_2_unicode_compatible, string_types
 from model_utils.models import TimeStampedModel
 
 from edxval.utils import (get_video_image_storage,
