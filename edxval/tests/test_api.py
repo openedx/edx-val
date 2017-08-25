@@ -25,8 +25,9 @@ from edxval.api import (InvalidTranscriptFormat, InvalidTranscriptProvider,
                         VideoSortField)
 from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
                            TranscriptFormat, TranscriptProviderType, Video,
-                           VideoImage, VideoTranscript)
+                           VideoImage, VideoTranscript, TranscriptPreference)
 from edxval.tests import APIAuthTestCase, constants
+from edxval import utils
 
 
 FILE_DATA = """
@@ -1684,3 +1685,71 @@ class TranscriptTest(TestCase):
             File(open(existing_transcript_url))
 
         self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
+
+
+@ddt
+class TranscriptPreferencesTest(TestCase):
+    """
+    TranscriptPreferences API Tests
+    """
+    def setUp(self):
+        """
+        Tests setup
+        """
+        self.course_id = 'edX/DemoX/Demo_Course'
+        self.transcript_preferences = TranscriptPreference.objects.create(
+            **constants.TRANSCRIPT_PREFERENCES_CIELO24
+        )
+
+        self.prefs = dict(constants.TRANSCRIPT_PREFERENCES_CIELO24)
+        self.prefs.update(constants.TRANSCRIPT_PREFERENCES_3PLAY)
+
+    def assert_prefs(self, received, expected):
+        """
+        Compare `received` with `expected` and assert if not equal
+        """
+        # no need to compare modified datetime
+        del received['modified']
+        self.assertEqual(received, expected)
+
+    def test_get_3rd_party_transcription_plans(self):
+        """
+        Verify that `get_3rd_party_transcription_plans` api function works as expected
+        """
+        self.assertEqual(
+            api.get_3rd_party_transcription_plans(),
+            utils.THIRD_PARTY_TRANSCRIPTION_PLANS
+        )
+
+    def test_get_transcript_preferences(self):
+        """
+        Verify that `get_transcript_preferences` api function works as expected
+        """
+        cielo24_prefs = dict(constants.TRANSCRIPT_PREFERENCES_CIELO24)
+        cielo24_prefs['three_play_turnaround'] = None
+
+        transcript_preferences = api.get_transcript_preferences(self.course_id)
+        self.assert_prefs(transcript_preferences, cielo24_prefs)
+
+    def test_update_transcript_preferences(self):
+        """
+        Verify that `create_or_update_transcript_preferences` api function updates as expected
+        """
+        transcript_preferences = api.create_or_update_transcript_preferences(**constants.TRANSCRIPT_PREFERENCES_3PLAY)
+        self.assert_prefs(transcript_preferences, self.prefs)
+
+    def test_create_transcript_preferences(self):
+        """
+        Verify that `create_or_update_transcript_preferences` api function creates as expected
+        """
+        self.prefs['course_id'] = 'edX/DemoX/Astonomy'
+
+        # Verify that no preference is present for course id `edX/DemoX/Astonomy`
+        self.assertIsNone(api.get_transcript_preferences(self.prefs['course_id']))
+
+        # create new preference
+        transcript_preferences = api.create_or_update_transcript_preferences(**self.prefs)
+        self.assert_prefs(transcript_preferences, self.prefs)
+
+        # Verify that there should be 2 preferences exists
+        self.assertEqual(TranscriptPreference.objects.count(), 2)

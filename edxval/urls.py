@@ -9,12 +9,17 @@ from edxval import views
 urlpatterns = [
     url(r'^videos/$',
         views.VideoList.as_view(),
-        name="video-list"
+        name='video-list'
     ),
     url(
         r'^videos/(?P<edx_video_id>[-\w]+)$',
         views.VideoDetail.as_view(),
-        name="video-detail"
+        name='video-detail'
+    ),
+    url(
+        r'^videos/status/$',
+        views.VideoStatusView.as_view(),
+        name='video-status-update'
     ),
     url(
         r'^videos/video-transcripts/create/$',

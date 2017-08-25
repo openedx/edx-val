@@ -5,6 +5,104 @@ Util methods to be used in api and models.
 from django.conf import settings
 from django.core.files.storage import get_storage_class
 
+# 3rd Party Transcription Plans
+THIRD_PARTY_TRANSCRIPTION_PLANS = {
+
+    'Cielo24': {
+        'display_name': 'Cielo24',
+        'turnaround': {
+            'STANDARD': 'Standard, 48h',
+            'PRIORITY': 'Priority, 24h'
+        },
+        'fidelity': {
+            'MECHANICAL': {
+                'display_name': 'Mechanical, 75% Accuracy',
+                'languages': {
+                    'nl': 'Dutch',
+                    'en': 'English',
+                    'fr': 'French',
+                    'de': 'German',
+                    'it': 'Italian',
+                    'es': 'Spanish',
+                }
+            },
+            'PREMIUM': {
+                'display_name': 'Premium, 95% Accuracy',
+                'languages': {
+                    'en': 'English',
+                }
+            },
+            'PROFESSIONAL': {
+                'display_name': 'Professional, 99% Accuracy',
+                'languages': {
+                    'ar': 'Arabic',
+                    'zh-tw': 'Chinese - Mandarin (Traditional)',
+                    'zh-cmn': 'Chinese - Mandarin (Simplified)',
+                    'zh-yue': 'Chinese - Cantonese (Traditional)',
+                    'nl': 'Dutch',
+                    'en': 'English',
+                    'fr': 'French',
+                    'de': 'German',
+                    'he': 'Hebrew',
+                    'hi': 'Hindi',
+                    'it': 'Italian',
+                    'ja': 'Japanese',
+                    'ko': 'Korean',
+                    'pt': 'Portuguese',
+                    'ru': 'Russian',
+                    'es': 'Spanish',
+                    'tr': 'Turkish',
+                }
+            },
+        }
+    },
+
+    '3PlayMedia': {
+        'display_name': '3PlayMedia',
+        'turnaround': {
+            'extended_service':'10-Day/Extended',
+            'default': '4-Day/Default',
+            'expedited_service': '2-Day/Expedited',
+            'rush_service': '24-hour/Rush',
+            'same_day_service': 'Same Day'
+        },
+        'languages': {
+            'en': 'English',
+            'fr': 'French',
+            'de': 'German',
+            'it': 'Italian',
+            'nl': 'Dutch',
+            'es-419': 'Spanish (Latin America)',
+            'pt': 'Portuguese',
+            'zh-hans': 'Chinese (Simplified)',
+            'zh-cmn-Hant': 'Chinese (Traditional)',
+            'ar': 'Arabic',
+            'he': 'Hebrew',
+            'ru': 'Russian',
+            'ja': 'Japanese',
+            'sv': 'Swedish',
+            'cs': 'Czech',
+            'da': 'Danish',
+            'fi': 'Finnish',
+            'id': 'Indonesian',
+            'ko': 'Korean',
+            'no': 'Norwegian',
+            'pl': 'Polish',
+            'th': 'Thai',
+            'tr': 'Turkish',
+            'vi': 'Vietnamese',
+            'ro': 'Romanian',
+            'hu': 'Hungarian',
+            'ms': 'Malay',
+            'bg': 'Bulgarian',
+            'tl': 'Tagalog',
+            'sr': 'Serbian',
+            'sk': 'Slovak',
+            'uk': 'Ukrainian',
+        }
+    }
+}
+
 
 def video_image_path(video_image_instance, filename):  # pylint:disable=unused-argument
     """

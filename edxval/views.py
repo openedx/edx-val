@@ -14,13 +14,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_oauth.authentication import OAuth2Authentication
 
-from edxval.api import create_or_update_video_transcript, get_video_transcript, create_or_update_video_transcript
+from edxval.api import (create_or_update_video_transcript,
+                        get_video_transcript, update_video_status)
 from edxval.models import (CourseVideo, Profile, TranscriptFormat,
                            TranscriptProviderType, Video, VideoImage,
                            VideoTranscript)
 from edxval.serializers import TranscriptSerializer, VideoSerializer
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=C0103
+
+VALID_VIDEO_STATUSES = [
+    'transcription_in_progress',
+    'transcription_ready',
+]
 
 
 class ReadRestrictedDjangoModelPermissions(DjangoModelPermissions):
@@ -157,6 +163,54 @@ class VideoTranscriptView(APIView):
             response = Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
         return response
+
+
+class VideoStatusView(APIView):
+    """
+    A Video View to update the status of a video.
+
+    Note:
+        Currently, the valid statuses are `transcription_in_progress` and `transcription_ready` because it
+        was intended to only be used for video transcriptions but if you found it helpful to your needs, you
+        can add more statuses so that you can use it for updating other video statuses too.
+    """
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+
+    def patch(self, request):
+        """
+        Update the status of a video.
+        """
+        attrs = ('edx_video_id', 'status')
+        missing = [attr for attr in attrs if attr not in request.data]
+        if missing:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': u'"{missing}" params must be specified.'.format(missing=' and '.join(missing))}
+            )
+
+        edx_video_id = request.data['edx_video_id']
+        video_status = request.data['status']
+        if video_status not in VALID_VIDEO_STATUSES:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': u'"{status}" is not a valid Video status.'.format(status=video_status)}
+            )
+
+        try:
+            video = Video.objects.get(edx_video_id=edx_video_id)
+            video.status = video_status
+            video.save()
+            response_status = status.HTTP_200_OK
+            response_payload = {}
+        except Video.DoesNotExist:
+            response_status = status.HTTP_400_BAD_REQUEST
+            response_payload = {
+                'message': u'Video is not found for specified edx_video_id: {edx_video_id}'.format(
+                    edx_video_id=edx_video_id
+                )
+            }
+
+        return Response(status=response_status, data=response_payload)
 
 
 class VideoImagesView(APIView):
