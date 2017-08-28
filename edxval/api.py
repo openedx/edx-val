@@ -7,6 +7,7 @@ import logging
 from enum import Enum
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from lxml import etree
 from lxml.etree import Element, SubElement
 
 from edxval.exceptions import (InvalidTranscriptFormat,
@@ -683,13 +684,19 @@ def copy_course_videos(source_course_id, destination_course_id):
             )
 
 
-def export_to_xml(edx_video_id, course_id=None):
+def export_to_xml(video_ids, course_id=None, external=False):
     """
-    Exports data about the given edx_video_id into the given xml object.
+    Exports data for a video into an xml object.
 
-    Args:
-        edx_video_id (str): The ID of the video to export
+    NOTE: For external video ids, only transcripts information will be added into xml.
+          If external=False, then edx_video_id is going to be on first index of the list.
+
+    Arguments:
+        video_ids (list): It can contain edx_video_id and/or multiple external video ids.
+                          We are passing all video ids associated with a video component
+                          so that we can export transcripts for each video id.
         course_id (str): The ID of the course with which this video is associated
+        external (bool): True if first video id in `video_ids` is not edx_video_id else False
 
     Returns:
         An lxml video_asset element containing export data
@@ -697,8 +704,16 @@ def export_to_xml(edx_video_id, course_id=None):
     Raises:
         ValVideoNotFoundError: if the video does not exist
     """
+    # val does not store external videos, so construct transcripts information only.
+    if external:
+        video_el = Element('video_asset')
+        return create_transcripts_xml(video_ids, video_el)
+
+    # for an internal video, first video id must be edx_video_id
+    video_id = video_ids[0]
+
     video_image_name = ''
-    video = _get_video(edx_video_id)
+    video = _get_video(video_id)
 
     try:
         course_video = CourseVideo.objects.select_related('video_image').get(course_id=course_id, video=video)
@@ -723,23 +738,57 @@ def export_to_xml(edx_video_id, course_id=None):
                 for name in ['profile', 'url', 'file_size', 'bitrate']
             }
         )
-    # Note: we are *not* exporting Subtitle data since it is not currently updated by VEDA or used
-    # by LMS/Studio.
+
+    return create_transcripts_xml(video_ids, video_el)
+
+
+def create_transcripts_xml(video_ids, video_el):
+    """
+    Create xml for transcripts.
+
+    Arguments:
+        video_ids (list): It can contain edx_video_id and/or multiple external video ids
+        video_el (Element): lxml Element object
+
+    Returns:
+        lxml Element object with transcripts information
+    """
+    video_transcripts = VideoTranscript.objects.filter(video_id__in=video_ids)
+    # create transcripts node only when we have transcripts for a video
+    if video_transcripts.exists():
+        transcripts_el = SubElement(video_el, 'transcripts')
+
+    exported_language_codes = []
+    for video_transcript in video_transcripts:
+        if video_transcript.language_code not in exported_language_codes:
+            SubElement(
+                transcripts_el,
+                'transcript',
+                {
+                    'video_id': video_transcript.video_id,
+                    'file_name': video_transcript.transcript.name,
+                    'language_code': video_transcript.language_code,
+                    'file_format': video_transcript.file_format,
+                    'provider': video_transcript.provider,
+                }
+            )
+            exported_language_codes.append(video_transcript.language_code)
+
     return video_el
 
 
-def import_from_xml(xml, edx_video_id, course_id=None):
+def import_from_xml(xml, video_id, course_id=None, external=False):
     """
-    Imports data from a video_asset element about the given edx_video_id.
+    Imports data from a video_asset element about the given video_id.
 
     If the edx_video_id already exists, then no changes are made. If an unknown
     profile is referenced by an encoded video, that encoding will be ignored.
 
-    Args:
-        xml: An lxml video_asset element containing import data
-        edx_video_id (str): The ID for the video content
+    Arguments:
+        xml (Element): An lxml video_asset element containing import data
+        video_id (str): It can be an edx_video_id or empty string
         course_id (str): The ID of a course to associate the video with
-            (optional)
+        external (bool): False if `video_id` is an edx_video_id else True
 
     Raises:
         ValCannotCreateError: if there is an error importing the video
@@ -747,12 +796,16 @@ def import_from_xml(xml, edx_video_id, course_id=None):
     if xml.tag != 'video_asset':
         raise ValCannotCreateError('Invalid XML')
 
+    # if edx_video_id does not exist then create video transcripts only
+    if external:
+        return create_transcript_objects(xml)
+
     # If video with edx_video_id already exists, associate it with the given course_id.
     try:
-        video = Video.objects.get(edx_video_id=edx_video_id)
+        video = Video.objects.get(edx_video_id=video_id)
         logger.info(
             "edx_video_id '%s' present in course '%s' not imported because it exists in VAL.",
-            edx_video_id,
+            video_id,
             course_id,
         )
         if course_id:
@@ -761,6 +814,9 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             image_file_name = xml.get('image', '').strip()
             if image_file_name:
                 VideoImage.create_or_update(course_video, image_file_name)
+
+        # import transcripts
+        create_transcript_objects(xml)
 
         return
     except ValidationError as err:
@@ -771,7 +827,7 @@ def import_from_xml(xml, edx_video_id, course_id=None):
 
     # Video with edx_video_id did not exist, so create one from xml data.
     data = {
-        'edx_video_id': edx_video_id,
+        'edx_video_id': video_id,
         'client_video_id': xml.get('client_video_id'),
         'duration': xml.get('duration'),
         'status': 'imported',
@@ -785,7 +841,7 @@ def import_from_xml(xml, edx_video_id, course_id=None):
         except Profile.DoesNotExist:
             logger.info(
                 "Imported edx_video_id '%s' contains unknown profile '%s'.",
-                edx_video_id,
+                video_id,
                 profile_name
             )
             continue
@@ -796,3 +852,24 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             'bitrate': encoded_video_el.get('bitrate'),
         })
     create_video(data)
+    create_transcript_objects(xml)
+
+
+def create_transcript_objects(xml):
+    """
+    Create VideoTranscript objects.
+
+    Arguments:
+        xml (Element): lxml Element object
+    """
+    for transcript in xml.findall('.//transcripts/transcript'):
+        try:
+            VideoTranscript.create_or_update(
+                transcript.attrib['video_id'],
+                transcript.attrib['language_code'],
+                transcript.attrib['file_name'],
+                transcript.attrib['file_format'],
+                transcript.attrib['provider'],
+            )
+        except KeyError:
+            logger.warn("VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip())
