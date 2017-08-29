@@ -11,12 +11,12 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
     'Cielo24': {
         'display_name': 'Cielo24',
         'turnaround': {
-            'STANDARD': 'Standard, 48h',
-            'PRIORITY': 'Priority, 24h'
+            'PRIORITY': 'Priority (24 hours)',
+            'STANDARD': 'Standard (48 hours)'
         },
         'fidelity': {
             'MECHANICAL': {
-                'display_name': 'Mechanical, 75% Accuracy',
+                'display_name': 'Mechanical (75% Accuracy)',
                 'languages': {
                     'nl': 'Dutch',
                     'en': 'English',
@@ -27,13 +27,13 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
                 }
             },
             'PREMIUM': {
-                'display_name': 'Premium, 95% Accuracy',
+                'display_name': 'Premium (95% Accuracy)',
                 'languages': {
                     'en': 'English',
                 }
             },
             'PROFESSIONAL': {
-                'display_name': 'Professional, 99% Accuracy',
+                'display_name': 'Professional (99% Accuracy)',
                 'languages': {
                     'ar': 'Arabic',
                     'zh-tw': 'Chinese - Mandarin (Traditional)',
@@ -56,15 +56,14 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
             },
         }
     },
-
     '3PlayMedia': {
-        'display_name': '3PlayMedia',
+        'display_name': '3Play Media',
         'turnaround': {
-            'extended_service':'10-Day/Extended',
-            'default': '4-Day/Default',
-            'expedited_service': '2-Day/Expedited',
-            'rush_service': '24-hour/Rush',
-            'same_day_service': 'Same Day'
+            'same_day_service': 'Same day',
+            'rush_service': '24 hours (rush)',
+            'expedited_service': '2 days (expedited)',
+            'default': '4 days (default)',
+            'extended_service':'10 Days (extended)'
         },
         'languages': {
             'en': 'English',
