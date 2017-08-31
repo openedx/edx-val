@@ -16,7 +16,7 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
         },
         'fidelity': {
             'MECHANICAL': {
-                'display_name': 'Mechanical (75% Accuracy)',
+                'display_name': 'Mechanical (75% accuracy)',
                 'languages': {
                     'nl': 'Dutch',
                     'en': 'English',
@@ -27,13 +27,13 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
                 }
             },
             'PREMIUM': {
-                'display_name': 'Premium (95% Accuracy)',
+                'display_name': 'Premium (95% accuracy)',
                 'languages': {
                     'en': 'English',
                 }
             },
             'PROFESSIONAL': {
-                'display_name': 'Professional (99% Accuracy)',
+                'display_name': 'Professional (99% accuracy)',
                 'languages': {
                     'ar': 'Arabic',
                     'zh-tw': 'Chinese - Mandarin (Traditional)',
@@ -63,7 +63,7 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
             'rush_service': '24 hours (rush)',
             'expedited_service': '2 days (expedited)',
             'default': '4 days (default)',
-            'extended_service':'10 Days (extended)'
+            'extended_service':'10 days (extended)'
         },
         'languages': {
             'en': 'English',
