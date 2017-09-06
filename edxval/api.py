@@ -266,6 +266,20 @@ def create_or_update_transcript_preferences(course_id, **preferences):
     return TranscriptPreferenceSerializer(transcript_preference).data
 
 
+def remove_transcript_preferences(course_id):
+    """
+    Deletes course-wide transcript preferences.
+
+    Arguments:
+        course_id(str): course id
+    """
+    try:
+        transcript_preference = TranscriptPreference.objects.get(course_id=course_id)
+        transcript_preference.delete()
+    except TranscriptPreference.DoesNotExist:
+        pass
+
+
 def get_course_video_image_url(course_id, edx_video_id):
     """
     Returns course video image url or None if no image found

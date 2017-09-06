@@ -1731,6 +1731,34 @@ class TranscriptPreferencesTest(TestCase):
         transcript_preferences = api.get_transcript_preferences(self.course_id)
         self.assert_prefs(transcript_preferences, cielo24_prefs)
 
+    def test_remove_transcript_preferences(self):
+        """
+        Verify that `remove_transcript_preferences` api method works as expected.
+        """
+        # Verify that transcript preferences exist.
+        transcript_preferences = api.get_transcript_preferences(self.course_id)
+        self.assertIsNotNone(transcript_preferences)
+
+        # Remove course wide transcript preferences.
+        api.remove_transcript_preferences(self.course_id)
+
+        # Verify now transcript preferences no longer exist.
+        transcript_preferences = api.get_transcript_preferences(self.course_id)
+        self.assertIsNone(transcript_preferences)
+
+    def test_remove_transcript_preferences_not_found(self):
+        """
+        Verify that `remove_transcript_preferences` api method works as expected when no record is found.
+        """
+        course_id = 'dummy-course-id'
+
+        # Verify that transcript preferences do not exist.
+        transcript_preferences = api.get_transcript_preferences(course_id)
+        self.assertIsNone(transcript_preferences)
+
+        # Verify that calling `remove_transcript_preferences` does not break the code.
+        api.remove_transcript_preferences(course_id)
+
     def test_update_transcript_preferences(self):
         """
         Verify that `create_or_update_transcript_preferences` api function updates as expected
