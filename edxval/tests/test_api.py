@@ -1512,6 +1512,21 @@ class TranscriptTest(TestCase):
         )
 
     @data(
+        {'video_id': 'super-soaker', 'language_code': 'en', 'expected_availability': True},
+        {'video_id': 'super-soaker', 'language_code': None, 'expected_availability': True},
+        {'video_id': 'super123', 'language_code': 'en', 'expected_availability': False},
+        {'video_id': 'super-soaker', 'language_code': 'ro', 'expected_availability': False},
+    )
+    @unpack
+    def test_is_transcript_available(self, video_id, language_code, expected_availability):
+        """
+        Verify that `is_transcript_available` api function works as expected.
+        """
+        is_transcript_available = api.is_transcript_available(video_id, language_code)
+        self.assertEqual(is_transcript_available, expected_availability)
+
+    @unpack
+    @data(
         {'video_id': 'super-soaker', 'language_code': 'en', 'result': True},
         {'video_id': 'super-soaker', 'language_code': 'ur', 'result': False},
         {'video_id': 'super123', 'language_code': 'en', 'result': False},
