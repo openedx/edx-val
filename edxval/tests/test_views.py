@@ -1017,12 +1017,12 @@ class VideoStatusViewTest(APIAuthTestCase):
             'status_code': status.HTTP_400_BAD_REQUEST,
         },
         {
-            'patch_data': {'edx_video_id': 'fake', 'status': 'transcription_ready'},
+            'patch_data': {'edx_video_id': 'fake', 'status': 'transcript_ready'},
             'message': u'Video is not found for specified edx_video_id: fake',
             'status_code': status.HTTP_400_BAD_REQUEST,
         },
         {
-            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'transcription_ready'},
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'transcript_ready'},
             'message': None,
             'status_code': status.HTTP_200_OK,
         },
