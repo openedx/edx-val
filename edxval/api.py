@@ -142,6 +142,22 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
+def is_transcript_available(video_id, language_code=None):
+    """
+    Returns whether the transcripts are available for a video.
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language_code: it will the language code of the requested transcript.
+    """
+    filter_attrs = {'video_id': video_id}
+    if language_code:
+        filter_attrs['language_code'] = language_code
+
+    transcript_set = VideoTranscript.objects.filter(**filter_attrs)
+    return transcript_set.exists()
+
+
 def get_video_transcript(video_id, language_code):
     """
     Get a video's transcript
