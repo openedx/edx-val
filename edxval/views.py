@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(__name__)  # pylint: disable=C0103
 
 VALID_VIDEO_STATUSES = [
     'transcription_in_progress',
-    'transcription_ready',
+    'transcript_ready',
 ]
 
 
@@ -170,7 +170,7 @@ class VideoStatusView(APIView):
     A Video View to update the status of a video.
 
     Note:
-        Currently, the valid statuses are `transcription_in_progress` and `transcription_ready` because it
+        Currently, the valid statuses are `transcription_in_progress` and `transcript_ready` because it
         was intended to only be used for video transcriptions but if you found it helpful to your needs, you
         can add more statuses so that you can use it for updating other video statuses too.
     """
