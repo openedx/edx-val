@@ -1525,27 +1525,70 @@ class TranscriptTest(TestCase):
         is_transcript_available = api.is_transcript_available(video_id, language_code)
         self.assertEqual(is_transcript_available, expected_availability)
 
-    @unpack
     @data(
-        {'video_id': 'super-soaker', 'language_code': 'en', 'result': True},
-        {'video_id': 'super-soaker', 'language_code': 'ur', 'result': False},
-        {'video_id': 'super123', 'language_code': 'en', 'result': False},
-        {'video_id': 'super123', 'language_code': 'ur', 'result': False},
+        {'video_id': 'non-existant-video', 'language_code': 'en'},
+        {'video_id': '0987654321', 'language_code': 'en'},
     )
     @unpack
-    def test_get_video_transcript(self, video_id, language_code, result):
+    def test_get_video_transcript_not_found(self, video_id, language_code):
         """
-        Verify that `get_video_transcript` api function works as expected.
+        Verify that `get_video_transcript` works as expected if transcript is not found.
         """
-        transcript = api.get_video_transcript(video_id, language_code)
+        self.assertIsNone(api.get_video_transcript(video_id, language_code))
 
-        if not result:
-            self.assertEqual(transcript, None)
-        else:
-            serialized_data = api.TranscriptSerializer(transcript).data
-            transcript_data = dict(self.transcript_data1)
-            transcript_data['url'] = transcript_data.pop('name')
-            self.assertEqual(serialized_data, transcript_data)
+    def test_get_video_transcript(self):
+        """
+        Verify that `get_video_transcript` works as expected if transcript is found.
+        """
+        transcript = api.get_video_transcript(u'0987654321', u'ur')
+        expectation = {
+            'video_id': u'0987654321',
+            'url': self.transcript_url,
+            'file_format': TranscriptFormat.SRT,
+            'provider': TranscriptProviderType.CUSTOM,
+            'language_code': u'ur'
+        }
+        self.assertDictEqual(transcript, expectation)
+
+    @patch('edxval.api.logger')
+    def test_get_video_transcript_data_exception(self, mock_logger):
+        """
+        Verify that `get_video_transcript_data` logs and raises an exception.
+        """
+        with self.assertRaises(IOError):
+            api.get_video_transcript_data(video_ids=['super-soaker'], language_code=u'en')
+
+        mock_logger.exception.assert_called_with(
+            '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
+            'super-soaker',
+            'en',
+        )
+
+    @data(
+        {'video_ids': ['non-existant-video', 'another-non-existant-id'], 'language_code': 'en', 'result': None},
+        {'video_ids': ['non-existant-video', '0987654321'], 'language_code': 'en', 'result': None},
+    )
+    @unpack
+    def test_get_video_transcript_data_not_found(self, video_ids, language_code, result):
+        """
+        Verify that `get_video_transcript_data` api function works as expected.
+        """
+        transcript = api.get_video_transcript_data(video_ids, language_code)
+        self.assertEqual(transcript, result)
+
+    def test_get_video_transcript_data(self):
+        """
+        Verify that `get_video_transcript_data` api function works as expected.
+        """
+        expected_transcript = {
+            'file_name': self.transcript_url,
+            'content': File(open(self.arrow_transcript_path)).read()
+        }
+        transcript = api.get_video_transcript_data(
+            video_ids=['super-soaker', '0987654321'],
+            language_code=u'ur'
+        )
+        self.assertDictEqual(transcript, expected_transcript)
 
     @data(
         {'video_id': 'super-soaker', 'result': True},
@@ -1573,8 +1616,11 @@ class TranscriptTest(TestCase):
         transcript_data = dict(self.transcript_data1)
         transcript_data['language_code'] = 'ur'
 
-        video_transcript = api.get_video_transcript(transcript_data['video_id'], transcript_data['language_code'])
-        self.assertIsNone(video_transcript)
+        with self.assertRaises(VideoTranscript.DoesNotExist):
+            VideoTranscript.objects.get(
+                video_id=transcript_data['video_id'],
+                language_code=transcript_data['language_code']
+            )
 
         transcript_url = api.create_or_update_video_transcript(
             video_id=transcript_data['video_id'],
@@ -1585,12 +1631,12 @@ class TranscriptTest(TestCase):
         )
         self.assertEqual(transcript_url, transcript_data['name'])
 
-        video_transcript = api.get_video_transcript(transcript_data['video_id'], transcript_data['language_code'])
-        transcript_data['url'] = transcript_data.pop('name')
-        self.assertEqual(
-            transcript_data,
-            api.TranscriptSerializer(video_transcript).data
+        expected_transcript = api.get_video_transcript(
+            video_id=transcript_data['video_id'],
+            language_code=transcript_data['language_code']
         )
+        transcript_data['url'] = transcript_data.pop('name')
+        self.assertEqual(transcript_data, expected_transcript)
 
     @data(
         {'language_code': 'ur', 'has_url': True},

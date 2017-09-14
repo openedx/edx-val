@@ -158,22 +158,6 @@ def is_transcript_available(video_id, language_code=None):
     return transcript_set.exists()
 
 
-def get_video_transcript(video_id, language_code):
-    """
-    Get a video's transcript
-
-    Arguments:
-        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
-        language_code: it will the language code of the requested transcript.
-    """
-    try:
-        transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
-    except VideoTranscript.DoesNotExist:
-        transcript = None
-
-    return transcript
-
-
 def get_video_transcripts(video_id):
     """
     Get a video's transcripts
@@ -190,6 +174,54 @@ def get_video_transcripts(video_id):
     return transcripts
 
 
+def get_video_transcript(video_id, language_code):
+    """
+    Get video transcript info
+
+    Arguments:
+        video_id(unicode): A video id, it can be an edx_video_id or an external video id extracted from
+        external sources of a video component.
+        language_code(unicode): it will be the language code of the requested transcript.
+    """
+    transcript = VideoTranscript.get_or_none(video_id=video_id, language_code=language_code)
+    return TranscriptSerializer(transcript).data if transcript else None
+
+
+def get_video_transcript_data(video_ids, language_code):
+    """
+    Get video transcript data
+
+    Arguments:
+        video_ids(list): list containing edx_video_id and external video ids extracted from
+        external sources from a video component.
+        language_code(unicode): it will be the language code of the requested transcript.
+
+    Returns:
+        A dict containing transcript file name and its content. It will be for a video whose transcript
+        found first while iterating the video ids.
+    """
+    transcript_data = None
+    for video_id in video_ids:
+        try:
+            video_transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
+            transcript_data = dict(
+                file_name=video_transcript.transcript.name,
+                content=video_transcript.transcript.file.read()
+            )
+            break
+        except VideoTranscript.DoesNotExist:
+            continue
+        except Exception:
+            logger.exception(
+                '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
+                video_id,
+                language_code
+            )
+            raise
+
+    return transcript_data
+
+
 def get_video_transcript_url(video_id, language_code):
     """
     Returns course video transcript url or None if no transcript
@@ -198,8 +230,7 @@ def get_video_transcript_url(video_id, language_code):
         video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
         language_code: language code of a video transcript
     """
-    video_transcript = get_video_transcript(video_id, language_code)
-
+    video_transcript = VideoTranscript.get_or_none(video_id, language_code)
     if video_transcript:
         return video_transcript.url()
 

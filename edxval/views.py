@@ -146,7 +146,7 @@ class VideoTranscriptView(APIView):
             ).format(provider=provider, supported_providers=supported_providers)
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
-        transcript = get_video_transcript(video_id, language_code)
+        transcript = VideoTranscript.get_or_none(video_id, language_code)
         if transcript is None:
             create_or_update_video_transcript(
                 video_id,
