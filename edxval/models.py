@@ -418,6 +418,22 @@ class VideoTranscript(TimeStampedModel):
         unique_together = ('video_id', 'language_code')
 
     @classmethod
+    def get_or_none(cls, video_id, language_code):
+        """
+        Returns a data model object if found or none otherwise.
+
+        Arguments:
+            video_id(unicode): video id to which transcript may be associated
+            language_code(unicode): language of the requested transcript
+        """
+        try:
+            transcript = cls.objects.get(video_id=video_id, language_code=language_code)
+        except cls.DoesNotExist:
+            transcript = None
+
+        return transcript
+
+    @classmethod
     def create_or_update(cls, video_id, language_code, file_name, file_format, provider, file_data=None):
         """
         Create or update Transcript object.
