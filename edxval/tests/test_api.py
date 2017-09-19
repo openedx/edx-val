@@ -1231,7 +1231,7 @@ class ImportTest(TestCase):
     def test_existing_video_with_invalid_course_id(self):
         xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
         with self.assertRaises(ValCannotCreateError):
-            api.import_from_xml(xml, video_id=constants.VIDEO_DICT_FISH["edx_video_id"], course_id="x" * 300)
+            api.import_from_xml(xml, edx_video_id=constants.VIDEO_DICT_FISH["edx_video_id"], course_id="x" * 300)
 
     def test_unknown_profile(self):
         profile = "unknown_profile"
@@ -1304,18 +1304,14 @@ class ImportTest(TestCase):
         with self.assertRaises(VideoTranscript.DoesNotExist):
             VideoTranscript.objects.get(video_id=external_video_id)
 
-        api.import_from_xml(xml, external_video_id, external=True)
+        api.import_from_xml(xml, '')
         self.assert_transcripts(external_video_id, [self.transcript_data1, self.transcript_data2])
 
     def test_external_no_video_transcript(self):
         """
         Verify that transcript import for external video working as expected when there is no transcript.
         """
-        api.import_from_xml(
-            etree.fromstring('<video_asset/>'),
-            'does_not_exist_id',
-            external=True
-        )
+        api.import_from_xml(etree.fromstring('<video_asset/>'), '')
         self.assertEqual(
             VideoTranscript.objects.count(),
             0
