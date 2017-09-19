@@ -905,6 +905,17 @@ class ExportTest(TestCase):
             **constants.ENCODED_VIDEO_DICT_HLS
         )
 
+        # create external video transcripts
+        VideoTranscript.objects.create(**constants.VIDEO_TRANSCRIPT_CUSTOM)
+        video_transcript = dict(constants.VIDEO_TRANSCRIPT_CUSTOM, language_code=u'ar')
+        VideoTranscript.objects.create(**video_transcript)
+        video_transcript = dict(constants.VIDEO_TRANSCRIPT_CUSTOM, video_id=u'external_video_id2', language_code=u'fr')
+        VideoTranscript.objects.create(**video_transcript)
+
+        # create internal video transcripts
+        VideoTranscript.objects.create(**constants.VIDEO_TRANSCRIPT_CIELO24)
+        VideoTranscript.objects.create(**constants.VIDEO_TRANSCRIPT_3PLAY)
+
     def assert_xml_equal(self, left, right):
         """
         Assert that the given XML fragments have the same attributes, text, and
@@ -930,7 +941,7 @@ class ExportTest(TestCase):
             <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
         """)
         self.assert_xml_equal(
-            api.export_to_xml(constants.VIDEO_DICT_STAR["edx_video_id"]),
+            api.export_to_xml([constants.VIDEO_DICT_STAR["edx_video_id"]]),
             expected
         )
 
@@ -945,17 +956,73 @@ class ExportTest(TestCase):
                 <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
+                <transcripts>
+                    <transcript file_format="sjson" file_name="wow.sjson" language_code="de" provider="3PlayMedia" video_id="super-soaker"/>
+                    <transcript file_format="srt" file_name="wow.srt" language_code="en" provider="Cielo24" video_id="super-soaker" />
+                </transcripts>
             </video_asset>
-        """.format(image=image))
+        """.format(image=image, video_id=constants.VIDEO_DICT_FISH['edx_video_id']))
 
         self.assert_xml_equal(
-            api.export_to_xml(constants.VIDEO_DICT_FISH['edx_video_id'], course_id),
+            api.export_to_xml([constants.VIDEO_DICT_FISH['edx_video_id']], course_id),
             expected
         )
 
     def test_unknown_video(self):
         with self.assertRaises(ValVideoNotFoundError):
-            api.export_to_xml("unknown_video")
+            api.export_to_xml(["unknown_video"])
+
+    def test_external_video_transcript(self):
+        """
+        Verify that transcript export for multiple external videos is working as expected.
+        """
+        video_ids = ['missing', 'external_video_id', 'missing2', 'external_video_id2']
+        expected = self.parse_xml("""
+            <video_asset>
+                <transcripts>
+                    <transcript file_format="srt" file_name="wow.srt" language_code="ar" provider="Custom" video_id="external_video_id"/>
+                    <transcript file_format="srt" file_name="wow.srt" language_code="de" provider="Custom" video_id="external_video_id"/>
+                    <transcript file_format="srt" file_name="wow.srt" language_code="fr" provider="Custom" video_id="external_video_id2"/>
+                </transcripts>
+            </video_asset>
+        """.format(video_id=''))
+
+        self.assert_xml_equal(
+            api.export_to_xml(video_ids, external=True),
+            expected
+        )
+
+    def test_with_multiple_video_ids(self):
+        """
+        Verify that transcript export with multiple video ids is working as expected.
+        """
+        video_ids = ['super-soaker', 'external_video_id']
+        expected = self.parse_xml("""
+            <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="">
+                <encoded_video bitrate="22" file_size="11" profile="mobile" url="http://www.meowmix.com" />
+                <encoded_video bitrate="44" file_size="33" profile="desktop" url="http://www.meowmagic.com" />
+                <encoded_video bitrate="0" file_size="100" profile="hls" url="https://www.tmnt.com/tmnt101.m3u8" />
+                <transcripts>
+                    <transcript file_format="srt" file_name="wow.srt" language_code="ar" provider="Custom" video_id="external_video_id" />
+                    <transcript file_format="srt" file_name="wow.srt" language_code="de" provider="Custom" video_id="external_video_id"/>
+                    <transcript file_format="srt" file_name="wow.srt" language_code="en" provider="Cielo24" video_id="super-soaker" />
+                </transcripts>
+            </video_asset>
+        """)
+
+        self.assert_xml_equal(
+            api.export_to_xml(video_ids),
+            expected
+        )
+
+    def test_external_no_video_transcript(self):
+        """
+        Verify that transcript export for external video working as expected when there is no transcript.
+        """
+        self.assert_xml_equal(
+            api.export_to_xml(['external_video_no_transcript'], external=True),
+            self.parse_xml('<video_asset/>')
+        )
 
 
 @ddt
@@ -973,7 +1040,11 @@ class ImportTest(TestCase):
         )
         CourseVideo.objects.create(video=video, course_id='existing_course_id')
 
-    def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None):
+        self.transcript_data1 = dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id='little-star')
+        self.transcript_data2 = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video_id='little-star')
+        self.transcript_data3 = dict(self.transcript_data2, video_id='super-soaker')
+
+    def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None, video_transcripts=None):
         import_xml = etree.Element(
             "video_asset",
             attrib={
@@ -994,6 +1065,22 @@ class ImportTest(TestCase):
                     for key, val in encoding_dict.items()
                 }
             )
+
+        if video_transcripts:
+            transcripts_el = etree.SubElement(import_xml, 'transcripts')
+            for video_transcript in video_transcripts:
+                etree.SubElement(
+                    transcripts_el,
+                    'transcript',
+                    {
+                        'video_id': video_transcript['video_id'],
+                        'file_name': video_transcript['transcript'],
+                        'language_code': video_transcript['language_code'],
+                        'file_format': video_transcript['file_format'],
+                        'provider': video_transcript['provider'],
+                    }
+                )
+
         return import_xml
 
     def assert_obj_matches_dict_for_keys(self, obj, dict_, keys):
@@ -1020,18 +1107,44 @@ class ImportTest(TestCase):
             api.import_from_xml(xml, edx_video_id, course_id)
         self.assertFalse(Video.objects.filter(edx_video_id=edx_video_id).exists())
 
+    def assert_transcripts(self, video_id, expected_transcripts):
+        """
+        Compare `received` with `expected` and assert if not equal
+        """
+        # Verify total number of expected transcripts for a video
+        video_transcripts = VideoTranscript.objects.filter(video_id=video_id)
+        self.assertEqual(video_transcripts.count(), len(expected_transcripts))
+
+        # Verify data for each transcript
+        for expected_transcript in expected_transcripts:
+            language_code = expected_transcript['language_code']
+            expected_transcript['name'] = expected_transcript.pop('transcript')
+
+            # get the imported transcript and rename `url` key
+            received = api.TranscriptSerializer(
+                VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
+            ).data
+            received['name'] = received.pop('url')
+
+            self.assertDictEqual(received, expected_transcript)
+
     def test_new_video_full(self):
-        new_course_id = "new_course_id"
+        new_course_id = 'new_course_id'
 
         xml = self.make_import_xml(
             video_dict=constants.VIDEO_DICT_STAR,
             encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS],
-            image=self.image_name
+            image=self.image_name,
+            video_transcripts=[self.transcript_data1, self.transcript_data2]
         )
 
-        api.import_from_xml(xml, constants.VIDEO_DICT_STAR["edx_video_id"], new_course_id)
+        # there must not be any transcript before import
+        with self.assertRaises(VideoTranscript.DoesNotExist):
+            VideoTranscript.objects.get(video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
 
-        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR["edx_video_id"])
+        api.import_from_xml(xml, constants.VIDEO_DICT_STAR['edx_video_id'], new_course_id)
+
+        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
         self.assert_video_matches_dict(video, constants.VIDEO_DICT_STAR)
         self.assert_encoded_video_matches_dict(
             video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
@@ -1043,6 +1156,11 @@ class ImportTest(TestCase):
         )
         course_video = video.courses.get(course_id=new_course_id)
         self.assertTrue(course_video.video_image.image.name, self.image_name)
+
+        self.assert_transcripts(
+            constants.VIDEO_DICT_STAR['edx_video_id'],
+            [self.transcript_data1, self.transcript_data2]
+        )
 
     def test_new_video_minimal(self):
         edx_video_id = "test_edx_video_id"
@@ -1061,11 +1179,13 @@ class ImportTest(TestCase):
 
     @data(
         # import into another course, where the video already exists, but is not associated with the course.
-        "new_course_id",
+        {'course_id': 'new_course_id', 'language_code': 'fr'},
         # re-import case, where the video and course association already exists.
-        "existing_course_id"
+        {'course_id': 'existing_course_id', 'language_code': 'nl'}
     )
-    def test_existing_video(self, course_id):
+    @unpack
+    def test_existing_video(self, course_id, language_code):
+        transcript_data = dict(self.transcript_data3, language_code=language_code)
         xml = self.make_import_xml(
             video_dict={
                 "client_video_id": "new_client_video_id",
@@ -1080,8 +1200,14 @@ class ImportTest(TestCase):
                     "profile": "mobile",
                 },
             ],
-            image=self.image_name
+            image=self.image_name,
+            video_transcripts=[transcript_data]
         )
+
+        # there must not be any transcript before import
+        with self.assertRaises(VideoTranscript.DoesNotExist):
+            VideoTranscript.objects.get(video_id=constants.VIDEO_DICT_FISH["edx_video_id"])
+
         api.import_from_xml(xml, constants.VIDEO_DICT_FISH["edx_video_id"], course_id)
 
         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH["edx_video_id"])
@@ -1097,11 +1223,15 @@ class ImportTest(TestCase):
         course_video = video.courses.get(course_id=course_id)
         self.assertTrue(course_video.video_image.image.name, self.image_name)
 
+        self.assert_transcripts(
+            constants.VIDEO_DICT_FISH["edx_video_id"],
+            [transcript_data]
+        )
 
     def test_existing_video_with_invalid_course_id(self):
         xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
         with self.assertRaises(ValCannotCreateError):
-            api.import_from_xml(xml, edx_video_id=constants.VIDEO_DICT_FISH["edx_video_id"], course_id="x" * 300)
+            api.import_from_xml(xml, video_id=constants.VIDEO_DICT_FISH["edx_video_id"], course_id="x" * 300)
 
     def test_unknown_profile(self):
         profile = "unknown_profile"
@@ -1156,6 +1286,69 @@ class ImportTest(TestCase):
     def test_invalid_course_id(self):
         xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
         self.assert_invalid_import(xml, "x" * 300)
+
+    def test_external_video_transcript(self):
+        """
+        Verify that transcript import for external video working as expected.
+        """
+        external_video_id = 'little-star'
+        xml = etree.fromstring("""
+            <video_asset>
+                <transcripts>
+                    <transcript file_name="wow.srt" language_code="en" file_format="srt" provider='Cielo24' video_id="{video_id}"/>
+                    <transcript file_name="wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
+                </transcripts>
+            </video_asset>
+        """.format(video_id=external_video_id))
+
+        with self.assertRaises(VideoTranscript.DoesNotExist):
+            VideoTranscript.objects.get(video_id=external_video_id)
+
+        api.import_from_xml(xml, external_video_id, external=True)
+        self.assert_transcripts(external_video_id, [self.transcript_data1, self.transcript_data2])
+
+    def test_external_no_video_transcript(self):
+        """
+        Verify that transcript import for external video working as expected when there is no transcript.
+        """
+        api.import_from_xml(
+            etree.fromstring('<video_asset/>'),
+            'does_not_exist_id',
+            external=True
+        )
+        self.assertEqual(
+            VideoTranscript.objects.count(),
+            0
+        )
+
+    @patch('edxval.api.logger')
+    def test_video_transcript_missing_attribute(self, mock_logger):
+        """
+        Verify that video transcript import working as expected if transcript xml data is missing.
+        """
+        video_id = 'little-star'
+        transcript_xml = '<transcript file_name="wow.srt" language_code="en" file_format="srt" provider="Cielo24"/>'
+        xml = etree.fromstring("""
+            <video_asset>
+                <transcripts>
+                    {transcript_xml}
+                    <transcript file_name="wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
+                </transcripts>
+            </video_asset>
+        """.format(transcript_xml=transcript_xml, video_id=video_id))
+
+        # there should be no video transcript before import
+        with self.assertRaises(VideoTranscript.DoesNotExist):
+            VideoTranscript.objects.get(video_id=video_id)
+
+        api.create_transcript_objects(xml)
+
+        mock_logger.warn.assert_called_with(
+            "VAL: Required attributes are missing from xml, xml=[%s]",
+            transcript_xml
+        )
+
+        self.assert_transcripts(video_id, [self.transcript_data2])
 
 
 class GetCourseVideoRemoveTest(TestCase):
