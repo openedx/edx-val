@@ -223,6 +223,25 @@ def get_video_transcript_data(video_ids, language_code):
     return transcript_data
 
 
+def get_available_transcript_languages(video_ids):
+    """
+    Get available transcript languages
+
+    Arguments:
+        video_ids(list): list containing edx_video_id and external video ids extracted from
+        external sources of a video component.
+
+    Returns:
+        A list containing unique transcript language codes for the video ids.
+    """
+    available_languages = VideoTranscript.objects.filter(
+        video_id__in=video_ids
+    ).values_list(
+        'language_code', flat=True
+    )
+    return list(set(available_languages))
+
+
 def get_video_transcript_url(video_id, language_code):
     """
     Returns course video transcript url or None if no transcript
