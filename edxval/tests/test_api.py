@@ -1936,6 +1936,20 @@ class TranscriptTest(TestCase):
 
         self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
 
+    def test_get_available_transcript_languages(self):
+        """
+        Verify that `get_available_transcript_languages` works as expected.
+        """
+        dupe_lang_video_id = 'duplicate_lang_video'
+        VideoTranscript.objects.create(**dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id=dupe_lang_video_id))
+        # `super-soaker` has got 'en' and 'de' transcripts
+        # `self.video_id` has got 'ur' transcript
+        # `duplicate_lang_video` has got 'en' transcript
+        # `non_existent_video_id` that does not have transcript
+        video_ids = ['super-soaker', self.video_id, dupe_lang_video_id, 'non_existent_video_id']
+        transcript_languages = api.get_available_transcript_languages(video_ids=video_ids)
+        self.assertItemsEqual(transcript_languages, ['de', 'en', 'ur'])
+
 
 @ddt
 class TranscriptPreferencesTest(TestCase):
