@@ -612,6 +612,47 @@ class TranscriptPreference(TimeStampedModel):
         return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
 
 
+class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
+    """
+    State of transcript credentials for a course organization
+    """
+    class Meta:
+        unique_together = ('org', 'provider')
+
+    org = models.CharField(verbose_name='Course Organization', max_length=32)
+    provider = models.CharField(
+        verbose_name='Transcript Provider',
+        max_length=20,
+        choices=TranscriptProviderType.CHOICES,
+    )
+    exists = models.BooleanField(default=False, help_text='Transcript credentials state')
+
+    @classmethod
+    def update_or_create(cls, org, provider, exists):
+        """
+        Update or create credentials state.
+        """
+        instance, created = cls.objects.update_or_create(
+            org=org,
+            provider=provider,
+            defaults={'exists': exists},
+        )
+
+        return instance, created
+
+    def __unicode__(self):
+        """
+        Returns unicode representation of provider credentials state for an organization.
+
+        NOTE: Message will look like below:
+            edX has Cielo24 credentials
+            edX doesn't have 3PlayMedia credentials
+        """
+        return u'{org} {state} {provider} credentials'.format(
+            org=self.org, provider=self.provider, state='has' if self.exists else "doesn't have"
+        )
+
+
 @receiver(models.signals.post_save, sender=Video)
 def video_status_update_callback(sender, **kwargs):  # pylint: disable=unused-argument
     """

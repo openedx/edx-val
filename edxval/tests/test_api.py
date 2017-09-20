@@ -25,7 +25,7 @@ from edxval.api import (InvalidTranscriptFormat, InvalidTranscriptProvider,
                         VideoSortField)
 from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
                            TranscriptFormat, TranscriptProviderType, Video,
-                           VideoImage, VideoTranscript, TranscriptPreference)
+                           VideoImage, VideoTranscript, TranscriptPreference, ThirdPartyTranscriptCredentialsState)
 from edxval.tests import APIAuthTestCase, constants
 from edxval import utils
 
@@ -2045,3 +2045,66 @@ class TranscriptPreferencesTest(TestCase):
 
         # Verify that there should be 2 preferences exists
         self.assertEqual(TranscriptPreference.objects.count(), 2)
+
+
+@ddt
+class TranscripCredentialsStateTest(TestCase):
+    """
+    ThirdPartyTranscriptCredentialsState Tests
+    """
+    def setUp(self):
+        """
+        Tests setup
+        """
+        ThirdPartyTranscriptCredentialsState.objects.create(
+            org='edX', provider='Cielo24', exists=True
+        )
+        ThirdPartyTranscriptCredentialsState.objects.create(
+            org='edX', provider='3PlayMedia', exists=False
+        )
+
+    @data(
+        {'org': 'MAX', 'provider': 'Cielo24', 'exists': True},
+        {'org': 'MAX', 'provider': '3PlayMedia', 'exists': True},
+        {'org': 'edx', 'provider': '3PlayMedia', 'exists': True},
+    )
+    @unpack
+    def test_credentials_state_update(self, **kwargs):
+        """
+        Verify that `update_transcript_credentials_state_for_org` method works as expected
+        """
+        api.update_transcript_credentials_state_for_org(**kwargs)
+
+        credentials_state = ThirdPartyTranscriptCredentialsState.objects.get(org=kwargs['org'])
+        for key in kwargs:
+            self.assertEqual(getattr(credentials_state, key), kwargs[key])
+
+    @data(
+        {
+            'org': 'edX',
+            'provider': 'Cielo24',
+            'result': {u'Cielo24': True}
+        },
+        {
+            'org': 'edX',
+            'provider': '3PlayMedia',
+            'result': {u'3PlayMedia': False}
+        },
+        {
+            'org': 'edX',
+            'provider': None,
+            'result': {u'3PlayMedia': False, u'Cielo24': True}
+        },
+        {
+            'org': 'does_not_exist',
+            'provider': 'does_not_exist',
+            'result': {}
+        },
+    )
+    @unpack
+    def test_get_credentials_state(self, org, provider, result):
+        """
+        Verify that `get_transcript_credentials_state_for_org` method works as expected
+        """
+        credentials_state = api.get_transcript_credentials_state_for_org(org=org, provider=provider)
+        self.assertEqual(credentials_state, result)
