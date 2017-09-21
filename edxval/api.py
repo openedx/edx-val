@@ -777,7 +777,7 @@ def create_transcripts_xml(video_ids, video_el):
     return video_el
 
 
-def import_from_xml(xml, video_id, course_id=None, external=False):
+def import_from_xml(xml, edx_video_id, course_id=None):
     """
     Imports data from a video_asset element about the given video_id.
 
@@ -786,9 +786,8 @@ def import_from_xml(xml, video_id, course_id=None, external=False):
 
     Arguments:
         xml (Element): An lxml video_asset element containing import data
-        video_id (str): It can be an edx_video_id or empty string
+        edx_video_id (str): val video id
         course_id (str): The ID of a course to associate the video with
-        external (bool): False if `video_id` is an edx_video_id else True
 
     Raises:
         ValCannotCreateError: if there is an error importing the video
@@ -797,15 +796,15 @@ def import_from_xml(xml, video_id, course_id=None, external=False):
         raise ValCannotCreateError('Invalid XML')
 
     # if edx_video_id does not exist then create video transcripts only
-    if external:
+    if not edx_video_id:
         return create_transcript_objects(xml)
 
     # If video with edx_video_id already exists, associate it with the given course_id.
     try:
-        video = Video.objects.get(edx_video_id=video_id)
+        video = Video.objects.get(edx_video_id=edx_video_id)
         logger.info(
             "edx_video_id '%s' present in course '%s' not imported because it exists in VAL.",
-            video_id,
+            edx_video_id,
             course_id,
         )
         if course_id:
@@ -827,7 +826,7 @@ def import_from_xml(xml, video_id, course_id=None, external=False):
 
     # Video with edx_video_id did not exist, so create one from xml data.
     data = {
-        'edx_video_id': video_id,
+        'edx_video_id': edx_video_id,
         'client_video_id': xml.get('client_video_id'),
         'duration': xml.get('duration'),
         'status': 'imported',
@@ -841,7 +840,7 @@ def import_from_xml(xml, video_id, course_id=None, external=False):
         except Profile.DoesNotExist:
             logger.info(
                 "Imported edx_video_id '%s' contains unknown profile '%s'.",
-                video_id,
+                edx_video_id,
                 profile_name
             )
             continue
