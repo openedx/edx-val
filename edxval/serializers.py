@@ -217,7 +217,8 @@ class TranscriptPreferenceSerializer(serializers.ModelSerializer):
             'cielo24_turnaround',
             'three_play_turnaround',
             'preferred_languages',
-            'modified'
+            'video_source_language',
+            'modified',
         )
 
     preferred_languages = serializers.SerializerMethodField()
