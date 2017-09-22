@@ -600,6 +600,13 @@ class TranscriptPreference(TimeStampedModel):
         blank=True,
     )
     preferred_languages = ListField(verbose_name='Preferred Languages', max_items=50, default=[], blank=True)
+    video_source_language = models.CharField(
+        verbose_name='Video Source Language',
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text='This is the source language of a video.'
+    )
 
     def __unicode__(self):
         return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
