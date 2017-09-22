@@ -426,12 +426,14 @@ TRANSCRIPT_PREFERENCES_CIELO24 = dict(
     provider=TranscriptProviderType.CIELO24,
     cielo24_fidelity=Cielo24Fidelity.PROFESSIONAL,
     cielo24_turnaround=Cielo24Turnaround.PRIORITY,
-    preferred_languages=['ar']
+    preferred_languages=['ar'],
+    video_source_language='en',
 )
 
 TRANSCRIPT_PREFERENCES_3PLAY = dict(
     course_id='edX/DemoX/Demo_Course',
     provider=TranscriptProviderType.THREE_PLAY_MEDIA,
     three_play_turnaround=ThreePlayTurnaround.SAME_DAY_SERVICE,
-    preferred_languages=['ar', 'en']
+    preferred_languages=['ar', 'en'],
+    video_source_language='en',
 )
