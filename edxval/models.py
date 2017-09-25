@@ -602,10 +602,10 @@ class TranscriptPreference(TimeStampedModel):
     preferred_languages = ListField(verbose_name='Preferred Languages', max_items=50, default=[], blank=True)
     video_source_language = models.CharField(
         verbose_name='Video Source Language',
-        max_length=20,
+        max_length=8,
         null=True,
         blank=True,
-        help_text='This is the source language of a video.'
+        help_text='Used by 3PlayMedia to know the source language of a video.'
     )
 
     def __unicode__(self):
