@@ -71,10 +71,10 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
             'de': 'German',
             'it': 'Italian',
             'nl': 'Dutch',
-            'es-419': 'Spanish (Latin America)',
+            'es': 'Spanish',
+            'el': 'Greek',
             'pt': 'Portuguese',
-            'zh-hans': 'Chinese (Simplified)',
-            'zh-cmn-Hant': 'Chinese (Traditional)',
+            'zh': 'Chinese',
             'ar': 'Arabic',
             'he': 'Hebrew',
             'ru': 'Russian',
@@ -98,6 +98,23 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
             'sr': 'Serbian',
             'sk': 'Slovak',
             'uk': 'Ukrainian',
+        },
+        # Valid translations -- a mapping of source languages to the
+        # translatable target languages.
+        'translations': {
+            'es': [
+                'en'
+            ],
+            'en': [
+                'el', 'en', 'zh', 'vi',
+                'it', 'ar', 'cs', 'id',
+                'es', 'ru', 'nl', 'pt',
+                'no', 'tr', 'tl', 'th',
+                'ro', 'pl', 'fr', 'bg',
+                'uk', 'de', 'da', 'fi',
+                'hu', 'ja', 'he', 'sr',
+                'ko', 'sv', 'sk', 'ms'
+            ],
         }
     }
 }
