@@ -406,7 +406,7 @@ class VideoTranscript(TimeStampedModel):
     """
     video_id = models.CharField(max_length=255, help_text='It can be an edx_video_id or an external video id')
     transcript = CustomizableFileField()
-    language_code = models.CharField(max_length=8, db_index=True)
+    language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(
         max_length=30,
         choices=TranscriptProviderType.CHOICES,
@@ -602,7 +602,7 @@ class TranscriptPreference(TimeStampedModel):
     preferred_languages = ListField(verbose_name='Preferred Languages', max_items=50, default=[], blank=True)
     video_source_language = models.CharField(
         verbose_name='Video Source Language',
-        max_length=8,
+        max_length=50,
         null=True,
         blank=True,
         help_text='Used by 3PlayMedia to know the source language of a video.'
