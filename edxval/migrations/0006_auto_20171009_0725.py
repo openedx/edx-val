@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('cielo24_turnaround', models.CharField(blank=True, max_length=20, null=True, verbose_name=b'Cielo24 Turnaround', choices=[(b'STANDARD', b'Standard, 48h'), (b'PRIORITY', b'Priority, 24h')])),
                 ('three_play_turnaround', models.CharField(blank=True, max_length=20, null=True, verbose_name=b'3PlayMedia Turnaround', choices=[(b'extended_service', b'10-Day/Extended'), (b'default', b'4-Day/Default'), (b'expedited_service', b'2-Day/Expedited'), (b'rush_service', b'24 hour/Rush'), (b'same_day_service', b'Same Day')])),
                 ('preferred_languages', edxval.models.ListField(default=[], verbose_name=b'Preferred Languages', max_items=50, blank=True)),
-                ('video_source_language', models.CharField(help_text=b'Used by 3PlayMedia to know the source language of a video.', max_length=50, null=True, verbose_name=b'Video Source Language', blank=True)),
+                ('video_source_language', models.CharField(help_text=b'This specifies the speech language of a Video.', max_length=50, null=True, verbose_name=b'Video Source Language', blank=True)),
             ],
             options={
                 'abstract': False,
