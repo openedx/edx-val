@@ -605,7 +605,7 @@ class TranscriptPreference(TimeStampedModel):
         max_length=50,
         null=True,
         blank=True,
-        help_text='Used by 3PlayMedia to know the source language of a video.'
+        help_text='This specifies the speech language of a Video.'
     )
 
     def __unicode__(self):
