@@ -39,7 +39,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edxval',
-    version='0.1.1',
+    version='0.1.2',
     author='edX',
     url='http://github.com/edx/edx-val',
     description='edx-val',
