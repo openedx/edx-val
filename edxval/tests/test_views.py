@@ -3,13 +3,16 @@
 Tests for Video Abstraction Layer views
 """
 import json
-from ddt import ddt, data, unpack
+import unittest
 
+from ddt import data, ddt, unpack
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from edxval.tests import constants, APIAuthTestCase
-from edxval.models import Profile, Video, CourseVideo
+from edxval.models import (CourseVideo, Profile, TranscriptFormat,
+                           TranscriptProviderType, Video, VideoTranscript)
+from edxval.serializers import TranscriptSerializer
+from edxval.tests import APIAuthTestCase, constants
 
 
 class VideoDetail(APIAuthTestCase):
@@ -206,6 +209,7 @@ class VideoDetail(APIAuthTestCase):
         )
         self.assertEqual(len(videos[0].encoded_videos.all()), 1)
 
+    @unittest.skip("Skipping for now. We may need this later when we create transcripts alongwith video")
     def test_update_remove_subtitles(self):
         # Create some subtitles
         self._create_videos(constants.COMPLETE_SET_STAR)
@@ -665,7 +669,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video with no Encoded Videos
         """
         url = reverse('video-list')
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(8):
             self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
 
     def test_queries_for_two_encoded_video(self):
@@ -673,7 +677,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
         url = reverse('video-list')
-        with self.assertNumQueries(15):
+        with self.assertNumQueries(13):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
     def test_queries_for_single_encoded_videos(self):
@@ -681,7 +685,7 @@ class VideoListTest(APIAuthTestCase):
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
         url = reverse('video-list')
-        with self.assertNumQueries(13):
+        with self.assertNumQueries(11):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
 
@@ -718,18 +722,19 @@ class VideoDetailTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(7):
             self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(9):
             self.client.get("/edxval/videos/").data
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(10):
             self.client.get("/edxval/videos/").data
 
 
+@unittest.skip("Skipping for now. We may need these later when we create transcripts alongwith video")
 class SubtitleDetailTest(APIAuthTestCase):
     """
     Tests for subtitle API
@@ -810,6 +815,7 @@ class SubtitleDetailTest(APIAuthTestCase):
             url, video_subtitles, format='json'
         )
         self.assertEqual(self.client.get(video_subtitles['content_url']).content, '{"start": "00:00:00"}')
+
 
 @ddt
 class VideoImagesViewTest(APIAuthTestCase):
@@ -897,3 +903,135 @@ class VideoImagesViewTest(APIAuthTestCase):
             response.data['message'],
             message
         )
+
+
+@ddt
+class VideoTranscriptViewTest(APIAuthTestCase):
+    """
+    Tests VideoTranscriptView.
+    """
+
+    def setUp(self):
+        """
+        Tests setup.
+        """
+        self.url = reverse('create-video-transcript')
+        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        self.transcript_data = constants.VIDEO_TRANSCRIPT_CIELO24
+        super(VideoTranscriptViewTest, self).setUp()
+
+    def test_create_transcript(self):
+        """
+        Tests POSTing transcript successfully.
+        """
+        post_transcript_data = dict(self.transcript_data)
+        post_transcript_data['name'] = post_transcript_data.pop('transcript')
+
+        response = self.client.post(self.url, post_transcript_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        serialized_data = TranscriptSerializer(VideoTranscript.objects.first()).data
+        post_transcript_data['url'] = post_transcript_data.pop('name')
+        self.assertEqual(serialized_data, post_transcript_data)
+
+    def test_update_existing_transcript(self):
+        """
+        Tests updating existing transcript works as expected.
+        """
+        VideoTranscript.objects.create(**self.transcript_data)
+
+        post_transcript_data = dict(self.transcript_data)
+        post_transcript_data['name'] = post_transcript_data.pop('transcript')
+
+        response = self.client.post(self.url, post_transcript_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['message'],
+            u'Can not override existing transcript for video "{video_id}" and language code "{language}".'.format(
+                video_id=self.video.edx_video_id, language=post_transcript_data['language_code'])
+            )
+
+    @data(
+        {
+            'post_data': {},
+            'message': u'video_id and name and language_code and provider and file_format must be specified.'
+        },
+        {
+            'post_data': {
+                'video_id': 'super-soaker',
+                'name': 'abc.xyz',
+                'language_code': 'en',
+                'provider': TranscriptProviderType.CIELO24,
+                'file_format': 'xyz'
+            },
+            'message': u'"xyz" transcript file type is not supported. Supported formats are "{}"'.format(
+                sorted(dict(TranscriptFormat.CHOICES).keys())
+            )
+        },
+        {
+            'post_data': {
+                'video_id': 'super-soaker',
+                'name': 'abc.srt',
+                'language_code': 'en',
+                'provider': 'xyz',
+                'file_format': TranscriptFormat.SRT
+            },
+            'message': u'"xyz" provider is not supported. Supported transcription providers are "{}"'.format(
+                sorted(dict(TranscriptProviderType.CHOICES).keys())
+            )
+        },
+    )
+    @unpack
+    def test_error_responses(self, post_data, message):
+        """
+        Tests error responses occurred during POSTing.
+        """
+        response = self.client.post(self.url, post_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['message'], message)
+
+
+@ddt
+class VideoStatusViewTest(APIAuthTestCase):
+    """
+    VideoStatusView Tests.
+    """
+    def setUp(self):
+        """
+        Tests setup.
+        """
+        self.url = reverse('video-status-update')
+        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        super(VideoStatusViewTest, self).setUp()
+
+    @data(
+        {
+            'patch_data': {},
+            'message': u'"edx_video_id and status" params must be specified.',
+            'status_code': status.HTTP_400_BAD_REQUEST,
+        },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'fake'},
+            'message': u'"fake" is not a valid Video status.',
+            'status_code': status.HTTP_400_BAD_REQUEST,
+        },
+        {
+            'patch_data': {'edx_video_id': 'fake', 'status': 'transcript_ready'},
+            'message': u'Video is not found for specified edx_video_id: fake',
+            'status_code': status.HTTP_400_BAD_REQUEST,
+        },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'transcript_ready'},
+            'message': None,
+            'status_code': status.HTTP_200_OK,
+        },
+    )
+    @unpack
+    def test_transcript_status(self, patch_data, message, status_code):
+        """
+        Tests PATCHing video transcript status.
+        """
+        response = self.client.patch(self.url, patch_data, format='json')
+        self.assertEqual(response.status_code, status_code)
+        self.assertEqual(response.data.get('message'), message)

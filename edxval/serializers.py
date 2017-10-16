@@ -5,9 +5,10 @@ Serialization is usually sent through the VideoSerializer which uses the
 EncodedVideoSerializer which uses the profile_name as it's profile field.
 """
 from rest_framework import serializers
-from rest_framework.fields import IntegerField, DateTimeField
+from rest_framework.fields import DateTimeField, IntegerField
 
-from edxval.models import Profile, Video, EncodedVideo, Subtitle, CourseVideo, VideoImage
+from edxval.models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference, Video,
+                           VideoImage, VideoTranscript)
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
@@ -50,37 +51,22 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
         return data.get('profile', None)
 
 
-class SubtitleSerializer(serializers.ModelSerializer):
+class TranscriptSerializer(serializers.ModelSerializer):
     """
-    Serializer for Subtitle objects
+    Serializer for VideoTranscript objects
     """
-    content_url = serializers.CharField(source='get_absolute_url', read_only=True)
-    content = serializers.CharField(write_only=True)
-
-    def validate(self, data):
-        """
-        Validate that the subtitle is in the correct format
-        """
-        value = data.get("content")
-        if data.get("fmt") == "sjson":
-            import json
-            try:
-                loaded = json.loads(value)
-            except ValueError:
-                raise serializers.ValidationError("Not in JSON format")
-            else:
-                data["content"] = json.dumps(loaded)
-        return data
-
     class Meta:  # pylint: disable=C1001, C0111
-        model = Subtitle
-        lookup_field = "id"
-        fields = (
-            "fmt",
-            "language",
-            "content_url",
-            "content",
-        )
+        model = VideoTranscript
+        lookup_field = 'video_id'
+        fields = ('video_id', 'url', 'language_code', 'provider', 'file_format')
+
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, transcript):
+        """
+        Retrieves the transcript url.
+        """
+        return transcript.url()
 
 
 class CourseSerializer(serializers.RelatedField):
@@ -118,7 +104,6 @@ class VideoSerializer(serializers.ModelSerializer):
     encoded_videos takes a list of dicts EncodedVideo data.
     """
     encoded_videos = EncodedVideoSerializer(many=True)
-    subtitles = SubtitleSerializer(many=True, required=False)
     courses = CourseSerializer(
         many=True,
         read_only=False,
@@ -170,18 +155,12 @@ class VideoSerializer(serializers.ModelSerializer):
         """
         courses = validated_data.pop("courses", [])
         encoded_videos = validated_data.pop("encoded_videos", [])
-        subtitles = validated_data.pop("subtitles", [])
 
         video = Video.objects.create(**validated_data)
 
         EncodedVideo.objects.bulk_create(
             EncodedVideo(video=video, **video_data)
             for video_data in encoded_videos
-        )
-
-        Subtitle.objects.bulk_create(
-            Subtitle(video=video, **subtitle_data)
-            for subtitle_data in subtitles
         )
 
         # The CourseSerializer will already have converted the course data
@@ -211,13 +190,6 @@ class VideoSerializer(serializers.ModelSerializer):
             for video_data in validated_data.get("encoded_videos", [])
         )
 
-        # Set subtitles
-        instance.subtitles.all().delete()
-        Subtitle.objects.bulk_create(
-            Subtitle(video=instance, **subtitle_data)
-            for subtitle_data in validated_data.get("subtitles", [])
-        )
-
         # Set courses
         # NOTE: for backwards compatibility with the DRF v2 behavior,
         # we do NOT delete existing course videos during the update.
@@ -229,3 +201,30 @@ class VideoSerializer(serializers.ModelSerializer):
                 VideoImage.create_or_update(course_video, image_name)
 
         return instance
+
+
+class TranscriptPreferenceSerializer(serializers.ModelSerializer):
+    """
+    Serializer for TranscriptPreference
+    """
+
+    class Meta:  # pylint: disable=C1001, C0111
+        model = TranscriptPreference
+        fields = (
+            'course_id',
+            'provider',
+            'cielo24_fidelity',
+            'cielo24_turnaround',
+            'three_play_turnaround',
+            'preferred_languages',
+            'video_source_language',
+            'modified',
+        )
+
+    preferred_languages = serializers.SerializerMethodField()
+
+    def get_preferred_languages(self, transcript_preference):
+        """
+        Returns python list for preferred_languages model field.
+        """
+        return transcript_preference.preferred_languages

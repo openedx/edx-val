@@ -1,9 +1,11 @@
 """
 Admin file for django app edxval.
 """
-
+from django import forms
 from django.contrib import admin
-from .models import Video, Profile, EncodedVideo, Subtitle, CourseVideo, VideoImage
+
+from .models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference,
+                     Video, VideoImage, VideoTranscript)
 
 
 class ProfileAdmin(admin.ModelAdmin):  # pylint: disable=C0111
@@ -35,19 +37,53 @@ class VideoAdmin(admin.ModelAdmin):  # pylint: disable=C0111
 
 
 class VideoImageAdmin(admin.ModelAdmin):
+    raw_id_fields = ('course_video', )
+    list_display = ('get_course_video', 'image', 'generated_images')
+
+    def get_course_video(self, obj):
+        return u'"{course_id}" -- "{edx_video_id}" '.format(
+            course_id=obj.course_video.course_id,
+            edx_video_id=obj.course_video.video.edx_video_id
+        )
+
+    get_course_video.admin_order_field = 'course_video'
+    get_course_video.short_description = 'Course Video'
+
     model = VideoImage
+
     verbose_name = 'Video Image'
     verbose_name_plural = 'Video Images'
 
 
 class CourseVideoAdmin(admin.ModelAdmin):
+    list_display = ('course_id', 'get_video_id', 'is_hidden')
+
+    def get_video_id(self, obj):
+        return obj.video.edx_video_id
+
+    get_video_id.admin_order_field = 'video'
+    get_video_id.short_description = 'edX Video Id'
+
     model = CourseVideo
     verbose_name = 'Course Video'
     verbose_name_plural = 'Course Videos'
 
 
+class VideoTranscriptAdmin(admin.ModelAdmin):
+    list_display = ('video_id', 'language_code', 'provider', 'file_format')
+
+    model = VideoTranscript
+
+
+class TranscriptPreferenceAdmin(admin.ModelAdmin):
+    list_display = ('course_id', 'provider', 'video_source_language', 'preferred_languages')
+
+    model = TranscriptPreference
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Video, VideoAdmin)
-admin.site.register(Subtitle)
+admin.site.register(VideoTranscript, VideoTranscriptAdmin)
+admin.site.register(TranscriptPreference, TranscriptPreferenceAdmin)
 admin.site.register(VideoImage, VideoImageAdmin)
 admin.site.register(CourseVideo, CourseVideoAdmin)

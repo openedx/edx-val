@@ -8,3 +8,7 @@ omit =
     **/tests/*
     **/settings.py
     **/migrations*
+
+[html]
+title = edx-val Python Test Coverage Report
+directory = html_coverage

@@ -4,22 +4,22 @@
 The internal API for VAL.
 """
 import logging
-
-from lxml.etree import Element, SubElement
 from enum import Enum
 
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.core.files.base import ContentFile
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from lxml import etree
+from lxml.etree import Element, SubElement
 
-from edxval.models import Video, EncodedVideo, CourseVideo, Profile, VideoImage
-from edxval.serializers import VideoSerializer
-from edxval.exceptions import (  # pylint: disable=unused-import
-    ValError,
-    ValInternalError,
-    ValVideoNotFoundError,
-    ValCannotCreateError,
-    ValCannotUpdateError
-)
+from edxval.exceptions import (InvalidTranscriptFormat,
+                               InvalidTranscriptProvider, ValCannotCreateError,
+                               ValCannotUpdateError, ValInternalError,
+                               ValVideoNotFoundError)
+from edxval.models import (CourseVideo, EncodedVideo, Profile,
+                           TranscriptFormat, TranscriptPreference,
+                           TranscriptProviderType, Video, VideoImage,
+                           VideoTranscript)
+from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
+from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -143,6 +143,210 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
+def is_transcript_available(video_id, language_code=None):
+    """
+    Returns whether the transcripts are available for a video.
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language_code: it will the language code of the requested transcript.
+    """
+    filter_attrs = {'video_id': video_id}
+    if language_code:
+        filter_attrs['language_code'] = language_code
+
+    transcript_set = VideoTranscript.objects.filter(**filter_attrs)
+    return transcript_set.exists()
+
+
+def get_video_transcripts(video_id):
+    """
+    Get a video's transcripts
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+    """
+    transcripts_set = VideoTranscript.objects.filter(video_id=video_id)
+
+    transcripts = []
+    if transcripts_set.exists():
+        transcripts = TranscriptSerializer(transcripts_set, many=True).data
+
+    return transcripts
+
+
+def get_video_transcript(video_id, language_code):
+    """
+    Get video transcript info
+
+    Arguments:
+        video_id(unicode): A video id, it can be an edx_video_id or an external video id extracted from
+        external sources of a video component.
+        language_code(unicode): it will be the language code of the requested transcript.
+    """
+    transcript = VideoTranscript.get_or_none(video_id=video_id, language_code=language_code)
+    return TranscriptSerializer(transcript).data if transcript else None
+
+
+def get_video_transcript_data(video_ids, language_code):
+    """
+    Get video transcript data
+
+    Arguments:
+        video_ids(list): list containing edx_video_id and external video ids extracted from
+        external sources from a video component.
+        language_code(unicode): it will be the language code of the requested transcript.
+
+    Returns:
+        A dict containing transcript file name and its content. It will be for a video whose transcript
+        found first while iterating the video ids.
+    """
+    transcript_data = None
+    for video_id in video_ids:
+        try:
+            video_transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
+            transcript_data = dict(
+                file_name=video_transcript.transcript.name,
+                content=video_transcript.transcript.file.read()
+            )
+            break
+        except VideoTranscript.DoesNotExist:
+            continue
+        except Exception:
+            logger.exception(
+                '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
+                video_id,
+                language_code
+            )
+            raise
+
+    return transcript_data
+
+
+def get_available_transcript_languages(video_ids):
+    """
+    Get available transcript languages
+
+    Arguments:
+        video_ids(list): list containing edx_video_id and external video ids extracted from
+        external sources of a video component.
+
+    Returns:
+        A list containing unique transcript language codes for the video ids.
+    """
+    available_languages = VideoTranscript.objects.filter(
+        video_id__in=video_ids
+    ).values_list(
+        'language_code', flat=True
+    )
+    return list(set(available_languages))
+
+
+def get_video_transcript_url(video_id, language_code):
+    """
+    Returns course video transcript url or None if no transcript
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language_code: language code of a video transcript
+    """
+    video_transcript = VideoTranscript.get_or_none(video_id, language_code)
+    if video_transcript:
+        return video_transcript.url()
+
+
+def create_or_update_video_transcript(
+        video_id,
+        language_code,
+        file_name,
+        file_format,
+        provider,
+        file_data=None,
+    ):
+    """
+    Create or Update video transcript for an existing video.
+
+    Arguments:
+        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
+        language_code: language code of a video transcript
+        file_name: file name of a video transcript
+        file_data (InMemoryUploadedFile): Transcript data to be saved for a course video.
+        file_format: format of the transcript
+        provider: transcript provider
+
+    Returns:
+        video transcript url
+    """
+    if file_format not in dict(TranscriptFormat.CHOICES).keys():
+        raise InvalidTranscriptFormat('{} transcript format is not supported'.format(file_format))
+
+    if provider not in dict(TranscriptProviderType.CHOICES).keys():
+        raise InvalidTranscriptProvider('{} transcript provider is not supported'.format(provider))
+
+    video_transcript, __ = VideoTranscript.create_or_update(
+        video_id,
+        language_code,
+        file_name,
+        file_format,
+        provider,
+        file_data,
+    )
+
+    return video_transcript.url()
+
+
+def get_3rd_party_transcription_plans():
+    """
+    Retrieves 3rd party transcription plans.
+    """
+    return THIRD_PARTY_TRANSCRIPTION_PLANS
+
+
+def get_transcript_preferences(course_id):
+    """
+    Retrieves course wide transcript preferences
+
+    Arguments:
+        course_id (str): course id
+    """
+    try:
+        transcript_preference = TranscriptPreference.objects.get(course_id=course_id)
+    except TranscriptPreference.DoesNotExist:
+        return
+
+    return TranscriptPreferenceSerializer(transcript_preference).data
+
+
+def create_or_update_transcript_preferences(course_id, **preferences):
+    """
+    Creates or updates course-wide transcript preferences
+
+    Arguments:
+        course_id(str): course id
+
+    Keyword Arguments:
+        preferences(dict): keyword arguments
+    """
+    transcript_preference, __ = TranscriptPreference.objects.update_or_create(
+        course_id=course_id, defaults=preferences
+    )
+    return TranscriptPreferenceSerializer(transcript_preference).data
+
+
+def remove_transcript_preferences(course_id):
+    """
+    Deletes course-wide transcript preferences.
+
+    Arguments:
+        course_id(str): course id
+    """
+    try:
+        transcript_preference = TranscriptPreference.objects.get(course_id=course_id)
+        transcript_preference.delete()
+    except TranscriptPreference.DoesNotExist:
+        pass
+
+
 def get_course_video_image_url(course_id, edx_video_id):
     """
     Returns course video image url or None if no image found
@@ -246,11 +450,6 @@ def get_video_info(edx_video_id):
                     url: url of the video
                     file_size: size of the video in bytes
                     profile: ID of the profile
-                subtitles: a list of Subtitle dicts
-                    fmt: file format (SRT or SJSON)
-                    language: language code
-                    content_url: url of file
-                    url: api url to subtitle
             }
 
     Raises:
@@ -504,13 +703,19 @@ def copy_course_videos(source_course_id, destination_course_id):
             )
 
 
-def export_to_xml(edx_video_id, course_id=None):
+def export_to_xml(video_ids, course_id=None, external=False):
     """
-    Exports data about the given edx_video_id into the given xml object.
+    Exports data for a video into an xml object.
 
-    Args:
-        edx_video_id (str): The ID of the video to export
+    NOTE: For external video ids, only transcripts information will be added into xml.
+          If external=False, then edx_video_id is going to be on first index of the list.
+
+    Arguments:
+        video_ids (list): It can contain edx_video_id and/or multiple external video ids.
+                          We are passing all video ids associated with a video component
+                          so that we can export transcripts for each video id.
         course_id (str): The ID of the course with which this video is associated
+        external (bool): True if first video id in `video_ids` is not edx_video_id else False
 
     Returns:
         An lxml video_asset element containing export data
@@ -518,8 +723,16 @@ def export_to_xml(edx_video_id, course_id=None):
     Raises:
         ValVideoNotFoundError: if the video does not exist
     """
+    # val does not store external videos, so construct transcripts information only.
+    if external:
+        video_el = Element('video_asset')
+        return create_transcripts_xml(video_ids, video_el)
+
+    # for an internal video, first video id must be edx_video_id
+    video_id = video_ids[0]
+
     video_image_name = ''
-    video = _get_video(edx_video_id)
+    video = _get_video(video_id)
 
     try:
         course_video = CourseVideo.objects.select_related('video_image').get(course_id=course_id, video=video)
@@ -544,29 +757,66 @@ def export_to_xml(edx_video_id, course_id=None):
                 for name in ['profile', 'url', 'file_size', 'bitrate']
             }
         )
-    # Note: we are *not* exporting Subtitle data since it is not currently updated by VEDA or used
-    # by LMS/Studio.
+
+    return create_transcripts_xml(video_ids, video_el)
+
+
+def create_transcripts_xml(video_ids, video_el):
+    """
+    Create xml for transcripts.
+
+    Arguments:
+        video_ids (list): It can contain edx_video_id and/or multiple external video ids
+        video_el (Element): lxml Element object
+
+    Returns:
+        lxml Element object with transcripts information
+    """
+    video_transcripts = VideoTranscript.objects.filter(video_id__in=video_ids)
+    # create transcripts node only when we have transcripts for a video
+    if video_transcripts.exists():
+        transcripts_el = SubElement(video_el, 'transcripts')
+
+    exported_language_codes = []
+    for video_transcript in video_transcripts:
+        if video_transcript.language_code not in exported_language_codes:
+            SubElement(
+                transcripts_el,
+                'transcript',
+                {
+                    'video_id': video_transcript.video_id,
+                    'file_name': video_transcript.transcript.name,
+                    'language_code': video_transcript.language_code,
+                    'file_format': video_transcript.file_format,
+                    'provider': video_transcript.provider,
+                }
+            )
+            exported_language_codes.append(video_transcript.language_code)
+
     return video_el
 
 
 def import_from_xml(xml, edx_video_id, course_id=None):
     """
-    Imports data from a video_asset element about the given edx_video_id.
+    Imports data from a video_asset element about the given video_id.
 
     If the edx_video_id already exists, then no changes are made. If an unknown
     profile is referenced by an encoded video, that encoding will be ignored.
 
-    Args:
-        xml: An lxml video_asset element containing import data
-        edx_video_id (str): The ID for the video content
+    Arguments:
+        xml (Element): An lxml video_asset element containing import data
+        edx_video_id (str): val video id
         course_id (str): The ID of a course to associate the video with
-            (optional)
 
     Raises:
         ValCannotCreateError: if there is an error importing the video
     """
     if xml.tag != 'video_asset':
         raise ValCannotCreateError('Invalid XML')
+
+    # if edx_video_id does not exist then create video transcripts only
+    if not edx_video_id:
+        return create_transcript_objects(xml)
 
     # If video with edx_video_id already exists, associate it with the given course_id.
     try:
@@ -582,6 +832,9 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             image_file_name = xml.get('image', '').strip()
             if image_file_name:
                 VideoImage.create_or_update(course_video, image_file_name)
+
+        # import transcripts
+        create_transcript_objects(xml)
 
         return
     except ValidationError as err:
@@ -617,3 +870,24 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             'bitrate': encoded_video_el.get('bitrate'),
         })
     create_video(data)
+    create_transcript_objects(xml)
+
+
+def create_transcript_objects(xml):
+    """
+    Create VideoTranscript objects.
+
+    Arguments:
+        xml (Element): lxml Element object
+    """
+    for transcript in xml.findall('.//transcripts/transcript'):
+        try:
+            VideoTranscript.create_or_update(
+                transcript.attrib['video_id'],
+                transcript.attrib['language_code'],
+                transcript.attrib['file_name'],
+                transcript.attrib['file_format'],
+                transcript.attrib['provider'],
+            )
+        except KeyError:
+            logger.warn("VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip())

@@ -48,3 +48,17 @@ class ValCannotUpdateError(ValError):
     This error is raised when an object cannot be updated
     """
     pass
+
+
+class InvalidTranscriptFormat(ValError):
+    """
+    This error is raised when an transcript format is not supported
+    """
+    pass
+
+
+class InvalidTranscriptProvider(ValError):
+    """
+    This error is raised when an transcript provider is not supported
+    """
+    pass
