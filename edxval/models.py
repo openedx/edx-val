@@ -482,47 +482,6 @@ class VideoTranscript(TimeStampedModel):
         return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video_id)
 
 
-SUBTITLE_FORMATS = (
-    ('srt', 'SubRip'),
-    ('sjson', 'SRT JSON')
-)
-
-
-class Subtitle(models.Model):
-    """
-    Subtitle for video
-
-    Attributes:
-        video: the video that the subtitles are for
-        fmt: the format of the subttitles file
-    """
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    video = models.ForeignKey(Video, related_name="subtitles")
-    fmt = models.CharField(max_length=20, db_index=True, choices=SUBTITLE_FORMATS)
-    language = models.CharField(max_length=8, db_index=True)
-    content = models.TextField(default='')
-
-    def __str__(self):
-        return '%s Subtitle for %s' % (self.language, self.video)
-
-    def get_absolute_url(self):
-        """
-        Returns the full url link to the edx_video_id
-        """
-        return reverse('subtitle-content', args=[self.video.edx_video_id, self.language])
-
-    @property
-    def content_type(self):
-        """
-        Sjson is returned as application/json, otherwise text/plain
-        """
-        if self.fmt == 'sjson':
-            return 'application/json'
-        else:
-            return 'text/plain'
-
-
 class Cielo24Turnaround(object):
     """
     Cielo24 turnarounds.
