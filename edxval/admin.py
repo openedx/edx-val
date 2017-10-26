@@ -81,6 +81,8 @@ class TranscriptPreferenceAdmin(admin.ModelAdmin):
 
 
 class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
+    list_display = ('org', 'provider', 'exists', 'created', 'modified')
+
     model = ThirdPartyTranscriptCredentialsState
     verbose_name = 'Organization Transcript Credential State'
     verbose_name_plural = 'Organization Transcript Credentials State'
