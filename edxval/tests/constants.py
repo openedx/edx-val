@@ -66,7 +66,6 @@ VIDEO_DICT_NEGATIVE_DURATION = dict(
     edx_video_id="thisis12char-thisis7",
     status="test",
     encoded_videos=[],
-    subtitles=[]
 )
 VIDEO_DICT_BEE_INVALID = dict(
     client_video_id="Barking Bee",
@@ -80,7 +79,6 @@ VIDEO_DICT_INVALID_ID = dict(
     edx_video_id="sloppy/sloth!!",
     status="test",
     encoded_videos=[],
-    subtitles=[]
 )
 ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE = dict(
     url="http://www.meowmix.com",
@@ -101,7 +99,6 @@ VIDEO_DICT_NON_LATIN_TITLE = dict(
     edx_video_id="ID",
     status="test",
     encoded_videos=[],
-    subtitles=[]
 )
 VIDEO_DICT_NON_LATIN_ID = dict(
     client_video_id="Hungry Hamster",
@@ -109,22 +106,9 @@ VIDEO_DICT_NON_LATIN_ID = dict(
     edx_video_id="밥줘",
     status="test",
     encoded_videos=[],
-    subtitles=[]
 )
 PROFILE_INVALID_NAME = "lo/lol"
-"""
-Subtitles
-"""
-SUBTITLE_DICT_SRT = dict(
-    fmt="srt",
-    language="en",
-    content="0:0:0\nhello"
-)
-SUBTITLE_DICT_SJSON = dict(
-    fmt="sjson",
-    language="fr",
-    content='{"start": "00:00:00"}'
-)
+
 """
 Fish
 """
@@ -199,7 +183,6 @@ COMPLETE_SET_FISH = dict(
         ENCODED_VIDEO_DICT_FISH_MOBILE,
         ENCODED_VIDEO_DICT_FISH_DESKTOP
     ],
-    subtitles=[SUBTITLE_DICT_SRT, SUBTITLE_DICT_SJSON],
     **VIDEO_DICT_FISH
 )
 COMPLETE_SET_FISH_WITH_HLS = dict(
@@ -208,7 +191,6 @@ COMPLETE_SET_FISH_WITH_HLS = dict(
         ENCODED_VIDEO_DICT_FISH_DESKTOP,
         ENCODED_VIDEO_DICT_FISH_HLS,
     ],
-    subtitles=[SUBTITLE_DICT_SRT, SUBTITLE_DICT_SJSON],
     **VIDEO_DICT_FISH
 )
 COMPLETE_SET_TWO_MOBILE_FISH = dict(
@@ -216,7 +198,6 @@ COMPLETE_SET_TWO_MOBILE_FISH = dict(
         ENCODED_VIDEO_DICT_FISH_MOBILE,
         ENCODED_VIDEO_DICT_FISH_MOBILE
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_FISH
 )
 COMPLETE_SET_UPDATE_FISH = dict(
@@ -225,7 +206,6 @@ COMPLETE_SET_UPDATE_FISH = dict(
         ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP,
         ENCODED_VIDEO_DICT_UPDATE_FISH_HLS,
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_FISH
 )
 COMPLETE_SET_DIFFERENT_ID_UPDATE_FISH = dict(
@@ -233,7 +213,6 @@ COMPLETE_SET_DIFFERENT_ID_UPDATE_FISH = dict(
         ENCODED_VIDEO_DICT_UPDATE_FISH_MOBILE,
         ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP
     ],
-    subtitles=[SUBTITLE_DICT_SRT, SUBTITLE_DICT_SJSON],
     **VIDEO_DICT_DIFFERENT_ID_FISH
 )
 COMPLETE_SET_FIRST_HALF_UPDATE_FISH = dict(
@@ -241,14 +220,12 @@ COMPLETE_SET_FIRST_HALF_UPDATE_FISH = dict(
         ENCODED_VIDEO_DICT_UPDATE_FISH_MOBILE,
         ENCODED_VIDEO_DICT_FISH_DESKTOP
     ],
-    subtitles=[SUBTITLE_DICT_SRT, SUBTITLE_DICT_SJSON],
     **VIDEO_DICT_FISH
 )
 COMPLETE_SET_UPDATE_ONLY_DESKTOP_FISH = dict(
     encoded_videos=[
         ENCODED_VIDEO_DICT_UPDATE_FISH_DESKTOP
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_FISH
 )
 COMPLETE_SET_INVALID_ENCODED_VIDEO_FISH = dict(
@@ -256,7 +233,6 @@ COMPLETE_SET_INVALID_ENCODED_VIDEO_FISH = dict(
         ENCODED_VIDEO_DICT_FISH_MOBILE,
         ENCODED_VIDEO_DICT_FISH_INVALID_PROFILE
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_FISH
 )
 COMPLETE_SET_INVALID_VIDEO_FISH = dict(
@@ -268,7 +244,6 @@ COMPLETE_SET_INVALID_VIDEO_FISH = dict(
         ENCODED_VIDEO_DICT_FISH_MOBILE,
         ENCODED_VIDEO_DICT_FISH_DESKTOP
     ],
-    subtitles=[SUBTITLE_DICT_SRT]
 )
 
 COMPLETE_SETS_ALL_INVALID = [
@@ -300,14 +275,12 @@ COMPLETE_SET_STAR = dict(
     encoded_videos=[
         ENCODED_VIDEO_DICT_STAR
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
 COMPLETE_SET_UPDATE_STAR = dict(
     encoded_videos=[
         ENCODED_VIDEO_UPDATE_DICT_STAR
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
 COMPLETE_SET_WITH_COURSE_KEY = dict(
@@ -315,7 +288,6 @@ COMPLETE_SET_WITH_COURSE_KEY = dict(
     encoded_videos=[
         ENCODED_VIDEO_DICT_STAR
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
 COMPLETE_SET_WITH_SOME_INVALID_COURSE_KEY = dict(
@@ -323,7 +295,6 @@ COMPLETE_SET_WITH_SOME_INVALID_COURSE_KEY = dict(
     encoded_videos=[
         ENCODED_VIDEO_DICT_STAR
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
 COMPLETE_SET_WITH_OTHER_COURSE_KEYS = dict(
@@ -331,7 +302,6 @@ COMPLETE_SET_WITH_OTHER_COURSE_KEYS = dict(
     encoded_videos=[
         ENCODED_VIDEO_DICT_STAR
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
 COMPLETE_SET_NOT_A_LIST = dict(
@@ -341,7 +311,6 @@ COMPLETE_SET_NOT_A_LIST = dict(
         bitrate=42,
         profile=1
     ),
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
 COMPLETE_SET_EXTRA_VIDEO_FIELD = dict(
@@ -354,7 +323,6 @@ COMPLETE_SET_EXTRA_VIDEO_FIELD = dict(
             video="This should be overridden by parent video field"
         )
     ],
-    subtitles=[SUBTITLE_DICT_SRT],
     **VIDEO_DICT_STAR
 )
 """
@@ -378,7 +346,6 @@ VIDEO_DICT_ZEBRA = dict(
     edx_video_id="zestttt",
     status="test",
     encoded_videos=[],
-    subtitles=[]
 )
 VIDEO_DICT_ANIMAL = dict(
     client_video_id="Average Animal",
@@ -386,7 +353,6 @@ VIDEO_DICT_ANIMAL = dict(
     edx_video_id="mediocrity",
     status="test",
     encoded_videos=[],
-    subtitles=[]
 )
 VIDEO_DICT_UPDATE_ANIMAL = dict(
     client_video_id="Above Average Animal",
@@ -394,7 +360,6 @@ VIDEO_DICT_UPDATE_ANIMAL = dict(
     edx_video_id="mediocrity",
     status="test",
     encoded_videos=[],
-    subtitles=[]
 )
 
 VIDEO_TRANSCRIPT_CIELO24 = dict(

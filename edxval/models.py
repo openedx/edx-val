@@ -482,47 +482,6 @@ class VideoTranscript(TimeStampedModel):
         return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video_id)
 
 
-SUBTITLE_FORMATS = (
-    ('srt', 'SubRip'),
-    ('sjson', 'SRT JSON')
-)
-
-
-class Subtitle(models.Model):
-    """
-    Subtitle for video
-
-    Attributes:
-        video: the video that the subtitles are for
-        fmt: the format of the subttitles file
-    """
-    created = models.DateTimeField(auto_now_add=True)
-    modified = models.DateTimeField(auto_now=True)
-    video = models.ForeignKey(Video, related_name="subtitles")
-    fmt = models.CharField(max_length=20, db_index=True, choices=SUBTITLE_FORMATS)
-    language = models.CharField(max_length=8, db_index=True)
-    content = models.TextField(default='')
-
-    def __str__(self):
-        return '%s Subtitle for %s' % (self.language, self.video)
-
-    def get_absolute_url(self):
-        """
-        Returns the full url link to the edx_video_id
-        """
-        return reverse('subtitle-content', args=[self.video.edx_video_id, self.language])
-
-    @property
-    def content_type(self):
-        """
-        Sjson is returned as application/json, otherwise text/plain
-        """
-        if self.fmt == 'sjson':
-            return 'application/json'
-        else:
-            return 'text/plain'
-
-
 class Cielo24Turnaround(object):
     """
     Cielo24 turnarounds.
@@ -610,6 +569,47 @@ class TranscriptPreference(TimeStampedModel):
 
     def __unicode__(self):
         return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
+
+
+class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
+    """
+    State of transcript credentials for a course organization
+    """
+    class Meta:
+        unique_together = ('org', 'provider')
+
+    org = models.CharField(verbose_name='Course Organization', max_length=32)
+    provider = models.CharField(
+        verbose_name='Transcript Provider',
+        max_length=20,
+        choices=TranscriptProviderType.CHOICES,
+    )
+    exists = models.BooleanField(default=False, help_text='Transcript credentials state')
+
+    @classmethod
+    def update_or_create(cls, org, provider, exists):
+        """
+        Update or create credentials state.
+        """
+        instance, created = cls.objects.update_or_create(
+            org=org,
+            provider=provider,
+            defaults={'exists': exists},
+        )
+
+        return instance, created
+
+    def __unicode__(self):
+        """
+        Returns unicode representation of provider credentials state for an organization.
+
+        NOTE: Message will look like below:
+            edX has Cielo24 credentials
+            edX doesn't have 3PlayMedia credentials
+        """
+        return u'{org} {state} {provider} credentials'.format(
+            org=self.org, provider=self.provider, state='has' if self.exists else "doesn't have"
+        )
 
 
 @receiver(models.signals.post_save, sender=Video)

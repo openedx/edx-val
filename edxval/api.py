@@ -17,7 +17,7 @@ from edxval.exceptions import (InvalidTranscriptFormat,
 from edxval.models import (CourseVideo, EncodedVideo, Profile,
                            TranscriptFormat, TranscriptPreference,
                            TranscriptProviderType, Video, VideoImage,
-                           VideoTranscript)
+                           VideoTranscript, ThirdPartyTranscriptCredentialsState)
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
 from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS
 
@@ -141,6 +141,47 @@ def update_video_status(edx_video_id, status):
 
     video.status = status
     video.save()
+
+
+def get_transcript_credentials_state_for_org(org, provider=None):
+    """
+    Returns transcript credentials state for an org
+
+    Arguments:
+        org (unicode): course organization
+        provider (unicode): transcript provider
+
+    Returns:
+        dict: provider name and their credential existance map
+
+        {
+            u'Cielo24': True
+        }
+        {
+            u'3PlayMedia': False,
+            u'Cielo24': True
+        }
+    """
+    query_filter = {'org': org}
+    if provider:
+        query_filter['provider'] = provider
+
+    return {
+        credential.provider: credential.exists
+        for credential in ThirdPartyTranscriptCredentialsState.objects.filter(**query_filter)
+    }
+
+
+def update_transcript_credentials_state_for_org(org, provider, exists):
+    """
+    Updates transcript credentials state for a course organization.
+
+    Arguments:
+        org (unicode): course organization
+        provider (unicode): transcript provider
+        exists (bool): state of credentials
+    """
+    ThirdPartyTranscriptCredentialsState.update_or_create(org, provider, exists)
 
 
 def is_transcript_available(video_id, language_code=None):

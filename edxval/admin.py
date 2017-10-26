@@ -1,11 +1,10 @@
 """
 Admin file for django app edxval.
 """
-from django import forms
 from django.contrib import admin
 
 from .models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference,
-                     Video, VideoImage, VideoTranscript)
+                     Video, VideoImage, VideoTranscript, ThirdPartyTranscriptCredentialsState)
 
 
 class ProfileAdmin(admin.ModelAdmin):  # pylint: disable=C0111
@@ -81,9 +80,18 @@ class TranscriptPreferenceAdmin(admin.ModelAdmin):
     model = TranscriptPreference
 
 
+class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
+    list_display = ('org', 'provider', 'exists', 'created', 'modified')
+
+    model = ThirdPartyTranscriptCredentialsState
+    verbose_name = 'Organization Transcript Credential State'
+    verbose_name_plural = 'Organization Transcript Credentials State'
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Video, VideoAdmin)
 admin.site.register(VideoTranscript, VideoTranscriptAdmin)
 admin.site.register(TranscriptPreference, TranscriptPreferenceAdmin)
 admin.site.register(VideoImage, VideoImageAdmin)
 admin.site.register(CourseVideo, CourseVideoAdmin)
+admin.site.register(ThirdPartyTranscriptCredentialsState, ThirdPartyTranscriptCredentialsStateAdmin)

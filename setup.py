@@ -7,6 +7,7 @@ PACKAGES = [
     'edxval.tests',
 ]
 
+
 def is_requirement(line):
     """
     Return True if the requirement line is a package requirement;
@@ -24,6 +25,7 @@ def is_requirement(line):
         line.startswith('git+')
     )
 
+
 def load_requirements(*requirements_paths):
     """
     Load all requirements from the specified requirements files.
@@ -39,7 +41,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edxval',
-    version='0.1.2',
+    version='0.1.3',
     author='edX',
     url='http://github.com/edx/edx-val',
     description='edx-val',
