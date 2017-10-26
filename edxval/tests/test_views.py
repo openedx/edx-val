@@ -209,33 +209,6 @@ class VideoDetail(APIAuthTestCase):
         )
         self.assertEqual(len(videos[0].encoded_videos.all()), 1)
 
-    @unittest.skip("Skipping for now. We may need this later when we create transcripts alongwith video")
-    def test_update_remove_subtitles(self):
-        # Create some subtitles
-        self._create_videos(constants.COMPLETE_SET_STAR)
-
-        # Sanity check that the subtitles have been created
-        videos = Video.objects.all()
-        self.assertEqual(len(videos), 1)
-        self.assertEqual(len(videos[0].subtitles.all()), 1)
-
-        # Update with an empty list of subtitles
-        url = reverse(
-            'video-detail',
-            kwargs={"edx_video_id": constants.COMPLETE_SET_STAR.get("edx_video_id")}
-        )
-        response = self.client.put(
-            url,
-            dict(subtitles=[], encoded_videos=[], **constants.VIDEO_DICT_STAR),
-            format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Expect that subtitles have been removed
-        videos = Video.objects.all()
-        self.assertEqual(len(videos), 1)
-        self.assertEqual(len(videos[0].subtitles.all()), 0)
-
     def test_update_remove_encoded_videos(self):
         # Create some encoded videos
         self._create_videos(constants.COMPLETE_SET_STAR)
@@ -626,7 +599,6 @@ class VideoListTest(APIAuthTestCase):
                     'bitrate': 6767,
                 }
                 ],
-            'subtitles': [],
             'courses': ['youtube'],
             'client_video_id': "Funny Cats",
             'duration': 122
@@ -732,89 +704,6 @@ class VideoDetailTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         with self.assertNumQueries(10):
             self.client.get("/edxval/videos/").data
-
-
-@unittest.skip("Skipping for now. We may need these later when we create transcripts alongwith video")
-class SubtitleDetailTest(APIAuthTestCase):
-    """
-    Tests for subtitle API
-    """
-    def setUp(self):
-        Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
-        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
-        super(SubtitleDetailTest, self).setUp()
-
-    def test_get_subtitle_content(self):
-        """
-        Get subtitle content
-        """
-        url = reverse('video-list')
-        response = self.client.post(
-            url, constants.COMPLETE_SET_FISH, format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        video = self.client.get("/edxval/videos/").data
-        self.assertEqual(len(video), 1)
-        self.assertEqual(len(video[0].get("subtitles")), 2)
-
-        video_subtitles = video[0]['subtitles'][0]
-        response = self.client.get(video_subtitles['content_url'])
-        self.assertEqual(response.content, constants.SUBTITLE_DICT_SRT['content'])
-        self.assertEqual(response['Content-Type'], 'text/plain')
-
-        video_subtitles = video[0]['subtitles'][1]
-        response = self.client.get(video_subtitles['content_url'])
-        self.assertEqual(response.content, constants.SUBTITLE_DICT_SJSON['content'])
-        self.assertEqual(response['Content-Type'], 'application/json')
-
-    def test_update_subtitle(self):
-        """
-        Update an SRT subtitle
-        """
-        url = reverse('video-list')
-        response = self.client.post(
-            url, constants.COMPLETE_SET_FISH, format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        video = response.data
-        video_subtitles = video['subtitles'][0]
-        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': video_subtitles['language']})
-
-        video_subtitles['content'] = 'testing 123'
-        response = self.client.put(
-            url, video_subtitles, format='json'
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(self.client.get(video_subtitles['content_url']).content, 'testing 123')
-
-    def test_update_json_subtitle(self):
-        """
-        Update a JSON subtitle
-        """
-        url = reverse('video-list')
-        response = self.client.post(
-            url, constants.COMPLETE_SET_FISH, format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        video = response.data
-        video_subtitles = video['subtitles'][1]
-        url = reverse('subtitle-detail', kwargs={'video__edx_video_id': video['edx_video_id'], 'language': video_subtitles['language']})
-
-        video_subtitles['content'] = 'testing 123'
-        response = self.client.put(
-            url, video_subtitles, format='json'
-        )
-        # not in json format
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        video_subtitles['content'] = """{"start": "00:00:00"
-
-        }"""
-        response = self.client.put(
-            url, video_subtitles, format='json'
-        )
-        self.assertEqual(self.client.get(video_subtitles['content_url']).content, '{"start": "00:00:00"}')
 
 
 @ddt
