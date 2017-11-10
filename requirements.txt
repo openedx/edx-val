@@ -1,5 +1,5 @@
--e git+https://github.com/edx/django-oauth2-provider.git@0.2.7-fork-edx-6a#egg=django-oauth2-provider==0.2.7-fork-edx-6
--e git+https://github.com/edx/django-rest-framework-oauth.git@f0b503fda8c254a38f97fef802ded4f5fe367f7a#egg=djangorestframework-oauth
+-e git+https://github.com/edx/django-oauth2-provider.git@1.2.2#egg=django-oauth2-provider==1.2.2
+-e git+https://github.com/edx/django-rest-framework-oauth.git@392d3b423788718c04e7aab8dba17a56f95d757f#egg=djangorestframework-oauth
 pillow==4.2.1
 boto==2.46.1
 django-model-utils==2.3.1

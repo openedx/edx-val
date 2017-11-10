@@ -4,6 +4,7 @@
 Tests the serializers for the Video Abstraction Layer
 """
 
+from __future__ import unicode_literals
 from django.test import TestCase
 
 from edxval.serializers import EncodedVideoSerializer, VideoSerializer
@@ -152,7 +153,9 @@ class SerializerTests(TestCase):
         data = "hello"
         serializer = VideoSerializer(data=data)
         self.assertFalse(serializer.is_valid())
+
+        data_type = type(data).__name__
         self.assertEqual(
             serializer.errors.get("non_field_errors")[0],
-            "Invalid data. Expected a dictionary, but got str."
+            "Invalid data. Expected a dictionary, but got {}.".format(data_type)
         )

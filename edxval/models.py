@@ -11,6 +11,7 @@ themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
+from __future__ import unicode_literals
 import json
 import logging
 import os
@@ -22,7 +23,7 @@ from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.dispatch import receiver
-from django.utils.six import python_2_unicode_compatible
+from django.utils.six import python_2_unicode_compatible, string_types
 from model_utils.models import TimeStampedModel
 
 from edxval.utils import (get_video_image_storage,
@@ -219,7 +220,7 @@ class ListField(models.TextField):
         Converts a list to its json representation to store in database as text.
         """
         if value and not isinstance(value, list):
-            raise ValidationError(u'ListField value {} is not a list.'.format(value))
+            raise ValidationError('ListField value {} is not a list.'.format(value))
         return json.dumps(self.validate_list(value) or [])
 
     def from_db_value(self, value, expression, connection, context):
@@ -247,7 +248,7 @@ class ListField(models.TextField):
 
                 self.validate_list(py_list)
             except (ValueError, TypeError):
-                raise ValidationError(u'Must be a valid list of strings.')
+                raise ValidationError('Must be a valid list of strings.')
 
         return py_list
 
@@ -265,12 +266,10 @@ class ListField(models.TextField):
             ValidationError
         """
         if len(value) > self.max_items:
-            raise ValidationError(
-                u'list must not contain more than {max_items} items.'.format(max_items=self.max_items)
-            )
+            raise ValidationError('list must not contain more than {max_items} items.'.format(max_items=self.max_items))
 
-        if all(isinstance(item, basestring) for item in value) is False:
-            raise ValidationError(u'list must only contain strings.')
+        if all(isinstance(item, string_types) for item in value) is False:
+            raise ValidationError('list must only contain strings.')
 
         return value
 

@@ -10,21 +10,21 @@ Retrieve all profiles for a video with `edx_video_id`="example"
 Returns (dict):
 {
     'url' : '/edxval/videos/example',
-    'edx_video_id': u'example',
+    'edx_video_id': 'example',
     'duration': 111.0,
-    'client_video_id': u'The example video',
+    'client_video_id': 'The example video',
     'encoded_videos': [
         {
-            'url': u'http://www.example.com/example_mobile_video.mp4',
+            'url': 'http://www.example.com/example_mobile_video.mp4',
             'file_size': 25556,
             'bitrate': 9600,
-            'profile': u'mobile'
+            'profile': 'mobile'
         },
         {
-            'url': u'http://www.example.com/example_desktop_video.mp4',
+            'url': 'http://www.example.com/example_desktop_video.mp4',
             'file_size': 43096734,
             'bitrate': 64000,
-            'profile': u'desktop'
+            'profile': 'desktop'
         }
     ]
 }
