@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('profile_name', models.CharField(unique=True, max_length=50, validators=[django.core.validators.RegexValidator(regex=b'^[a-zA-Z0-9\\-_]*$', message=b'profile_name has invalid characters', code=b'invalid profile_name')])),
+                ('profile_name', models.CharField(unique=True, max_length=50, validators=[django.core.validators.RegexValidator(regex='^[a-zA-Z0-9\\-_]*$', message=b'profile_name has invalid characters', code=b'invalid profile_name')])),
             ],
         ),
         migrations.CreateModel(
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('edx_video_id', models.CharField(unique=True, max_length=100, validators=[django.core.validators.RegexValidator(regex=b'^[a-zA-Z0-9\\-_]*$', message=b'edx_video_id has invalid characters', code=b'invalid edx_video_id')])),
+                ('edx_video_id', models.CharField(unique=True, max_length=100, validators=[django.core.validators.RegexValidator(regex='^[a-zA-Z0-9\\-_]*$', message=b'edx_video_id has invalid characters', code=b'invalid edx_video_id')])),
                 ('client_video_id', models.CharField(db_index=True, max_length=255, blank=True)),
                 ('duration', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
                 ('status', models.CharField(max_length=255, db_index=True)),

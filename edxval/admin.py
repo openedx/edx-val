@@ -1,6 +1,7 @@
 """
 Admin file for django app edxval.
 """
+from __future__ import unicode_literals
 from django.contrib import admin
 
 from .models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference,

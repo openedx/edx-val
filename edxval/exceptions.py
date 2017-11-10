@@ -1,6 +1,8 @@
 """
 VAL Exceptions.
 """
+from __future__ import unicode_literals
+
 
 class ValError(Exception):
     """

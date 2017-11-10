@@ -2,6 +2,7 @@
 """
 Tests for the API for Video Abstraction Layer
 """
+from __future__ import unicode_literals
 import json
 
 import mock
@@ -36,8 +37,7 @@ FILE_DATA = """
 I am overwatch.
 
 2
-00:00:16,500 --> 00:00:18,600
-可以用“我不太懂艺术 但我知道我喜欢什么”做比喻.
+00:00:16,500
 """
 
 
@@ -215,7 +215,7 @@ class CreateProfileTest(TestCase):
         """
         api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
-        profile_names = [unicode(profile) for profile in profiles]
+        profile_names = [str(profile) for profile in profiles]
         self.assertEqual(len(profiles), 7)
         self.assertIn(
             constants.PROFILE_DESKTOP,
@@ -290,12 +290,12 @@ class GetVideoInfoTest(TestCase):
         with self.assertRaises(api.ValVideoNotFoundError):
             api.get_video_info("")
 
-    def test_unicode_input(self):
+    def test_str_input(self):
         """
         Tests if unicode inputs are handled correctly
         """
         with self.assertRaises(api.ValVideoNotFoundError):
-            api.get_video_info(u"๓ﻉѻฝ๓ٱซ")
+            api.get_video_info("๓ﻉѻฝ๓ٱซ")
 
     @mock.patch.object(Video, '__init__')
     def test_force_database_error(self, mock_get):
@@ -353,9 +353,9 @@ class GetUrlsForProfileTest(TestCase):
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         urls = api.get_urls_for_profiles(edx_video_id, profiles)
         self.assertEqual(len(urls), 3)
-        self.assertEqual(urls["mobile"], u'http://www.meowmix.com')
-        self.assertEqual(urls["desktop"], u'http://www.meowmagic.com')
-        self.assertEqual(urls["hls"], u'https://www.tmnt.com/tmnt101.m3u8')
+        self.assertEqual(urls["mobile"], 'http://www.meowmix.com')
+        self.assertEqual(urls["desktop"], 'http://www.meowmagic.com')
+        self.assertEqual(urls["hls"], 'https://www.tmnt.com/tmnt101.m3u8')
 
     def test_get_urls_for_profiles_no_video(self):
         """
@@ -382,7 +382,7 @@ class GetUrlsForProfileTest(TestCase):
         profile = "mobile"
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         url = api.get_url_for_profile(edx_video_id, profile)
-        self.assertEqual(url, u'http://www.meowmix.com')
+        self.assertEqual(url, 'http://www.meowmix.com')
 
 
 class GetVideoForCourseProfiles(TestCase):
@@ -463,7 +463,7 @@ class GetVideoForCourseProfiles(TestCase):
                         "url": encoding["url"],
                         "file_size": encoding["file_size"],
                     }
-                    for (profile_name, encoding) in encoding_dict.iteritems()
+                    for (profile_name, encoding) in encoding_dict.items()
                 }
             }
         }
@@ -1048,7 +1048,7 @@ class ImportTest(TestCase):
         import_xml = etree.Element(
             "video_asset",
             attrib={
-                key: unicode(video_dict[key])
+                key: str(video_dict[key])
                 for key in ["client_video_id", "duration"]
             }
         )
@@ -1061,7 +1061,7 @@ class ImportTest(TestCase):
                 import_xml,
                 "encoded_video",
                 attrib={
-                    key: unicode(val)
+                    key: str(val)
                     for key, val in encoding_dict.items()
                 }
             )
@@ -1341,7 +1341,7 @@ class ImportTest(TestCase):
 
         mock_logger.warn.assert_called_with(
             "VAL: Required attributes are missing from xml, xml=[%s]",
-            transcript_xml
+            b'<transcript file_name="wow.srt" language_code="en" file_format="srt" provider="Cielo24"/>'
         )
 
         self.assert_transcripts(video_id, [self.transcript_data2])
@@ -1447,10 +1447,10 @@ class CourseVideoImageTest(TestCase):
         self.image_path1 = 'edxval/tests/data/image.jpg'
         self.image_path2 = 'edxval/tests/data/edx.jpg'
         self.image_url = api.update_video_image(
-            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1, 'rb')), 'image.jpg'
         )
         self.image_url2 = api.update_video_image(
-            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2)), 'image.jpg'
+            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2, 'rb')), 'image.jpg'
         )
 
     def test_update_video_image(self):
@@ -1459,8 +1459,8 @@ class CourseVideoImageTest(TestCase):
         """
         self.assertEqual(self.course_video.video_image.image.name, self.image_url)
         self.assertEqual(self.course_video2.video_image.image.name, self.image_url2)
-        self.assertEqual(ImageFile(open(self.image_path1)).size, ImageFile(open(self.image_url)).size)
-        self.assertEqual(ImageFile(open(self.image_path2)).size, ImageFile(open(self.image_url2)).size)
+        self.assertEqual(ImageFile(open(self.image_path1, 'rb')).size, ImageFile(open(self.image_url, 'rb')).size)
+        self.assertEqual(ImageFile(open(self.image_path2, 'rb')).size, ImageFile(open(self.image_url2, 'rb')).size)
 
     def test_get_course_video_image_url(self):
         """
@@ -1483,7 +1483,7 @@ class CourseVideoImageTest(TestCase):
         """
         with self.assertNumQueries(6):
             api.update_video_image(
-                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1, 'rb')), 'image.jpg'
             )
 
     def test_num_queries_get_course_video_image_url(self):
@@ -1517,7 +1517,7 @@ class CourseVideoImageTest(TestCase):
         Tests correct message is logged when save to storge is failed in `create_or_update`.
         """
         with self.assertRaises(Exception) as save_exception:  # pylint: disable=unused-variable
-            VideoImage.create_or_update(self.course_video, 'test.jpg', open(self.image_path2))
+            VideoImage.create_or_update(self.course_video, 'test.jpg', open(self.image_path2, 'rb'))
 
         mock_logger.exception.assert_called_with(
             'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
@@ -1532,11 +1532,11 @@ class CourseVideoImageTest(TestCase):
         does_not_course_id = 'does_not_exist'
 
         with self.assertRaises(Exception) as get_exception:
-            api.update_video_image(self.edx_video_id, does_not_course_id, open(self.image_path2), 'test.jpg')
+            api.update_video_image(self.edx_video_id, does_not_course_id, open(self.image_path2, 'rb'), 'test.jpg')
 
         self.assertEqual(
-            get_exception.exception.message,
-            u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+            str(get_exception.exception),
+            'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
                 self.edx_video_id,
                 does_not_course_id
             )
@@ -1546,7 +1546,7 @@ class CourseVideoImageTest(TestCase):
         """
         Test `VideoImage.generated_images` field works as expected.
         """
-        image_urls = ['video-images/a.png', 'video-images/b.png']
+        image_urls = [str('video-images/a.png'), str('video-images/b.png')]
 
         # an empty list should be returned when there is no value for urls
         self.assertEqual(self.course_video.video_image.generated_images, [])
@@ -1573,7 +1573,7 @@ class CourseVideoImageTest(TestCase):
 
         self.assertEqual(
             set_exception.exception.message,
-            u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS)
+            'list must not contain more than {} items.'.format(LIST_MAX_ITEMS)
         )
 
         # expect a validation error if we try to a list with non-string items
@@ -1581,7 +1581,7 @@ class CourseVideoImageTest(TestCase):
             video_image.generated_images = ['a', 1, 2]
             video_image.save()
 
-        self.assertEqual(set_exception.exception.message, u'list must only contain strings.')
+        self.assertEqual(set_exception.exception.message, 'list must only contain strings.')
 
         # expect a validation error if we try to set non list data
         for item in ('a string', 555, {'a': 1}, (1,)):
@@ -1627,7 +1627,7 @@ class CourseVideoImageTest(TestCase):
 
         # This will replace the image for self.course_video and delete the existing image
         image_url = api.update_video_image(
-            self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg'
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path2, 'rb')), 'image.jpg'
         )
 
         # Verify that new image is set to course_video
@@ -1636,9 +1636,9 @@ class CourseVideoImageTest(TestCase):
 
         # Verify that an exception is raised if we try to open a delete image file
         with self.assertRaises(IOError) as file_open_exception:
-            ImageFile(open(existing_image_name))
+            ImageFile(open(existing_image_name, 'rb'))
 
-        self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
+        self.assertEqual(file_open_exception.exception.strerror, 'No such file or directory')
 
     def test_video_image_deletion_multiple(self):
         """
@@ -1651,7 +1651,7 @@ class CourseVideoImageTest(TestCase):
 
         # This will replace the image for self.course_video but image will
         # not be deleted because it is also used by self.course_video2
-        api.update_video_image(self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg')
+        api.update_video_image(self.edx_video_id, self.course_id, ImageFile(open(self.image_path2, 'rb')), 'image.jpg')
 
         # Verify image for course_video has changed
         course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
@@ -1661,7 +1661,7 @@ class CourseVideoImageTest(TestCase):
         self.assertEqual(self.course_video2.video_image.image.name, shared_image)
 
         # Open the shared image file to verify it is not deleted
-        ImageFile(open(shared_image))
+        ImageFile(open(shared_image, 'rb'))
 
 
 @ddt
@@ -1771,7 +1771,7 @@ class TranscriptTest(TestCase):
         """
         expected_transcript = {
             'file_name': self.transcript_url,
-            'content': File(open(self.arrow_transcript_path)).read()
+            'content': File(open(self.arrow_transcript_path, 'rb')).read()
         }
         transcript = api.get_video_transcript_data(
             video_ids=['super-soaker', '0987654321'],
@@ -1902,7 +1902,7 @@ class TranscriptTest(TestCase):
         with self.assertRaises(exception) as transcript_exception:
             api.create_or_update_video_transcript(self.video_id, 'ur', 'overwatch.srt', file_format, provider)
 
-        self.assertEqual(transcript_exception.exception.message, exception_message)
+        self.assertEqual(str(transcript_exception.exception), exception_message)
 
     def test_video_transcript_deletion(self):
         """
@@ -1948,7 +1948,7 @@ class TranscriptTest(TestCase):
         # `non_existent_video_id` that does not have transcript
         video_ids = ['super-soaker', self.video_id, dupe_lang_video_id, 'non_existent_video_id']
         transcript_languages = api.get_available_transcript_languages(video_ids=video_ids)
-        self.assertItemsEqual(transcript_languages, ['de', 'en', 'ur'])
+        self.assertEqual(sorted(transcript_languages), sorted(['de', 'en', 'ur']))
 
 
 @ddt

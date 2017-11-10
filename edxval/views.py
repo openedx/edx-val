@@ -1,6 +1,8 @@
 """
 Views file for django app edxval.
 """
+from __future__ import unicode_literals
+
 import logging
 
 from django.core.exceptions import ValidationError
@@ -229,7 +231,7 @@ class VideoImagesView(APIView):
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={
-                    'message': u'{missing} must be specified to update a video image.'.format(
+                    'message': '{missing} must be specified to update a video image.'.format(
                         missing=' and '.join(missing)
                     )
                 }
@@ -241,12 +243,13 @@ class VideoImagesView(APIView):
 
         try:
             course_video = CourseVideo.objects.select_related('video_image').get(
-                course_id=unicode(course_id), video__edx_video_id=edx_video_id
+                course_id=course_id,
+                video__edx_video_id=edx_video_id
             )
         except CourseVideo.DoesNotExist:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'message': u'CourseVideo not found for course_id: {course_id}'.format(course_id=course_id)}
+                data={'message': 'CourseVideo not found for course_id: {course_id}'.format(course_id=course_id)}
             )
 
         try:

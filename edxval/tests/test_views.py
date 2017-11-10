@@ -2,6 +2,7 @@
 """
 Tests for Video Abstraction Layer views
 """
+from __future__ import unicode_literals
 import json
 import unittest
 
@@ -446,7 +447,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = json.loads(response.content)
         # Check that invalid course keys have been filtered out.
-        self.assertEqual(response['courses'], [{u'edX/DemoX/Astonomy': None}])
+        self.assertEqual(response['courses'], [{'edX/DemoX/Astonomy': None}])
 
     def test_post_non_latin_client_video_id(self):
         """
@@ -475,7 +476,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data.get("edx_video_id")[0],
-            u'video with this edx video id already exists.'
+            'video with this edx video id already exists.'
         )
         videos = len(self.client.get("/edxval/videos/").data)
         self.assertEqual(videos, 1)
@@ -764,19 +765,19 @@ class VideoImagesViewTest(APIAuthTestCase):
     @data(
         {
             'post_data': {},
-            'message': u'course_id and edx_video_id and generated_images must be specified to update a video image.'
+            'message': 'course_id and edx_video_id and generated_images must be specified to update a video image.'
         },
         {
             'post_data': {'course_id': 'does_not_exit_course', 'edx_video_id': 'super-soaker', 'generated_images': []},
-            'message': u'CourseVideo not found for course_id: does_not_exit_course'
+            'message': 'CourseVideo not found for course_id: does_not_exit_course'
         },
         {
             'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'does_not_exit_video', 'generated_images': []},
-            'message': u'CourseVideo not found for course_id: test_course_id'
+            'message': 'CourseVideo not found for course_id: test_course_id'
         },
         {
             'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': [1, 2, 3]},
-            'message': "[u'list must only contain strings.']"
+            'message': "'list must only contain strings.'"
         },
     )
     @unpack
@@ -788,9 +789,9 @@ class VideoImagesViewTest(APIAuthTestCase):
 
         response = self.client.post(url, post_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data['message'],
-            message
+        self.assertIn(
+            message,
+            response.data['message']
         )
 
 
