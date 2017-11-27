@@ -59,11 +59,12 @@ THIRD_PARTY_TRANSCRIPTION_PLANS = {
     '3PlayMedia': {
         'display_name': '3Play Media',
         'turnaround': {
-            'same_day_service': 'Same day',
-            'rush_service': '24 hours (rush)',
-            'expedited_service': '2 days (expedited)',
-            'default': '4 days (default)',
-            'extended_service':'10 days (extended)'
+            'two_hour': '2 hours',
+            'same_day': 'Same day',
+            'rush': '24 hours (rush)',
+            'expedited': '2 days (expedited)',
+            'standard': '4 days (standard)',
+            'extended':'10 days (extended)'
         },
         'languages': {
             'en': 'English',
