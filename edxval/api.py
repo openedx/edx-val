@@ -3,6 +3,7 @@
 """
 The internal API for VAL.
 """
+from __future__ import unicode_literals
 import logging
 from enum import Enum
 
@@ -10,14 +11,26 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from lxml import etree
 from lxml.etree import Element, SubElement
 
-from edxval.exceptions import (InvalidTranscriptFormat,
-                               InvalidTranscriptProvider, ValCannotCreateError,
-                               ValCannotUpdateError, ValInternalError,
-                               ValVideoNotFoundError)
-from edxval.models import (CourseVideo, EncodedVideo, Profile,
-                           TranscriptFormat, TranscriptPreference,
-                           TranscriptProviderType, Video, VideoImage,
-                           VideoTranscript, ThirdPartyTranscriptCredentialsState)
+from edxval.exceptions import (
+    InvalidTranscriptFormat,
+    InvalidTranscriptProvider,
+    ValCannotCreateError,
+    ValCannotUpdateError,
+    ValInternalError,
+    ValVideoNotFoundError,
+)
+from edxval.models import (
+    CourseVideo,
+    EncodedVideo,
+    Profile,
+    TranscriptFormat,
+    TranscriptPreference,
+    TranscriptProviderType,
+    Video,
+    VideoImage,
+    VideoTranscript,
+    ThirdPartyTranscriptCredentialsState,
+)
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
 from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS
 
@@ -423,7 +436,7 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
             course_id=course_id, video__edx_video_id=edx_video_id
         )
     except ObjectDoesNotExist:
-        error_message = u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+        error_message = 'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
             edx_video_id,
             course_id
         )
@@ -503,15 +516,15 @@ def get_video_info(edx_video_id):
         Returns (dict):
         {
             'url' : '/edxval/videos/example',
-            'edx_video_id': u'example',
+            'edx_video_id': 'example',
             'duration': 111.0,
-            'client_video_id': u'The example video',
+            'client_video_id': 'The example video',
             'encoded_videos': [
                 {
-                    'url': u'http://www.example.com',
+                    'url': 'http://www.example.com',
                     'file_size': 25556,
                     'bitrate': 9600,
-                    'profile': u'mobile'
+                    'profile': 'mobile'
                  }
             ]
         }
@@ -590,7 +603,7 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
         total order.
     """
     return _get_videos_for_filter(
-        {'courses__course_id': unicode(course_id), 'courses__is_hidden': False},
+        {'courses__course_id': course_id, 'courses__is_hidden': False},
         sort_field,
         sort_dir,
     )
@@ -658,28 +671,28 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
     Example:
         Given two videos with two profiles each in course_id 'test_course':
         {
-            u'edx_video_id_1': {
-                u'duration: 1111,
-                u'profiles': {
-                    u'mobile': {
-                        'url': u'http: //www.example.com/meow',
+            'edx_video_id_1': {
+                'duration: 1111,
+                'profiles': {
+                    'mobile': {
+                        'url': 'http: //www.example.com/meow',
                         'file_size': 2222
                     },
-                    u'desktop': {
-                        'url': u'http: //www.example.com/woof',
+                    'desktop': {
+                        'url': 'http: //www.example.com/woof',
                         'file_size': 4444
                     }
                 }
             },
-            u'edx_video_id_2': {
-                u'duration: 2222,
-                u'profiles': {
-                    u'mobile': {
-                        'url': u'http: //www.example.com/roar',
+            'edx_video_id_2': {
+                'duration: 2222,
+                'profiles': {
+                    'mobile': {
+                        'url': 'http: //www.example.com/roar',
                         'file_size': 6666
                     },
-                    u'desktop': {
-                        'url': u'http: //www.example.com/bzzz',
+                    'desktop': {
+                        'url': 'http: //www.example.com/bzzz',
                         'file_size': 8888
                     }
                 }
@@ -687,7 +700,6 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
         }
     """
     # In case someone passes in a key (VAL doesn't really understand opaque keys)
-    course_id = unicode(course_id)
     try:
         encoded_videos = EncodedVideo.objects.filter(
             profile__profile_name__in=profiles,
@@ -729,7 +741,7 @@ def copy_course_videos(source_course_id, destination_course_id):
         return
 
     course_videos = CourseVideo.objects.select_related('video', 'video_image').filter(
-        course_id=unicode(source_course_id)
+        course_id=str(source_course_id)
     )
 
     for course_video in course_videos:
@@ -785,7 +797,7 @@ def export_to_xml(video_ids, course_id=None, external=False):
         'video_asset',
         attrib={
             'client_video_id': video.client_video_id,
-            'duration': unicode(video.duration),
+            'duration': str(video.duration),
             'image': video_image_name
         }
     )
@@ -794,7 +806,7 @@ def export_to_xml(video_ids, course_id=None, external=False):
             video_el,
             'encoded_video',
             {
-                name: unicode(getattr(encoded_video, name))
+                name: str(getattr(encoded_video, name))
                 for name in ['profile', 'url', 'file_size', 'bitrate']
             }
         )
@@ -879,7 +891,7 @@ def import_from_xml(xml, edx_video_id, course_id=None):
 
         return
     except ValidationError as err:
-        logger.exception(err.message)
+        logger.exception(err)
         raise ValCannotCreateError(err.message_dict)
     except Video.DoesNotExist:
         pass
