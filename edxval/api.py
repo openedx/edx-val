@@ -301,7 +301,7 @@ def create_or_update_video_transcript(
         language_code,
         file_name,
         file_format,
-        provider,
+        provider=TranscriptProviderType.CUSTOM,
         file_data=None,
     ):
     """
