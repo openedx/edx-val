@@ -3,9 +3,12 @@
 Tests for the API for Video Abstraction Layer
 """
 import json
+import os
+import tempfile
 
 import mock
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.base import ContentFile
@@ -16,18 +19,19 @@ from django.test import TestCase
 from lxml import etree
 from mock import patch
 from rest_framework import status
-from django.conf import settings
 
 from edxval import api as api
+from edxval import utils
 from edxval.api import (InvalidTranscriptFormat, InvalidTranscriptProvider,
                         SortDirection, ValCannotCreateError,
                         ValCannotUpdateError, ValVideoNotFoundError,
                         VideoSortField)
 from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
-                           TranscriptFormat, TranscriptProviderType, Video,
-                           VideoImage, VideoTranscript, TranscriptPreference, ThirdPartyTranscriptCredentialsState)
+                           ThirdPartyTranscriptCredentialsState,
+                           TranscriptFormat, TranscriptPreference,
+                           TranscriptProviderType, Video, VideoImage,
+                           VideoTranscript)
 from edxval.tests import APIAuthTestCase, constants
-from edxval import utils
 
 
 FILE_DATA = """
@@ -1699,6 +1703,30 @@ class TranscriptTest(TestCase):
             file_data=File(open(self.arrow_transcript_path)),
         )
 
+        # create a temporary transcript file
+        _, self.transcript_file = tempfile.mkstemp(
+            suffix='.srt',
+            dir='edxval/tests/data/'
+        )
+        with open(self.transcript_file, 'w') as outfile:
+            outfile.write(FILE_DATA)
+
+        self.transcript3 = VideoTranscript.objects.create(
+            video_id='super-soaker',
+            language_code='fr',
+            transcript=self.transcript_file,
+            provider=TranscriptProviderType.THREE_PLAY_MEDIA,
+            file_format=TranscriptFormat.SRT,
+        )
+
+    def tearDown(self):
+        """
+        Reverse the setup
+        """
+        # Remove the temporary transcript file
+        if os.path.exists(self.transcript_file):
+            os.remove(self.transcript_file)
+
     @data(
         {'video_id': 'super-soaker', 'language_code': 'en', 'expected_availability': True},
         {'video_id': 'super-soaker', 'language_code': None, 'expected_availability': True},
@@ -1795,7 +1823,7 @@ class TranscriptTest(TestCase):
         transcripts = api.get_video_transcripts(video_id)
 
         if result:
-            self.assertEqual(len(transcripts), 2)
+            self.assertEqual(len(transcripts), 3)
             for transcript, transcript_data in zip(transcripts, [self.transcript_data2, self.transcript_data1]):
                 transcript_data['url'] = transcript_data.pop('name')
                 self.assertEqual(transcript, transcript_data)
@@ -1952,7 +1980,21 @@ class TranscriptTest(TestCase):
         # `non_existent_video_id` that does not have transcript
         video_ids = ['super-soaker', self.video_id, dupe_lang_video_id, 'non_existent_video_id']
         transcript_languages = api.get_available_transcript_languages(video_ids=video_ids)
-        self.assertItemsEqual(transcript_languages, ['de', 'en', 'ur'])
+        self.assertItemsEqual(transcript_languages, ['de', 'en', 'ur', 'fr'])
+
+    def test_delete_video_transcript(self):
+        """
+        Verify that `delete_video_transcript` works as expected.
+        """
+        query_filter = {
+            'video_id': 'super-soaker',
+            'language_code': 'fr'
+        }
+
+        self.assertEqual(VideoTranscript.objects.filter(**query_filter).count(), 1)
+        api.delete_video_transcript(**query_filter)
+        self.assertFalse(os.path.exists(self.transcript_file))
+        self.assertEqual(VideoTranscript.objects.filter(**query_filter).count(), 0)
 
 
 @ddt
