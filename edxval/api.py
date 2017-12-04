@@ -336,6 +336,24 @@ def create_or_update_video_transcript(
     return video_transcript.url()
 
 
+def delete_video_transcript(video_id, language_code):
+    """
+    Delete transcript for an existing video.
+
+    Arguments:
+        video_id: id of the video with which transcript is associated
+        language_code: language code of a video transcript
+    """
+    try:
+        video_transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
+        # delete the actual transcript file from storage
+        video_transcript.transcript.delete()
+        # delete the record from db
+        video_transcript.delete()
+    except VideoTranscript.DoesNotExist:
+        pass
+
+
 def get_3rd_party_transcription_plans():
     """
     Retrieves 3rd party transcription plans.
