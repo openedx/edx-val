@@ -247,7 +247,7 @@ def get_video_transcript_data(video_ids, language_code):
         try:
             video_transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
             transcript_data = dict(
-                file_name=video_transcript.transcript.name,
+                file_name=video_transcript.filename,
                 content=video_transcript.transcript.file.read()
             )
             break

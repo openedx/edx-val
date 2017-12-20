@@ -417,6 +417,28 @@ class VideoTranscript(TimeStampedModel):
     class Meta:
         unique_together = ('video_id', 'language_code')
 
+    @property
+    def filename(self):
+        """
+        Returns readable filename for a transcript
+        """
+        try:
+            video = Video.objects.get(edx_video_id=self.video_id)
+            client_id, __ = os.path.splitext(video.client_video_id)
+            file_name = u'{name}-{language}.{format}'.format(
+                name=client_id,
+                language=self.language_code,
+                format=self.file_format
+            )
+        except Video.DoesNotExist:
+            file_name = u'{name}-{language}.{format}'.format(
+                name=self.video_id,
+                language=self.language_code,
+                format=self.file_format
+            )
+
+        return file_name
+
     @classmethod
     def get_or_none(cls, video_id, language_code):
         """

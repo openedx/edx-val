@@ -137,7 +137,6 @@ class CreateVideoTest(TestCase):
             api.create_video(data)
 
 
-
 @ddt
 class UpdateVideoTest(TestCase):
     """
@@ -957,7 +956,7 @@ class ExportTest(TestCase):
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
                 <transcripts>
-                    <transcript file_format="sjson" file_name="wow.sjson" language_code="de" provider="3PlayMedia" video_id="super-soaker"/>
+                    <transcript file_format="sjson" file_name="edxval/tests/data/wow.sjson" language_code="de" provider="3PlayMedia" video_id="super-soaker"/>
                     <transcript file_format="srt" file_name="wow.srt" language_code="en" provider="Cielo24" video_id="super-soaker" />
                 </transcripts>
             </video_asset>
@@ -1296,7 +1295,7 @@ class ImportTest(TestCase):
             <video_asset>
                 <transcripts>
                     <transcript file_name="wow.srt" language_code="en" file_format="srt" provider='Cielo24' video_id="{video_id}"/>
-                    <transcript file_name="wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
+                    <transcript file_name="edxval/tests/data/wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
                 </transcripts>
             </video_asset>
         """.format(video_id=external_video_id))
@@ -1328,7 +1327,7 @@ class ImportTest(TestCase):
             <video_asset>
                 <transcripts>
                     {transcript_xml}
-                    <transcript file_name="wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
+                    <transcript file_name="edxval/tests/data/wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
                 </transcripts>
             </video_asset>
         """.format(transcript_xml=transcript_xml, video_id=video_id))
@@ -1765,17 +1764,22 @@ class TranscriptTest(TestCase):
         transcript = api.get_video_transcript_data(video_ids, language_code)
         self.assertEqual(transcript, result)
 
-    def test_get_video_transcript_data(self):
+    @data(
+        ('de', 'Shallow Swordfish-de.sjson', 'edxval/tests/data/wow.sjson'),
+        ('ur', '0987654321-ur.srt', 'edxval/tests/data/The_Arrow.srt')
+    )
+    @unpack
+    def test_get_video_transcript_data(self, language_code, expected_file_name, expected_transcript_path):
         """
         Verify that `get_video_transcript_data` api function works as expected.
         """
         expected_transcript = {
-            'file_name': self.transcript_url,
-            'content': File(open(self.arrow_transcript_path)).read()
+            'file_name': expected_file_name,
+            'content': File(open(expected_transcript_path)).read()
         }
         transcript = api.get_video_transcript_data(
             video_ids=['super-soaker', '0987654321'],
-            language_code=u'ur'
+            language_code=language_code
         )
         self.assertDictEqual(transcript, expected_transcript)
 

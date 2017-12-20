@@ -373,7 +373,7 @@ VIDEO_TRANSCRIPT_CIELO24 = dict(
 VIDEO_TRANSCRIPT_3PLAY = dict(
     video_id='super-soaker',
     language_code='de',
-    transcript='wow.sjson',
+    transcript='edxval/tests/data/wow.sjson',
     provider=TranscriptProviderType.THREE_PLAY_MEDIA,
     file_format=TranscriptFormat.SJSON,
 )
