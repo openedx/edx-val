@@ -296,42 +296,35 @@ def get_video_transcript_url(video_id, language_code):
         return video_transcript.url()
 
 
-def create_or_update_video_transcript(
-        video_id,
-        language_code,
-        file_name,
-        file_format,
-        provider,
-        file_data=None,
-    ):
+def create_or_update_video_transcript(video_id, language_code, metadata, file_data=None):
     """
     Create or Update video transcript for an existing video.
 
     Arguments:
         video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
         language_code: language code of a video transcript
-        file_name: file name of a video transcript
+        metadata (dict): A dict containing (to be overwritten) properties
         file_data (InMemoryUploadedFile): Transcript data to be saved for a course video.
-        file_format: format of the transcript
-        provider: transcript provider
 
     Returns:
         video transcript url
     """
-    if file_format not in dict(TranscriptFormat.CHOICES).keys():
+    # Filter wanted properties
+    metadata = {
+        prop: value
+        for prop, value in metadata.iteritems()
+        if prop in ['provider', 'language_code', 'file_name', 'file_format'] and value
+    }
+
+    file_format = metadata.get('file_format')
+    if file_format and file_format not in dict(TranscriptFormat.CHOICES).keys():
         raise InvalidTranscriptFormat('{} transcript format is not supported'.format(file_format))
 
-    if provider not in dict(TranscriptProviderType.CHOICES).keys():
+    provider = metadata.get('provider')
+    if provider and provider not in dict(TranscriptProviderType.CHOICES).keys():
         raise InvalidTranscriptProvider('{} transcript provider is not supported'.format(provider))
 
-    video_transcript, __ = VideoTranscript.create_or_update(
-        video_id,
-        language_code,
-        file_name,
-        file_format,
-        provider,
-        file_data,
-    )
+    video_transcript, __ = VideoTranscript.create_or_update(video_id, language_code, metadata, file_data)
 
     return video_transcript.url()
 
@@ -926,9 +919,11 @@ def create_transcript_objects(xml):
             VideoTranscript.create_or_update(
                 transcript.attrib['video_id'],
                 transcript.attrib['language_code'],
-                transcript.attrib['file_name'],
-                transcript.attrib['file_format'],
-                transcript.attrib['provider'],
+                metadata=dict(
+                    provider=transcript.attrib['provider'],
+                    file_name=transcript.attrib['file_name'],
+                    file_format=transcript.attrib['file_format'],
+                )
             )
         except KeyError:
             logger.warn("VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip())
