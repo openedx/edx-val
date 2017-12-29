@@ -456,16 +456,14 @@ class VideoTranscript(TimeStampedModel):
         return transcript
 
     @classmethod
-    def create_or_update(cls, video_id, language_code, file_name, file_format, provider, file_data=None):
+    def create_or_update(cls, video_id, language_code, metadata, file_data=None):
         """
         Create or update Transcript object.
 
         Arguments:
             video_id (str): unique id for a video
-            language_code (str): language code
-            file_name (str): File name of the image
-            file_format (str): Format of transcript
-            provider (str): Transcript provider
+            language_code (str): language code for (to be created/updated) transcript
+            metadata (dict): A dict containing (to be overwritten) properties
             file_data (InMemoryUploadedFile): File data to be saved
 
         Returns:
@@ -473,20 +471,24 @@ class VideoTranscript(TimeStampedModel):
         """
         video_transcript, created = cls.objects.get_or_create(video_id=video_id, language_code=language_code)
 
-        # delete the existing transcript file
-        if not created and file_data:
-            video_transcript.transcript.delete()
+        for prop, value in metadata.iteritems():
+            if prop in ['language_code', 'file_format', 'provider']:
+                setattr(video_transcript, prop, value)
 
-        video_transcript.transcript.name = file_name
-        video_transcript.file_format = file_format
-        video_transcript.provider = provider
+        transcript_name = metadata.get('file_name')
+        if transcript_name:
+            video_transcript.transcript.name = transcript_name
+        elif file_data:
+            # Delete the existing transcript file and
+            # recreate with the new content
+            if not created:
+                video_transcript.transcript.delete()
 
-        if file_data:
             with closing(file_data) as transcript_file_data:
-                file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
+                file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=video_transcript.file_format)
                 try:
                     video_transcript.transcript.save(file_name, transcript_file_data)
-                except Exception:  # pylint: disable=broad-except
+                except Exception:
                     logger.exception('VAL: Transcript save failed to storage for video_id [%s]', video_id)
                     raise
 
