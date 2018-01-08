@@ -3,9 +3,12 @@
 Tests for the API for Video Abstraction Layer
 """
 import json
+import os
+import tempfile
 
 import mock
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.base import ContentFile
@@ -16,18 +19,19 @@ from django.test import TestCase
 from lxml import etree
 from mock import patch
 from rest_framework import status
-from django.conf import settings
 
 from edxval import api as api
+from edxval import utils
 from edxval.api import (InvalidTranscriptFormat, InvalidTranscriptProvider,
                         SortDirection, ValCannotCreateError,
                         ValCannotUpdateError, ValVideoNotFoundError,
                         VideoSortField)
 from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
-                           TranscriptFormat, TranscriptProviderType, Video,
-                           VideoImage, VideoTranscript, TranscriptPreference, ThirdPartyTranscriptCredentialsState)
+                           ThirdPartyTranscriptCredentialsState,
+                           TranscriptFormat, TranscriptPreference,
+                           TranscriptProviderType, Video, VideoImage,
+                           VideoTranscript)
 from edxval.tests import APIAuthTestCase, constants
-from edxval import utils
 
 
 FILE_DATA = """
@@ -135,7 +139,6 @@ class CreateVideoTest(TestCase):
         """
         with self.assertRaises(ValCannotCreateError):
             api.create_video(data)
-
 
 
 @ddt
@@ -957,7 +960,7 @@ class ExportTest(TestCase):
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
                 <transcripts>
-                    <transcript file_format="sjson" file_name="wow.sjson" language_code="de" provider="3PlayMedia" video_id="super-soaker"/>
+                    <transcript file_format="sjson" file_name="edxval/tests/data/wow.sjson" language_code="de" provider="3PlayMedia" video_id="super-soaker"/>
                     <transcript file_format="srt" file_name="wow.srt" language_code="en" provider="Cielo24" video_id="super-soaker" />
                 </transcripts>
             </video_asset>
@@ -1296,7 +1299,7 @@ class ImportTest(TestCase):
             <video_asset>
                 <transcripts>
                     <transcript file_name="wow.srt" language_code="en" file_format="srt" provider='Cielo24' video_id="{video_id}"/>
-                    <transcript file_name="wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
+                    <transcript file_name="edxval/tests/data/wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
                 </transcripts>
             </video_asset>
         """.format(video_id=external_video_id))
@@ -1328,7 +1331,7 @@ class ImportTest(TestCase):
             <video_asset>
                 <transcripts>
                     {transcript_xml}
-                    <transcript file_name="wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
+                    <transcript file_name="edxval/tests/data/wow.sjson" language_code="de" file_format="sjson" provider='3PlayMedia' video_id="{video_id}"/>
                 </transcripts>
             </video_asset>
         """.format(transcript_xml=transcript_xml, video_id=video_id))
@@ -1694,11 +1697,33 @@ class TranscriptTest(TestCase):
         self.transcript_url = api.create_or_update_video_transcript(
             self.video_id,
             'ur',
-            'The_Arrow.srt',
-            TranscriptFormat.SRT,
-            provider=TranscriptProviderType.CUSTOM,
-            file_data=File(open(self.arrow_transcript_path)),
+            metadata={'file_format': TranscriptFormat.SRT},
+            file_data=File(open(self.arrow_transcript_path))
         )
+
+        # create a temporary transcript file
+        _, self.transcript_file = tempfile.mkstemp(
+            suffix='.srt',
+            dir='edxval/tests/data/'
+        )
+        with open(self.transcript_file, 'w') as outfile:
+            outfile.write(FILE_DATA)
+
+        self.transcript3 = VideoTranscript.objects.create(
+            video_id='super-soaker',
+            language_code='fr',
+            transcript=self.transcript_file,
+            provider=TranscriptProviderType.THREE_PLAY_MEDIA,
+            file_format=TranscriptFormat.SRT,
+        )
+
+    def tearDown(self):
+        """
+        Reverse the setup
+        """
+        # Remove the temporary transcript file
+        if os.path.exists(self.transcript_file):
+            os.remove(self.transcript_file)
 
     @data(
         {'video_id': 'super-soaker', 'language_code': 'en', 'expected_availability': True},
@@ -1765,17 +1790,22 @@ class TranscriptTest(TestCase):
         transcript = api.get_video_transcript_data(video_ids, language_code)
         self.assertEqual(transcript, result)
 
-    def test_get_video_transcript_data(self):
+    @data(
+        ('de', 'Shallow Swordfish-de.sjson', 'edxval/tests/data/wow.sjson'),
+        ('ur', '0987654321-ur.srt', 'edxval/tests/data/The_Arrow.srt')
+    )
+    @unpack
+    def test_get_video_transcript_data(self, language_code, expected_file_name, expected_transcript_path):
         """
         Verify that `get_video_transcript_data` api function works as expected.
         """
         expected_transcript = {
-            'file_name': self.transcript_url,
-            'content': File(open(self.arrow_transcript_path)).read()
+            'file_name': expected_file_name,
+            'content': File(open(expected_transcript_path)).read()
         }
         transcript = api.get_video_transcript_data(
             video_ids=['super-soaker', '0987654321'],
-            language_code=u'ur'
+            language_code=language_code
         )
         self.assertDictEqual(transcript, expected_transcript)
 
@@ -1791,7 +1821,7 @@ class TranscriptTest(TestCase):
         transcripts = api.get_video_transcripts(video_id)
 
         if result:
-            self.assertEqual(len(transcripts), 2)
+            self.assertEqual(len(transcripts), 3)
             for transcript, transcript_data in zip(transcripts, [self.transcript_data2, self.transcript_data1]):
                 transcript_data['url'] = transcript_data.pop('name')
                 self.assertEqual(transcript, transcript_data)
@@ -1814,9 +1844,11 @@ class TranscriptTest(TestCase):
         transcript_url = api.create_or_update_video_transcript(
             video_id=transcript_data['video_id'],
             language_code=transcript_data['language_code'],
-            file_name=transcript_data['name'],
-            file_format=transcript_data['file_format'],
-            provider=transcript_data['provider'],
+            metadata=dict(
+                file_name=transcript_data['name'],
+                file_format=transcript_data['file_format'],
+                provider=transcript_data['provider']
+            )
         )
         self.assertEqual(transcript_url, transcript_data['name'])
 
@@ -1845,32 +1877,49 @@ class TranscriptTest(TestCase):
     @data(
         {
             'file_data': None,
+            'file_name': 'overwatch.sjson',
             'file_format': TranscriptFormat.SJSON,
+            'language_code': 'da',
             'provider': TranscriptProviderType.CIELO24
         },
         {
             'file_data': ContentFile(FILE_DATA),
+            'file_name': None,
             'file_format': TranscriptFormat.SRT,
+            'language_code': 'es',
             'provider': TranscriptProviderType.THREE_PLAY_MEDIA
         },
     )
     @unpack
-    def test_create_or_update_video_transcript(self, file_data, file_format, provider):
+    def test_create_or_update_video_transcript(self, file_data, file_name, file_format, language_code, provider):
         """
         Verify that `create_or_update_video_transcript` api function updates existing transcript as expected.
         """
         video_transcript = VideoTranscript.objects.get(video_id=self.video_id, language_code='ur')
         self.assertIsNotNone(video_transcript)
 
-        file_name = 'overwatch.{}'.format(file_format)
         transcript_url = api.create_or_update_video_transcript(
-            self.video_id, 'ur', file_name, file_format, provider, file_data
+            video_id=self.video_id,
+            language_code='ur',
+            metadata=dict(
+                provider=provider,
+                language_code=language_code,
+                file_name=file_name,
+                file_format=file_format
+            ),
+            file_data=file_data
         )
-        video_transcript = VideoTranscript.objects.get(video_id=self.video_id, language_code='ur')
 
+        # Now, Querying Video Transcript with previous/old language code leads to DoesNotExist
+        with self.assertRaises(VideoTranscript.DoesNotExist):
+            VideoTranscript.objects.get(video_id=self.video_id, language_code='ur')
+
+        # Assert the updates to the transcript object
+        video_transcript = VideoTranscript.objects.get(video_id=self.video_id, language_code=language_code)
         self.assertEqual(transcript_url, video_transcript.url())
         self.assertEqual(video_transcript.file_format, file_format)
         self.assertEqual(video_transcript.provider, provider)
+        self.assertEqual(video_transcript.language_code, language_code)
 
         if file_data:
             self.assertTrue(transcript_url.startswith(settings.VIDEO_TRANSCRIPTS_SETTINGS['DIRECTORY_PREFIX']))
@@ -1900,7 +1949,10 @@ class TranscriptTest(TestCase):
         Verify that `create_or_update_video_transcript` api function raise exceptions on invalid values.
         """
         with self.assertRaises(exception) as transcript_exception:
-            api.create_or_update_video_transcript(self.video_id, 'ur', 'overwatch.srt', file_format, provider)
+            api.create_or_update_video_transcript(self.video_id, 'ur', metadata={
+                'provider': provider,
+                'file_format': file_format
+            })
 
         self.assertEqual(transcript_exception.exception.message, exception_message)
 
@@ -1914,12 +1966,10 @@ class TranscriptTest(TestCase):
 
         # This will replace the transcript for an existing video and delete the existing transcript
         new_transcript_url = api.create_or_update_video_transcript(
-            self.video_id,
-            'ur',
-            'overwatch.srt',
-            TranscriptFormat.SRT,
-            TranscriptProviderType.CIELO24,
-            ContentFile(FILE_DATA)
+            video_id=self.video_id,
+            language_code='ur',
+            metadata=dict(provider=TranscriptProviderType.CIELO24),
+            file_data=ContentFile(FILE_DATA)
         )
 
         # Verify that new transcript is set to video
@@ -1948,7 +1998,21 @@ class TranscriptTest(TestCase):
         # `non_existent_video_id` that does not have transcript
         video_ids = ['super-soaker', self.video_id, dupe_lang_video_id, 'non_existent_video_id']
         transcript_languages = api.get_available_transcript_languages(video_ids=video_ids)
-        self.assertItemsEqual(transcript_languages, ['de', 'en', 'ur'])
+        self.assertItemsEqual(transcript_languages, ['de', 'en', 'ur', 'fr'])
+
+    def test_delete_video_transcript(self):
+        """
+        Verify that `delete_video_transcript` works as expected.
+        """
+        query_filter = {
+            'video_id': 'super-soaker',
+            'language_code': 'fr'
+        }
+
+        self.assertEqual(VideoTranscript.objects.filter(**query_filter).count(), 1)
+        api.delete_video_transcript(**query_filter)
+        self.assertFalse(os.path.exists(self.transcript_file))
+        self.assertEqual(VideoTranscript.objects.filter(**query_filter).count(), 0)
 
 
 @ddt

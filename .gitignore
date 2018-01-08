@@ -71,3 +71,6 @@ venvs/
 src/
 video-images/
 video-transcripts/
+
+### VisualStudioCode ###
+.vscode/*

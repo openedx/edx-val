@@ -4,9 +4,7 @@ Views file for django app edxval.
 import logging
 
 from django.core.exceptions import ValidationError
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.http import last_modified
 from rest_framework import generics, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import DjangoModelPermissions
@@ -14,12 +12,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_oauth.authentication import OAuth2Authentication
 
-from edxval.api import (create_or_update_video_transcript,
-                        get_video_transcript, update_video_status)
-from edxval.models import (CourseVideo, Profile, TranscriptFormat,
-                           TranscriptProviderType, Video, VideoImage,
-                           VideoTranscript)
-from edxval.serializers import TranscriptSerializer, VideoSerializer
+from edxval.api import create_or_update_video_transcript
+from edxval.models import (
+    CourseVideo,
+    TranscriptFormat,
+    TranscriptProviderType,
+    Video,
+    VideoImage,
+    VideoTranscript
+)
+from edxval.serializers import VideoSerializer
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -148,13 +150,11 @@ class VideoTranscriptView(APIView):
 
         transcript = VideoTranscript.get_or_none(video_id, language_code)
         if transcript is None:
-            create_or_update_video_transcript(
-                video_id,
-                language_code,
-                transcript_name,
-                file_format,
-                provider,
-            )
+            create_or_update_video_transcript(video_id, language_code, metadata={
+                'provider': provider,
+                'file_name': transcript_name,
+                'file_format': file_format
+            })
             response = Response(status=status.HTTP_200_OK)
         else:
             message = (
