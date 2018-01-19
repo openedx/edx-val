@@ -378,14 +378,6 @@ VIDEO_TRANSCRIPT_3PLAY = dict(
     file_format=TranscriptFormat.SJSON,
 )
 
-VIDEO_TRANSCRIPT_CUSTOM = dict(
-    video_id='external_video_id',
-    language_code='de',
-    transcript='wow.srt',
-    provider=TranscriptProviderType.CUSTOM,
-    file_format=TranscriptFormat.SRT,
-)
-
 TRANSCRIPT_PREFERENCES_CIELO24 = dict(
     course_id='edX/DemoX/Demo_Course',
     provider=TranscriptProviderType.CIELO24,

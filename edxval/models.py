@@ -404,7 +404,7 @@ class VideoTranscript(TimeStampedModel):
     """
     Transcript for a video
     """
-    video_id = models.CharField(max_length=255, help_text='It can be an edx_video_id or an external video id')
+    video = models.ForeignKey(Video, related_name='video_transcripts', null=True)
     transcript = CustomizableFileField()
     language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(
@@ -415,27 +415,19 @@ class VideoTranscript(TimeStampedModel):
     file_format = models.CharField(max_length=20, db_index=True, choices=TranscriptFormat.CHOICES)
 
     class Meta:
-        unique_together = ('video_id', 'language_code')
+        unique_together = ('video', 'language_code')
 
     @property
     def filename(self):
         """
         Returns readable filename for a transcript
         """
-        try:
-            video = Video.objects.get(edx_video_id=self.video_id)
-            client_id, __ = os.path.splitext(video.client_video_id)
-            file_name = u'{name}-{language}.{format}'.format(
-                name=client_id,
-                language=self.language_code,
-                format=self.file_format
-            )
-        except Video.DoesNotExist:
-            file_name = u'{name}-{language}.{format}'.format(
-                name=self.video_id,
-                language=self.language_code,
-                format=self.file_format
-            )
+        client_id, __ = os.path.splitext(self.video.client_video_id)
+        file_name = u'{name}-{language}.{format}'.format(
+            name=client_id,
+            language=self.language_code,
+            format=self.file_format
+        )
 
         return file_name
 
@@ -449,19 +441,19 @@ class VideoTranscript(TimeStampedModel):
             language_code(unicode): language of the requested transcript
         """
         try:
-            transcript = cls.objects.get(video_id=video_id, language_code=language_code)
+            transcript = cls.objects.get(video__edx_video_id=video_id, language_code=language_code)
         except cls.DoesNotExist:
             transcript = None
 
         return transcript
 
     @classmethod
-    def create_or_update(cls, video_id, language_code, metadata, file_data=None):
+    def create_or_update(cls, video, language_code, metadata, file_data=None):
         """
         Create or update Transcript object.
 
         Arguments:
-            video_id (str): unique id for a video
+            video (Video): Video for which transcript is going to be saved.
             language_code (str): language code for (to be created/updated) transcript
             metadata (dict): A dict containing (to be overwritten) properties
             file_data (InMemoryUploadedFile): File data to be saved
@@ -469,7 +461,7 @@ class VideoTranscript(TimeStampedModel):
         Returns:
             Returns a tuple of (video_transcript, created).
         """
-        video_transcript, created = cls.objects.get_or_create(video_id=video_id, language_code=language_code)
+        video_transcript, created = cls.objects.get_or_create(video=video, language_code=language_code)
 
         for prop, value in metadata.iteritems():
             if prop in ['language_code', 'file_format', 'provider']:
@@ -489,7 +481,7 @@ class VideoTranscript(TimeStampedModel):
                 try:
                     video_transcript.transcript.save(file_name, transcript_file_data)
                 except Exception:
-                    logger.exception('VAL: Transcript save failed to storage for video_id [%s]', video_id)
+                    logger.exception('VAL: Transcript save failed to storage for video_id [%s]', video.edx_video_id)
                     raise
 
         video_transcript.save()
@@ -503,7 +495,7 @@ class VideoTranscript(TimeStampedModel):
         return storage.url(self.transcript.name)
 
     def __unicode__(self):
-        return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video_id)
+        return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video.edx_video_id)
 
 
 class Cielo24Turnaround(object):

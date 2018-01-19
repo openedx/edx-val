@@ -3,7 +3,6 @@
 Tests for Video Abstraction Layer views
 """
 import json
-import unittest
 
 from ddt import data, ddt, unpack
 from django.core.urlresolvers import reverse
@@ -821,13 +820,18 @@ class VideoTranscriptViewTest(APIAuthTestCase):
 
         serialized_data = TranscriptSerializer(VideoTranscript.objects.first()).data
         post_transcript_data['url'] = post_transcript_data.pop('name')
-        self.assertEqual(serialized_data, post_transcript_data)
+        self.assertDictEqual(serialized_data, post_transcript_data)
 
     def test_update_existing_transcript(self):
         """
         Tests updating existing transcript works as expected.
         """
-        VideoTranscript.objects.create(**self.transcript_data)
+        VideoTranscript.objects.create(
+            video=self.video,
+            language_code=self.transcript_data['language_code'],
+            file_format=self.transcript_data['file_format'],
+            provider=self.transcript_data['provider'],
+        )
 
         post_transcript_data = dict(self.transcript_data)
         post_transcript_data['name'] = post_transcript_data.pop('transcript')

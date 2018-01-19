@@ -192,28 +192,12 @@ def is_transcript_available(video_id, language_code=None):
         video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
         language_code: it will the language code of the requested transcript.
     """
-    filter_attrs = {'video_id': video_id}
+    filter_attrs = {'video__edx_video_id': video_id}
     if language_code:
         filter_attrs['language_code'] = language_code
 
     transcript_set = VideoTranscript.objects.filter(**filter_attrs)
     return transcript_set.exists()
-
-
-def get_video_transcripts(video_id):
-    """
-    Get a video's transcripts
-
-    Arguments:
-        video_id: it can be an edx_video_id or an external_id extracted from external sources in a video component.
-    """
-    transcripts_set = VideoTranscript.objects.filter(video_id=video_id)
-
-    transcripts = []
-    if transcripts_set.exists():
-        transcripts = TranscriptSerializer(transcripts_set, many=True).data
-
-    return transcripts
 
 
 def get_video_transcript(video_id, language_code):
@@ -245,7 +229,7 @@ def get_video_transcript_data(video_ids, language_code):
     transcript_data = None
     for video_id in video_ids:
         try:
-            video_transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
+            video_transcript = VideoTranscript.objects.get(video__edx_video_id=video_id, language_code=language_code)
             transcript_data = dict(
                 file_name=video_transcript.filename,
                 content=video_transcript.transcript.file.read()
@@ -276,7 +260,7 @@ def get_available_transcript_languages(video_ids):
         A list containing unique transcript language codes for the video ids.
     """
     available_languages = VideoTranscript.objects.filter(
-        video_id__in=video_ids
+        video__edx_video_id__in=video_ids
     ).values_list(
         'language_code', flat=True
     )
@@ -324,7 +308,12 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
     if provider and provider not in dict(TranscriptProviderType.CHOICES).keys():
         raise InvalidTranscriptProvider('{} transcript provider is not supported'.format(provider))
 
-    video_transcript, __ = VideoTranscript.create_or_update(video_id, language_code, metadata, file_data)
+    try:
+        # Video should be present in edxval in order to attach transcripts to it.
+        video = Video.objects.get(edx_video_id=video_id)
+        video_transcript, __ = VideoTranscript.create_or_update(video, language_code, metadata, file_data)
+    except Video.DoesNotExist:
+        return None
 
     return video_transcript.url()
 
@@ -338,7 +327,7 @@ def delete_video_transcript(video_id, language_code):
         language_code: language code of a video transcript
     """
     try:
-        video_transcript = VideoTranscript.objects.get(video_id=video_id, language_code=language_code)
+        video_transcript = VideoTranscript.objects.get(video__edx_video_id=video_id, language_code=language_code)
         # delete the actual transcript file from storage
         video_transcript.transcript.delete()
         # delete the record from db
@@ -775,10 +764,9 @@ def export_to_xml(video_ids, course_id=None, external=False):
     Raises:
         ValVideoNotFoundError: if the video does not exist
     """
-    # val does not store external videos, so construct transcripts information only.
+    # TODO: This will be removed as a part of EDUCATOR-1789
     if external:
-        video_el = Element('video_asset')
-        return create_transcripts_xml(video_ids, video_el)
+        return Element('video_asset')
 
     # for an internal video, first video id must be edx_video_id
     video_id = video_ids[0]
@@ -824,7 +812,7 @@ def create_transcripts_xml(video_ids, video_el):
     Returns:
         lxml Element object with transcripts information
     """
-    video_transcripts = VideoTranscript.objects.filter(video_id__in=video_ids)
+    video_transcripts = VideoTranscript.objects.filter(video__edx_video_id__in=video_ids).order_by('language_code')
     # create transcripts node only when we have transcripts for a video
     if video_transcripts.exists():
         transcripts_el = SubElement(video_el, 'transcripts')
@@ -836,7 +824,7 @@ def create_transcripts_xml(video_ids, video_el):
                 transcripts_el,
                 'transcript',
                 {
-                    'video_id': video_transcript.video_id,
+                    'video_id': video_transcript.video.edx_video_id,
                     'file_name': video_transcript.transcript.name,
                     'language_code': video_transcript.language_code,
                     'file_format': video_transcript.file_format,
@@ -866,9 +854,9 @@ def import_from_xml(xml, edx_video_id, course_id=None):
     if xml.tag != 'video_asset':
         raise ValCannotCreateError('Invalid XML')
 
-    # if edx_video_id does not exist then create video transcripts only
+    # TODO this will be moved as a part of EDUCATOR-2173
     if not edx_video_id:
-        return create_transcript_objects(xml)
+        return
 
     # If video with edx_video_id already exists, associate it with the given course_id.
     try:
@@ -884,9 +872,6 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             image_file_name = xml.get('image', '').strip()
             if image_file_name:
                 VideoImage.create_or_update(course_video, image_file_name)
-
-        # import transcripts
-        create_transcript_objects(xml)
 
         return
     except ValidationError as err:
@@ -934,7 +919,7 @@ def create_transcript_objects(xml):
     """
     for transcript in xml.findall('.//transcripts/transcript'):
         try:
-            VideoTranscript.create_or_update(
+            create_or_update_video_transcript(
                 transcript.attrib['video_id'],
                 transcript.attrib['language_code'],
                 metadata=dict(
