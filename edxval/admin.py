@@ -69,9 +69,19 @@ class CourseVideoAdmin(admin.ModelAdmin):
 
 
 class VideoTranscriptAdmin(admin.ModelAdmin):
-    list_display = ('video', 'language_code', 'provider', 'file_format')
+    raw_id_fields = ('video',)
+    list_display = ('get_video', 'language_code', 'provider', 'file_format')
+    search_fields = ('id', 'video__edx_video_id', 'language_code')
+
+    def get_video(self, transcript):
+        return transcript.video.edx_video_id if getattr(transcript, 'video', False) else ''
+
+    get_video.admin_order_field = 'video'
+    get_video.short_description = 'Video'
 
     model = VideoTranscript
+    verbose_name = 'Video Transcript'
+    verbose_name_plural = 'Video Transcripts'
 
 
 class TranscriptPreferenceAdmin(admin.ModelAdmin):
