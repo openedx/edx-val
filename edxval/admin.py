@@ -69,7 +69,7 @@ class CourseVideoAdmin(admin.ModelAdmin):
 
 
 class VideoTranscriptAdmin(admin.ModelAdmin):
-    list_display = ('video_id', 'language_code', 'provider', 'file_format')
+    list_display = ('video', 'language_code', 'provider', 'file_format')
 
     model = VideoTranscript
 

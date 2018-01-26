@@ -57,10 +57,16 @@ class TranscriptSerializer(serializers.ModelSerializer):
     """
     class Meta:  # pylint: disable=C1001, C0111
         model = VideoTranscript
-        lookup_field = 'video_id'
         fields = ('video_id', 'url', 'language_code', 'provider', 'file_format')
 
+    video_id = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField()
+
+    def get_video_id(self, transcript):
+        """
+        Returns an edx video ID for the related video.
+        """
+        return transcript.video.edx_video_id
 
     def get_url(self, transcript):
         """
