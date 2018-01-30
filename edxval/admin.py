@@ -38,6 +38,7 @@ class VideoAdmin(admin.ModelAdmin):  # pylint: disable=C0111
 class VideoImageAdmin(admin.ModelAdmin):
     raw_id_fields = ('course_video', )
     list_display = ('get_course_video', 'image', 'generated_images')
+    search_fields = ('id', 'course_video__course_id', 'course_video__video__edx_video_id', 'generated_images')
 
     def get_course_video(self, obj):
         return u'"{course_id}" -- "{edx_video_id}" '.format(
