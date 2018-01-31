@@ -712,7 +712,6 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
         return_dict[enc_vid.video.edx_video_id].setdefault("profiles", {}).update(
             {enc_vid.profile.profile_name: {
                 "url": enc_vid.url,
-                # do something here Tyler
                 "file_size": enc_vid.file_size,
             }}
         )
