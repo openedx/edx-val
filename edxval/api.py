@@ -795,22 +795,17 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
         }
     )
     for encoded_video in video.encoded_videos.all():
-        if video_download_dir and resource_fs:
-            attributes = {
-                name: unicode(getattr(encoded_video, name))
-                for name in ['profile', 'file_size', 'bitrate']
-            }
-            video_url = unicode(getattr(encoded_video, 'url'))
+        attributes = {
+            name: unicode(getattr(encoded_video, name))
+            for name in ['profile', 'url', 'file_size', 'bitrate']
+        }
+        if video_download_dir and resource_fs and unicode(encoded_video.profile) != u'youtube':
+            video_url = unicode(encoded_video.url)
             exported_url = '{}/{}'.format(video_download_dir, video_url.split('/')[-1])
             resp = urllib2.urlopen(video_url)
             with resource_fs.open(exported_url, 'wb') as f:
                 f.write(resp.read())
             attributes['url'] = exported_url
-        else:
-            attributes = {
-                name: unicode(getattr(encoded_video, name))
-                for name in ['profile', 'url', 'file_size', 'bitrate']
-            }
         SubElement(
             video_el,
             'encoded_video',
