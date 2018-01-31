@@ -170,7 +170,6 @@ class EncodedVideo(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     url = models.CharField(max_length=200)
-    alt_location = models.CharField(max_length=200)
     file_size = models.PositiveIntegerField()
     bitrate = models.PositiveIntegerField()
 

@@ -59,7 +59,6 @@ def create_video(video_data):
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
-                    alt_location: domain agnostic location of the video
                     file_size: size of the video in bytes
                     profile: ID of the profile
                 courses: Courses associated with this video
@@ -95,7 +94,6 @@ def update_video(video_data):
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
-                    alt_location: domain agnostic location of the video
                     file_size: size of the video in bytes
                     profile: ID of the profile
                 courses: Courses associated with this video
@@ -492,7 +490,6 @@ def get_video_info(edx_video_id):
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
-                    alt_location: 
                     file_size: size of the video in bytes
                     profile: ID of the profile
             }
@@ -513,7 +510,6 @@ def get_video_info(edx_video_id):
             'encoded_videos': [
                 {
                     'url': u'http://www.example.com/name-of-video.mp4',
-                    'alt_location': u'name-of-video.mp4',
                     'file_size': 25556,
                     'bitrate': 9600,
                     'profile': u'mobile'
@@ -655,7 +651,6 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
                 'profiles': {
                     profile_name: {
                         'url': url of the encoding
-                        'alt_location': domain agnostic location of the encoding
                         'file_size': size of the file in bytes
                     },
                 }
@@ -669,12 +664,10 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
                 u'profiles': {
                     u'mobile': {
                         'url': u'http: //www.example.com/meow',
-                        'alt_location': u'meow',
                         'file_size': 2222
                     },
                     u'desktop': {
                         'url': u'http: //www.example.com/woof',
-                        'alt_location': u'woof',
                         'file_size': 4444
                     }
                 }
@@ -684,12 +677,10 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
                 u'profiles': {
                     u'mobile': {
                         'url': u'http: //www.example.com/roar',
-                        'alt_location': u'roar',
                         'file_size': 6666
                     },
                     u'desktop': {
                         'url': u'http: //www.example.com/bzzz',
-                        'alt_location': u'bzzz',
                         'file_size': 8888
                     }
                 }
@@ -811,12 +802,12 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
         }
         if video_download_dir and resource_fs and unicode(encoded_video.profile) != u'youtube':
             video_url = unicode(encoded_video.url)
-            exported_url = '{}/{}'.format(video_download_dir, video_url.split('/')[-1])
+            exported_url = 'olx://{}/{}'.format(video_download_dir, video_url.split('/')[-1])
             #  resp = urllib2.urlopen(video_url)
             resp = open('/dev/null') # skipping actually downloading for now because those are big files
             with resource_fs.open(exported_url, 'wb') as f:
                 f.write(resp.read())
-            attributes['alt_location'] = exported_url
+            attributes['url'] = exported_url
         SubElement(
             video_el,
             'encoded_video',

@@ -38,7 +38,6 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
             "created",
             "modified",
             "url",
-            "alt_location",
             "file_size",
             "bitrate",
             "profile",
