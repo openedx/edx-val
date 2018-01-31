@@ -59,6 +59,7 @@ def create_video(video_data):
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
+                    alt_location: domain agnostic location of the video
                     file_size: size of the video in bytes
                     profile: ID of the profile
                 courses: Courses associated with this video
@@ -94,6 +95,7 @@ def update_video(video_data):
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
+                    alt_location: domain agnostic location of the video
                     file_size: size of the video in bytes
                     profile: ID of the profile
                 courses: Courses associated with this video
@@ -490,6 +492,7 @@ def get_video_info(edx_video_id):
                 client_video_id: client ID of video
                 encoded_video: a list of EncodedVideo dicts
                     url: url of the video
+                    alt_location: 
                     file_size: size of the video in bytes
                     profile: ID of the profile
             }
@@ -509,7 +512,8 @@ def get_video_info(edx_video_id):
             'client_video_id': u'The example video',
             'encoded_videos': [
                 {
-                    'url': u'http://www.example.com',
+                    'url': u'http://www.example.com/name-of-video.mp4',
+                    'alt_location': u'name-of-video.mp4',
                     'file_size': 25556,
                     'bitrate': 9600,
                     'profile': u'mobile'
@@ -651,6 +655,7 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
                 'profiles': {
                     profile_name: {
                         'url': url of the encoding
+                        'alt_location': domain agnostic location of the encoding
                         'file_size': size of the file in bytes
                     },
                 }
@@ -664,10 +669,12 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
                 u'profiles': {
                     u'mobile': {
                         'url': u'http: //www.example.com/meow',
+                        'alt_location': u'meow',
                         'file_size': 2222
                     },
                     u'desktop': {
                         'url': u'http: //www.example.com/woof',
+                        'alt_location': u'woof',
                         'file_size': 4444
                     }
                 }
@@ -677,10 +684,12 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
                 u'profiles': {
                     u'mobile': {
                         'url': u'http: //www.example.com/roar',
+                        'alt_location': u'roar',
                         'file_size': 6666
                     },
                     u'desktop': {
                         'url': u'http: //www.example.com/bzzz',
+                        'alt_location': u'bzzz',
                         'file_size': 8888
                     }
                 }
@@ -712,6 +721,7 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
         return_dict[enc_vid.video.edx_video_id].setdefault("profiles", {}).update(
             {enc_vid.profile.profile_name: {
                 "url": enc_vid.url,
+                # do something here Tyler
                 "file_size": enc_vid.file_size,
             }}
         )
