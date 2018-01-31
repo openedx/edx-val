@@ -806,7 +806,7 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
             resp = open('/dev/null') # skipping actually downloading for now because those are big files
             with resource_fs.open(exported_url, 'wb') as f:
                 f.write(resp.read())
-            attributes['local_path'] = exported_url
+            attributes['alt_location'] = exported_url
         SubElement(
             video_el,
             'encoded_video',
