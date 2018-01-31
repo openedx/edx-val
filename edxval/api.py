@@ -802,10 +802,11 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
         if video_download_dir and resource_fs and unicode(encoded_video.profile) != u'youtube':
             video_url = unicode(encoded_video.url)
             exported_url = '{}/{}'.format(video_download_dir, video_url.split('/')[-1])
-            resp = urllib2.urlopen(video_url)
+            #  resp = urllib2.urlopen(video_url)
+            resp = open('/dev/null') # skipping actually downloading for now because those are big files
             with resource_fs.open(exported_url, 'wb') as f:
                 f.write(resp.read())
-            attributes['url'] = exported_url
+            attributes['local_path'] = exported_url
         SubElement(
             video_el,
             'encoded_video',
