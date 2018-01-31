@@ -761,8 +761,8 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
         external (bool): True if first video id in `video_ids` is not edx_video_id else False
         video_download_dir (str): The directory to download videos files to. If None, do not
                                   download videos.
-        resource_fs (???): The filesystem to download videos onto. If None, do not download
-                           videos.
+        resource_fs (PyFilesystem): The filesystem to download videos onto. If None, do not
+                                    download videos.
 
     Returns:
         An lxml video_asset element containing export data
@@ -804,7 +804,7 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
             exported_url = '{}/{}'.format(video_download_dir, video_url.split('/')[-1])
             resp = urllib2.urlopen(video_url)
             with resource_fs.open(exported_url, 'w') as f:
-                f.write(resp.read())
+                f.write(unicode(resp.read()))
             attributes['url'] = exported_url
         else:
             attributes = {
