@@ -803,8 +803,8 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
             video_url = unicode(getattr(encoded_video, 'url'))
             exported_url = '{}/{}'.format(video_download_dir, video_url.split('/')[-1])
             resp = urllib2.urlopen(video_url)
-            with resource_fs.open(exported_url, 'w') as f:
-                f.write(unicode(resp.read()))
+            with resource_fs.open(exported_url, 'wb') as f:
+                f.write(resp.read())
             attributes['url'] = exported_url
         else:
             attributes = {
