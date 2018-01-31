@@ -4,6 +4,7 @@
 The internal API for VAL.
 """
 import logging
+import urllib2
 from enum import Enum
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -744,7 +745,8 @@ def copy_course_videos(source_course_id, destination_course_id):
             )
 
 
-def export_to_xml(video_ids, course_id=None, external=False):
+def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=None,
+                  resource_fs=None):
     """
     Exports data for a video into an xml object.
 
@@ -757,6 +759,10 @@ def export_to_xml(video_ids, course_id=None, external=False):
                           so that we can export transcripts for each video id.
         course_id (str): The ID of the course with which this video is associated
         external (bool): True if first video id in `video_ids` is not edx_video_id else False
+        video_download_dir (str): The directory to download videos files to. If None, do not
+                                  download videos.
+        resource_fs (???): The filesystem to download videos onto. If None, do not download
+                           videos.
 
     Returns:
         An lxml video_asset element containing export data
@@ -789,13 +795,26 @@ def export_to_xml(video_ids, course_id=None, external=False):
         }
     )
     for encoded_video in video.encoded_videos.all():
-        SubElement(
-            video_el,
-            'encoded_video',
-            {
+        if video_download_dir and resource_fs:
+            attributes = {
+                name: unicode(getattr(encoded_video, name))
+                for name in ['profile', 'file_size', 'bitrate']
+            }
+            video_url = unicode(getattr(encoded_video, 'url'))
+            exported_url = '{}/{}'.format(video_download_dir, video_url.split('/')[-1])
+            resp = urllib2.urlopen(video_url)
+            with resource_fs.open(exported_url, 'w') as f:
+                f.write(resp.read())
+            attributes['url'] = exported_url
+        else:
+            attributes = {
                 name: unicode(getattr(encoded_video, name))
                 for name in ['profile', 'url', 'file_size', 'bitrate']
             }
+        SubElement(
+            video_el,
+            'encoded_video',
+            attributes
         )
 
     return create_transcripts_xml(video_ids, video_el)
