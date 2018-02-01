@@ -745,6 +745,10 @@ def copy_course_videos(source_course_id, destination_course_id):
             )
 
 
+EXPORTED_VIDEO_PREFIX = 'olx'
+IMPORTED_VIDEO_PREFIX = 'local-video'
+
+
 def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=None,
                   resource_fs=None):
     """
@@ -806,7 +810,7 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
             resp = open('/dev/null') # skipping actually downloading for now because those are big files
             with resource_fs.open(exported_url, 'wb') as f:
                 f.write(resp.read())
-            attributes['url'] = 'olx://{}'.format(exported_url)
+            attributes['url'] = '{}://{}'.format(EXPORTED_VIDEO_PREFIX, exported_url)
         SubElement(
             video_el,
             'encoded_video',
@@ -915,9 +919,12 @@ def import_from_xml(xml, edx_video_id, course_id=None):
                 profile_name
             )
             continue
+        url = encoded_video_el.get('url')
+        if url.startswith(EXPORTED_VIDEO_PREFIX):
+            url = url.replace(EXPORTED_VIDEO_PREFIX, IMPORTED_VIDEO_PREFIX)
         data['encoded_videos'].append({
             'profile': profile_name,
-            'url': encoded_video_el.get('url'),
+            'url': url,
             'file_size': encoded_video_el.get('file_size'),
             'bitrate': encoded_video_el.get('bitrate'),
         })
