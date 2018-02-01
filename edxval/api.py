@@ -803,11 +803,10 @@ def export_to_xml(video_ids, course_id=None, external=False, video_download_dir=
             name: unicode(getattr(encoded_video, name))
             for name in ['profile', 'url', 'file_size', 'bitrate']
         }
-        if video_download_dir and resource_fs and unicode(encoded_video.profile) != u'youtube':
+        if video_download_dir and resource_fs and unicode(encoded_video.profile) == u'mobile_low':
             video_url = unicode(encoded_video.url)
             exported_url = '{}/{}'.format(video_download_dir, video_url.split('/')[-1])
-            #  resp = urllib2.urlopen(video_url)
-            resp = open('/dev/null') # skipping actually downloading for now because those are big files
+            resp = urllib2.urlopen(video_url)
             with resource_fs.open(exported_url, 'wb') as f:
                 f.write(resp.read())
             attributes['url'] = '{}://{}'.format(EXPORTED_VIDEO_PREFIX, exported_url)
