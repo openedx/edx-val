@@ -778,7 +778,7 @@ def copy_course_videos(source_course_id, destination_course_id):
             )
 
 
-def export_to_xml(video_ids, course_id=None, external=False):
+def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
     """
     Exports data for a video into an xml object.
 
@@ -786,11 +786,10 @@ def export_to_xml(video_ids, course_id=None, external=False):
           If external=False, then edx_video_id is going to be on first index of the list.
 
     Arguments:
-        video_ids (list): It can contain edx_video_id and/or multiple external video ids.
-                          We are passing all video ids associated with a video component
-                          so that we can export transcripts for each video id.
-        course_id (str): The ID of the course with which this video is associated
-        external (bool): True if first video id in `video_ids` is not edx_video_id else False
+        video_id (str): Video id of the video to export transcripts.
+        course_id (str): The ID of the course with which this video is associated.
+        static_dir (str): The Directory to store transcript file.
+        resource_fs (OSFS): The file system to store transcripts.
 
     Returns:
         An lxml video_asset element containing export data
@@ -798,13 +797,6 @@ def export_to_xml(video_ids, course_id=None, external=False):
     Raises:
         ValVideoNotFoundError: if the video does not exist
     """
-    # TODO: This will be removed as a part of EDUCATOR-1789
-    if external:
-        return Element('video_asset')
-
-    # for an internal video, first video id must be edx_video_id
-    video_id = video_ids[0]
-
     video_image_name = ''
     video = _get_video(video_id)
 
@@ -831,22 +823,48 @@ def export_to_xml(video_ids, course_id=None, external=False):
                 for name in ['profile', 'url', 'file_size', 'bitrate']
             }
         )
+    return create_transcripts_xml(video_id, video_el, resource_fs, static_dir)
 
-    return create_transcripts_xml(video_ids, video_el)
 
-
-def create_transcripts_xml(video_ids, video_el):
+def create_trancript_file(video_id, language_code, file_format, resource_fs, static_dir):
     """
-    Create xml for transcripts.
+    Writes transcript file to file system.
 
     Arguments:
-        video_ids (list): It can contain edx_video_id and/or multiple external video ids
+        video_id (str): Video id of the video transcript file is attached.
+        language_code (str): Language code of the transcript.
+        file_format (str): File format of the transcript file.
+        static_dir (str): The Directory to store transcript file.
+        resource_fs (OSFS): The file system to store transcripts.
+    """
+    transcript_name = u'{static_dir}/{video_id}-{language_code}.{file_format}'.format(
+        static_dir=static_dir,
+        video_id=video_id,
+        language_code=language_code,
+        file_format=file_format
+    )
+    transcript_data = get_video_transcript_data(video_id, language_code)
+    if transcript_data:
+        transcript_content = transcript_data['content']
+        with resource_fs.open(transcript_name, 'wb') as f:
+            f.write(transcript_content)
+
+
+def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
+    """
+    Creates xml for transcripts.
+    For each transcript elment, an associated transcript file is also created in course OLX.
+
+    Arguments:
+        video_id (str): Video id of the video.
         video_el (Element): lxml Element object
+        static_dir (str): The Directory to store transcript file.
+        resource_fs (OSFS): The file system to store transcripts.
 
     Returns:
         lxml Element object with transcripts information
     """
-    video_transcripts = VideoTranscript.objects.filter(video__edx_video_id__in=video_ids).order_by('language_code')
+    video_transcripts = VideoTranscript.objects.filter(video__edx_video_id=video_id).order_by('language_code')
     # create transcripts node only when we have transcripts for a video
     if video_transcripts.exists():
         transcripts_el = SubElement(video_el, 'transcripts')
@@ -854,14 +872,18 @@ def create_transcripts_xml(video_ids, video_el):
     exported_language_codes = []
     for video_transcript in video_transcripts:
         if video_transcript.language_code not in exported_language_codes:
+            language_code = video_transcript.language_code
+            file_format = video_transcript.file_format
+
+            create_trancript_file(video_id, language_code, file_format, resource_fs, static_dir)
+
             SubElement(
                 transcripts_el,
                 'transcript',
                 {
-                    'video_id': video_transcript.video.edx_video_id,
                     'file_name': video_transcript.transcript.name,
-                    'language_code': video_transcript.language_code,
-                    'file_format': video_transcript.file_format,
+                    'language_code': language_code,
+                    'file_format': file_format,
                     'provider': video_transcript.provider,
                 }
             )

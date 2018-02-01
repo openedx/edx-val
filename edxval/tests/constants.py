@@ -366,7 +366,7 @@ VIDEO_DICT_UPDATE_ANIMAL = dict(
 VIDEO_TRANSCRIPT_CIELO24 = dict(
     video_id='super-soaker',
     language_code='en',
-    transcript='wow.srt',
+    transcript='edxval/tests/data/The_Flash.srt',
     provider=TranscriptProviderType.CIELO24,
     file_format=TranscriptFormat.SRT,
 )
