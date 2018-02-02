@@ -218,7 +218,7 @@ class CreateProfileTest(TestCase):
         api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
         profile_names = [unicode(profile) for profile in profiles]
-        self.assertEqual(len(profiles), 7)
+        self.assertEqual(len(profiles), 8)
         self.assertIn(
             constants.PROFILE_DESKTOP,
             profile_names
@@ -227,7 +227,11 @@ class CreateProfileTest(TestCase):
             constants.PROFILE_HLS,
             profile_names
         )
-        self.assertEqual(len(profiles), 7)
+        self.assertIn(
+            constants.PROFILE_AUDIO_MP3,
+            profile_names
+        )
+        self.assertEqual(len(profiles), 8)
 
     def test_invalid_create_profile(self):
         """
