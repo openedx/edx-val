@@ -19,6 +19,7 @@ PROFILE_MOBILE = "mobile"
 PROFILE_DESKTOP = "desktop"
 PROFILE_YOUTUBE = "youtube"
 PROFILE_HLS = 'hls'
+PROFILE_AUDIO_MP3 = 'audio_mp3'
 """
 Encoded_videos for test_api, does not have profile.
 """
