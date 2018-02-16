@@ -123,6 +123,18 @@ class Video(models.Model):
         return self.edx_video_id
 
     @classmethod
+    def get_or_none(cls, **filter_kwargs):
+        """
+        Returns a video or None.
+        """
+        try:
+            video = cls.objects.get(**filter_kwargs)
+        except cls.DoesNotExist:
+            video = None
+
+        return video
+
+    @classmethod
     def by_youtube_id(cls, youtube_id):
         """
         Look up video by youtube id
@@ -448,6 +460,34 @@ class VideoTranscript(TimeStampedModel):
         return transcript
 
     @classmethod
+    def create(cls, video, language_code, file_format, content, provider):
+        """
+        Create a Video Transcript.
+
+        Arguments:
+            video(Video): Video data model object
+            language_code(unicode): A language code.
+            file_format(unicode): Transcript file format.
+            content(InMemoryUploadedFile): Transcript content.
+            provider(unicode): Transcript provider.
+        """
+        video_transcript = cls(video=video, language_code=language_code, file_format=file_format, provider=provider)
+        with closing(content) as transcript_content:
+            try:
+                file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=video_transcript.file_format)
+                video_transcript.transcript.save(file_name, transcript_content)
+                video_transcript.save()
+            except Exception:
+                logger.exception(
+                    '[VAL] Transcript save failed to storage for video_id "%s" language code "%s"',
+                    video.edx_video_id,
+                    language_code
+                )
+                raise
+
+        return video_transcript
+
+    @classmethod
     def create_or_update(cls, video, language_code, metadata, file_data=None):
         """
         Create or update Transcript object.
@@ -481,7 +521,11 @@ class VideoTranscript(TimeStampedModel):
                 try:
                     video_transcript.transcript.save(file_name, transcript_file_data)
                 except Exception:
-                    logger.exception('VAL: Transcript save failed to storage for video_id [%s]', video.edx_video_id)
+                    logger.exception(
+                        '[VAL] Transcript save failed to storage for video_id "%s" language code "%s"',
+                        video.edx_video_id,
+                        language_code
+                    )
                     raise
 
         video_transcript.save()

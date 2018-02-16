@@ -74,6 +74,24 @@ class TranscriptSerializer(serializers.ModelSerializer):
         """
         return transcript.url()
 
+    def validate(self, data):
+        """
+        Validates the transcript data.
+        """
+        video_id = self.context.get('video_id')
+        video = Video.get_or_none(edx_video_id=video_id)
+        if not video:
+            raise serializers.ValidationError('Video "{video_id}" is not valid.'.format(video_id=video_id))
+
+        data.update(video=video)
+        return data
+
+    def create(self, validated_data):
+        """
+        Create the video transcript.
+        """
+        return VideoTranscript.create(**validated_data)
+
 
 class CourseSerializer(serializers.RelatedField):
     """

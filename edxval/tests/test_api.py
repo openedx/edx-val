@@ -30,6 +30,7 @@ from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
                            TranscriptFormat, TranscriptPreference,
                            TranscriptProviderType, Video, VideoImage,
                            VideoTranscript)
+from edxval.serializers import VideoSerializer
 from edxval.tests import APIAuthTestCase, constants
 
 
@@ -138,6 +139,21 @@ class CreateVideoTest(TestCase):
         """
         with self.assertRaises(ValCannotCreateError):
             api.create_video(data)
+
+    def test_create_external_video(self):
+        """
+        Tests the creation of an external video.
+        """
+        expected_video = {
+            'status': u'external',
+            'client_video_id': u'Test Video',
+            'duration': 0,
+            'encoded_videos': [],
+            'courses': []
+        }
+        edx_video_id = api.create_external_video(display_name=expected_video['client_video_id'])
+        video = VideoSerializer(Video.objects.get(edx_video_id=edx_video_id)).data
+        self.assertDictContainsSubset(expected_video, video)
 
 
 @ddt
@@ -1762,26 +1778,23 @@ class TranscriptTest(TestCase):
         """
         Verify that `get_video_transcript_data` logs and raises an exception.
         """
+        video_id = u'medium-soaker'
+        language_code = u'zh'
         with self.assertRaises(IOError):
-            api.get_video_transcript_data(video_ids=['medium-soaker'], language_code=u'zh')
+            api.get_video_transcript_data(video_id, language_code)
 
         mock_logger.exception.assert_called_with(
             '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
-            'medium-soaker',
-            'zh',
+            video_id,
+            language_code,
         )
 
-    @data(
-        {'video_ids': ['non-existant-video', 'another-non-existant-id'], 'language_code': 'en', 'result': None},
-        {'video_ids': ['non-existant-video', 'super-soaker'], 'language_code': 'zh', 'result': None},
-    )
-    @unpack
-    def test_get_video_transcript_data_not_found(self, video_ids, language_code, result):
+    def test_get_video_transcript_data_not_found(self):
         """
-        Verify that `get_video_transcript_data` api function works as expected.
+        Verify the `get_video_transcript_data` returns none if transcript is not present for a video.
         """
-        transcript = api.get_video_transcript_data(video_ids, language_code)
-        self.assertEqual(transcript, result)
+        transcript = api.get_video_transcript_data(u'non-existant-video', u'en')
+        self.assertIsNone(transcript)
 
     @data(
         ('super-soaker', 'en', 'Shallow Swordfish-en.srt', 'edxval/tests/data/The_Flash.srt'),
@@ -1796,10 +1809,7 @@ class TranscriptTest(TestCase):
             'file_name': expected_file_name,
             'content': File(open(expected_transcript_path)).read()
         }
-        transcript = api.get_video_transcript_data(
-            video_ids=[video_id, '0987654321'],
-            language_code=language_code
-        )
+        transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
         self.assertDictEqual(transcript, expected_transcript)
 
     def test_get_video_transcript_url(self):
@@ -1894,6 +1904,67 @@ class TranscriptTest(TestCase):
 
         self.assertEqual(transcript_exception.exception.message, exception_message)
 
+    def test_create_video_transcript(self):
+        """
+        Verify that `create_video_transcript` api function creates transcript as expected.
+        """
+        edx_video_id = u'1234'
+        language_code = u'en'
+        transcript_props = dict(
+            video_id=edx_video_id,
+            language_code=language_code,
+            provider=TranscriptProviderType.THREE_PLAY_MEDIA,
+            file_format=TranscriptFormat.SRT,
+            content=ContentFile(FILE_DATA)
+        )
+
+        # setup video with the `edx_video_id` above.
+        self.setup_video_with_transcripts(
+            video_data=dict(constants.VIDEO_DICT_DIFFERENT_ID_FISH, edx_video_id=edx_video_id),
+            transcripts_data=[]
+        )
+
+        # Assert that 'en' transcript is not already present.
+        video_transcript = VideoTranscript.get_or_none(edx_video_id, language_code)
+        self.assertIsNone(video_transcript)
+
+        # Create the transcript
+        api.create_video_transcript(**transcript_props)
+
+        # Assert the transcript object and its content
+        video_transcript = VideoTranscript.get_or_none(edx_video_id, language_code)
+        self.assertIsNotNone(video_transcript)
+        self.assertEqual(video_transcript.file_format, transcript_props['file_format'])
+        self.assertEqual(video_transcript.provider, transcript_props['provider'])
+        with open(video_transcript.transcript.name) as created_transcript:
+            self.assertEqual(created_transcript.read(), FILE_DATA)
+
+    @data(
+        {
+            'video_id': 'super-soaker',
+            'language_code': 'en',
+            'file_format': '123',
+            'provider': TranscriptProviderType.CIELO24,
+            'exception_msg': '"123" is not a valid choice.'
+        },
+        {
+            'video_id': 'medium-soaker',
+            'language_code': 'en',
+            'file_format': TranscriptFormat.SRT,
+            'provider': 'unknown provider',
+            'exception_msg': '"unknown provider" is not a valid choice.'
+        }
+    )
+    @unpack
+    def test_create_video_transcript_exceptions(self, video_id, language_code, file_format, provider, exception_msg):
+        """
+        Verify that `create_video_transcript` api function raise exceptions on invalid values.
+        """
+        with self.assertRaises(ValCannotCreateError) as transcript_exception:
+            api.create_video_transcript(video_id, language_code, file_format, ContentFile(FILE_DATA), provider)
+
+        self.assertIn(exception_msg, unicode(transcript_exception.exception.message))
+
     def test_video_transcript_deletion(self):
         """
         Test video transcript deletion works as expected.
@@ -1930,12 +2001,11 @@ class TranscriptTest(TestCase):
         Verify that `get_available_transcript_languages` works as expected.
         """
         # `super-soaker` has got 'en' and 'fr' transcripts
-        # `non_existent_video_id` that does not have transcript
-        video_ids = ['super-soaker', 'non_existent_video_id']
-        transcript_languages = api.get_available_transcript_languages(video_ids=video_ids)
+        transcript_languages = api.get_available_transcript_languages(video_id=u'super-soaker')
         self.assertItemsEqual(transcript_languages, ['en', 'fr'])
 
-    def test_delete_video_transcript(self):
+    @patch('edxval.api.logger')
+    def test_delete_video_transcript(self, mock_logger):
         """
         Verify that `delete_video_transcript` works as expected.
         """
@@ -1954,6 +2024,11 @@ class TranscriptTest(TestCase):
         # assert that the transcript does not exist on the path anymore.
         self.assertFalse(os.path.exists(transcript_path))
         self.assertEqual(VideoTranscript.objects.filter(**query_filter).count(), 0)
+        mock_logger.info.assert_called_with(
+            'Transcript is removed for video "%s" and language code "%s"',
+            query_filter['video__edx_video_id'],
+            query_filter['language_code']
+        )
 
 
 @ddt

@@ -5,6 +5,7 @@ The internal API for VAL.
 """
 import logging
 from enum import Enum
+from uuid import uuid4
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from lxml import etree
@@ -37,6 +38,13 @@ class SortDirection(Enum):
     """An enum representing sort direction"""
     asc = "asc"
     desc = "desc"
+
+
+def generate_video_id():
+    """
+    Generates a video ID.
+    """
+    return unicode(uuid4())
 
 
 def create_video(video_data):
@@ -76,6 +84,23 @@ def create_video(video_data):
         return video_data.get("edx_video_id")
     else:
         raise ValCannotCreateError(serializer.errors)
+
+
+def create_external_video(display_name):
+    """
+    Create an external video.
+
+    Arguments:
+        display_name(unicode): Client title for the external video
+    """
+    return create_video({
+        'edx_video_id': generate_video_id(),
+        'status': 'external',
+        'client_video_id': display_name,
+        'duration': 0,
+        'encoded_videos': [],
+        'courses': []
+    })
 
 
 def update_video(video_data):
@@ -213,30 +238,21 @@ def get_video_transcript(video_id, language_code):
     return TranscriptSerializer(transcript).data if transcript else None
 
 
-def get_video_transcript_data(video_ids, language_code):
+def get_video_transcript_data(video_id, language_code):
     """
     Get video transcript data
 
     Arguments:
-        video_ids(list): list containing edx_video_id and external video ids extracted from
-        external sources from a video component.
+        video_id(unicode): An id identifying the Video.
         language_code(unicode): it will be the language code of the requested transcript.
 
     Returns:
-        A dict containing transcript file name and its content. It will be for a video whose transcript
-        found first while iterating the video ids.
+        A dict containing transcript file name and its content.
     """
-    transcript_data = None
-    for video_id in video_ids:
+    video_transcript = VideoTranscript.get_or_none(video_id, language_code)
+    if video_transcript:
         try:
-            video_transcript = VideoTranscript.objects.get(video__edx_video_id=video_id, language_code=language_code)
-            transcript_data = dict(
-                file_name=video_transcript.filename,
-                content=video_transcript.transcript.file.read()
-            )
-            break
-        except VideoTranscript.DoesNotExist:
-            continue
+            return dict(file_name=video_transcript.filename, content=video_transcript.transcript.file.read())
         except Exception:
             logger.exception(
                 '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
@@ -245,26 +261,23 @@ def get_video_transcript_data(video_ids, language_code):
             )
             raise
 
-    return transcript_data
 
-
-def get_available_transcript_languages(video_ids):
+def get_available_transcript_languages(video_id):
     """
     Get available transcript languages
 
     Arguments:
-        video_ids(list): list containing edx_video_id and external video ids extracted from
-        external sources of a video component.
+        video_id(unicode): An id identifying the Video.
 
     Returns:
-        A list containing unique transcript language codes for the video ids.
+        A list containing transcript language codes for the Video.
     """
     available_languages = VideoTranscript.objects.filter(
-        video__edx_video_id__in=video_ids
+        video__edx_video_id=video_id
     ).values_list(
         'language_code', flat=True
     )
-    return list(set(available_languages))
+    return list(available_languages)
 
 
 def get_video_transcript_url(video_id, language_code):
@@ -278,6 +291,28 @@ def get_video_transcript_url(video_id, language_code):
     video_transcript = VideoTranscript.get_or_none(video_id, language_code)
     if video_transcript:
         return video_transcript.url()
+
+
+def create_video_transcript(video_id, language_code, file_format, content, provider=TranscriptProviderType.CUSTOM):
+    """
+    Create a video transcript.
+
+    Arguments:
+        video_id(unicode): An Id identifying the Video data model object.
+        language_code(unicode): A language code.
+        file_format(unicode): Transcript file format.
+        content(InMemoryUploadedFile): Transcript content.
+        provider(unicode): Transcript provider (it will be 'custom' by default if not selected).
+    """
+    transcript_serializer = TranscriptSerializer(
+        data=dict(provider=provider, language_code=language_code, file_format=file_format),
+        context=dict(video_id=video_id),
+    )
+    if transcript_serializer.is_valid():
+        transcript_serializer.save(content=content)
+        return transcript_serializer.data
+    else:
+        raise ValCannotCreateError(transcript_serializer.errors)
 
 
 def create_or_update_video_transcript(video_id, language_code, metadata, file_data=None):
@@ -323,17 +358,16 @@ def delete_video_transcript(video_id, language_code):
     Delete transcript for an existing video.
 
     Arguments:
-        video_id: id of the video with which transcript is associated
-        language_code: language code of a video transcript
+        video_id: id identifying the video to which the transcript is associated.
+        language_code: language code of a video transcript.
     """
-    try:
-        video_transcript = VideoTranscript.objects.get(video__edx_video_id=video_id, language_code=language_code)
-        # delete the actual transcript file from storage
+    video_transcript = VideoTranscript.get_or_none(video_id, language_code)
+    if video_transcript:
+        # delete the transcript content from storage.
         video_transcript.transcript.delete()
-        # delete the record from db
+        # delete the transcript metadata from db.
         video_transcript.delete()
-    except VideoTranscript.DoesNotExist:
-        pass
+        logger.info('Transcript is removed for video "%s" and language code "%s"', video_id, language_code)
 
 
 def get_3rd_party_transcription_plans():
