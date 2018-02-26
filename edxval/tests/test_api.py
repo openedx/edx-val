@@ -4,6 +4,7 @@ Tests for the API for Video Abstraction Layer
 """
 import json
 import os
+import shutil
 
 import mock
 from ddt import data, ddt, unpack
@@ -15,6 +16,9 @@ from django.core.files.images import ImageFile
 from django.core.urlresolvers import reverse
 from django.db import DatabaseError
 from django.test import TestCase
+from fs.osfs import OSFS
+from fs.path import combine
+from tempfile import mkdtemp
 from lxml import etree
 from mock import patch
 from rest_framework import status
@@ -33,6 +37,9 @@ from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
 from edxval.serializers import VideoSerializer
 from edxval.tests import APIAuthTestCase, constants
 
+
+STATIC_DIR = u'static'
+STATIC_PATH = u'/static'
 
 FILE_DATA = """
 1
@@ -901,7 +908,9 @@ class TestCopyCourse(TestCase):
 
 @ddt
 class ExportTest(TestCase):
-    """Tests export_to_xml"""
+    """
+    Tests export_to_xml method.
+    """
     def setUp(self):
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         desktop_profile = Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
@@ -935,13 +944,20 @@ class ExportTest(TestCase):
         transcript_data.pop('video_id')
         VideoTranscript.objects.create(**transcript_data)
 
+        self.temp_dir = mkdtemp()
+        self.file_system = OSFS(self.temp_dir)
+        self.file_system.makedir(STATIC_DIR, recreate=True)
+        self.addCleanup(shutil.rmtree, self.temp_dir)
+
     def assert_xml_equal(self, left, right):
         """
         Assert that the given XML fragments have the same attributes, text, and
-        (recursively) children
+        (recursively) children.
         """
         def get_child_tags(elem):
-            """Extract the list of tag names for children of elem"""
+            """
+            Extract the list of tag names for children of elem.
+            """
             return [child.tag for child in elem]
 
         for attr in ['tag', 'attrib', 'text', 'tail']:
@@ -951,18 +967,37 @@ class ExportTest(TestCase):
             self.assert_xml_equal(left_child, right_child)
 
     def parse_xml(self, xml_str):
-        """Parse XML for comparison with export output"""
+        """
+        Parse XML for comparison with export output.
+        """
         parser = etree.XMLParser(remove_blank_text=True)
         return etree.XML(xml_str, parser=parser)
 
     def test_no_encodings(self):
+        """
+        Verify that transcript export for video with no encodings is working as expected.
+        """
         expected = self.parse_xml("""
             <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
         """)
         self.assert_xml_equal(
-            api.export_to_xml([constants.VIDEO_DICT_STAR["edx_video_id"]]),
+            api.export_to_xml(constants.VIDEO_DICT_STAR['edx_video_id'], self.file_system, STATIC_DIR),
             expected
         )
+
+    def test_no_video_transcript(self):
+        """
+        Verify that transcript export for video with no transcript is working as expected.
+        """
+        expected = self.parse_xml("""
+            <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
+        """)
+
+        exported_xml = api.export_to_xml(constants.VIDEO_DICT_STAR['edx_video_id'], self.file_system, STATIC_DIR)
+        self.assert_xml_equal(exported_xml, expected)
+
+        # Verify that no transcript is present in the XML.
+        self.assertIsNone(exported_xml.attrib.get('transcripts'))
 
     @data(
         {'course_id': None, 'image': ''},
@@ -970,57 +1005,70 @@ class ExportTest(TestCase):
     )
     @unpack
     def test_basic(self, course_id, image):
+        """
+        Test that video export works as expected.
+        """
         expected = self.parse_xml("""
             <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="{image}">
                 <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
                 <transcripts>
-                    <transcript file_format="sjson" file_name="edxval/tests/data/wow.sjson" language_code="de" provider="3PlayMedia" video_id="{video_id}"/>
-                    <transcript file_format="srt" file_name="wow.srt" language_code="en" provider="Cielo24" video_id="{video_id}" />
+                    <transcript file_format="sjson" file_name="edxval/tests/data/wow.sjson" language_code="de" provider="3PlayMedia" />
+                    <transcript file_format="srt" file_name="edxval/tests/data/The_Flash.srt" language_code="en" provider="Cielo24" />
                 </transcripts>
             </video_asset>
-        """.format(image=image, video_id=constants.VIDEO_DICT_FISH['edx_video_id']))
+        """.format(image=image))
 
         self.assert_xml_equal(
-            api.export_to_xml([constants.VIDEO_DICT_FISH['edx_video_id']], course_id),
+            api.export_to_xml(constants.VIDEO_DICT_FISH['edx_video_id'], self.file_system, STATIC_DIR, course_id),
             expected
         )
 
-    def test_unknown_video(self):
-        with self.assertRaises(ValVideoNotFoundError):
-            api.export_to_xml(["unknown_video"])
+    def test_transcript_export(self):
+        """
+        Test that transcript are exported correctly.
+        """
+        language_code = 'en'
+        video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        transcript_files = {'de': u'super-soaker-de.sjson', 'en': u'super-soaker-en.srt'}
+        expected_transcript_path = combine(self.temp_dir, STATIC_PATH)
 
-    def test_with_multiple_video_ids(self):
-        """
-        Verify that transcript export with multiple video ids is working as expected.
-        """
-        video_ids = ['super-soaker', 'external_video_id']
-        expected = self.parse_xml("""
-            <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="">
-                <encoded_video bitrate="22" file_size="11" profile="mobile" url="http://www.meowmix.com" />
-                <encoded_video bitrate="44" file_size="33" profile="desktop" url="http://www.meowmagic.com" />
-                <encoded_video bitrate="0" file_size="100" profile="hls" url="https://www.tmnt.com/tmnt101.m3u8" />
+        expected_xml = self.parse_xml("""
+            <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="image.jpg">
+                <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
+                <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
+                <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
                 <transcripts>
-                    <transcript file_format="sjson" file_name="edxval/tests/data/wow.sjson" language_code="de" provider="3PlayMedia" video_id="super-soaker"/>
-                    <transcript file_format="srt" file_name="wow.srt" language_code="en" provider="Cielo24" video_id="super-soaker" />
+                    <transcript file_format="sjson" file_name="edxval/tests/data/wow.sjson" language_code="de" provider="3PlayMedia" />
+                    <transcript file_format="srt" file_name="edxval/tests/data/The_Flash.srt" language_code="en" provider="Cielo24" />
                 </transcripts>
             </video_asset>
         """)
 
-        self.assert_xml_equal(
-            api.export_to_xml(video_ids),
-            expected
-        )
+        exported_xml = api.export_to_xml(video_id, self.file_system, STATIC_DIR, 'test-course')
 
-    def test_external_no_video_transcript(self):
+        # Assert video and transcript xml is exported correctly.
+        self.assert_xml_equal(exported_xml, expected_xml)
+
+        # Verify transcript file is created.
+        self.assertItemsEqual(transcript_files.values(), self.file_system.listdir(STATIC_PATH))
+
+        # Also verify the content of created transcript file.
+        for language_code in transcript_files.keys():
+            expected_transcript_content = File(
+                open(combine(expected_transcript_path, transcript_files[language_code]))
+            ).read()
+            transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
+            self.assertEqual(transcript['content'], expected_transcript_content)
+
+
+    def test_unknown_video(self):
         """
-        Verify that transcript export for external video working as expected when there is no transcript.
+        Test export with invalid video id.
         """
-        self.assert_xml_equal(
-            api.export_to_xml(['external_video_no_transcript'], external=True),
-            self.parse_xml('<video_asset/>')
-        )
+        with self.assertRaises(ValVideoNotFoundError):
+            api.export_to_xml('unknown_video', self.file_system, STATIC_DIR)
 
 
 @ddt
@@ -1702,6 +1750,9 @@ class TranscriptTest(TestCase):
         self.v2_transcript1 = video_and_transcripts['transcripts']['de']
         self.v2_transcript2 = video_and_transcripts['transcripts']['zh']
 
+        self.temp_dir = mkdtemp()
+        self.addCleanup(shutil.rmtree, self.temp_dir)
+
     def setup_video_with_transcripts(self, video_data, transcripts_data):
         """
         Setup a video with transcripts and returns them
@@ -2029,6 +2080,59 @@ class TranscriptTest(TestCase):
             query_filter['video__edx_video_id'],
             query_filter['language_code']
         )
+
+    def test_create_transcript_file(self):
+        """
+        Tests that transcript file is created correctly.
+        """
+        language_code = 'en'
+        video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        transcript_file_name = u'super-soaker-en.srt'
+        expected_transcript_path = combine(self.temp_dir, combine(STATIC_PATH, transcript_file_name))
+
+        file_system = OSFS(self.temp_dir)
+        file_system.makedir(STATIC_DIR, recreate=True)
+
+        # Create transcript file now.
+        api.create_trancript_file(
+            video_id=video_id,
+            language_code=language_code,
+            file_format=TranscriptFormat.SRT,
+            static_dir=STATIC_DIR,
+            resource_fs=file_system
+        )
+
+        # Verify transcript file is created.
+        self.assertTrue(transcript_file_name in file_system.listdir(STATIC_PATH))
+
+        # Also verify the content of created transcript file.
+        expected_transcript_content = File(open(expected_transcript_path)).read()
+        transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
+        self.assertEqual(transcript['content'], expected_transcript_content)
+
+    @data(
+        ('invalid-video-id', 'invalid-language-code'),
+        ('super-soaker', 'invalid-language-code')
+    )
+    @unpack
+    def test_no_create_transcript_file(self, video_id, language_code):
+        """
+        Tests that no transcript file is created in case of invalid scenario.
+        """
+        file_system = OSFS(self.temp_dir)
+        file_system.makedir(STATIC_DIR, recreate=True)
+
+        # Try to create transcript file now.
+        api.create_trancript_file(
+            video_id=video_id,
+            language_code=language_code,
+            file_format=TranscriptFormat.SRT,
+            static_dir=STATIC_DIR,
+            resource_fs=file_system
+        )
+
+        # Verify no file is created.
+        self.assertEqual(file_system.listdir(STATIC_PATH), [])
 
 
 @ddt
