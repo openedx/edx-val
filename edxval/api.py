@@ -8,6 +8,8 @@ from enum import Enum
 from uuid import uuid4
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files import File
+from fs.path import combine
 from lxml import etree
 from lxml.etree import Element, SubElement
 
@@ -20,7 +22,7 @@ from edxval.models import (CourseVideo, EncodedVideo, Profile,
                            TranscriptProviderType, Video, VideoImage,
                            VideoTranscript, ThirdPartyTranscriptCredentialsState)
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
-from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS
+from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS, create_file_in_fs
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -789,7 +791,7 @@ def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
         video_id (str): Video id of the video to export transcripts.
         course_id (str): The ID of the course with which this video is associated.
         static_dir (str): The Directory to store transcript file.
-        resource_fs (OSFS): The file system to store transcripts.
+        resource_fs (OSFS): Export file system.
 
     Returns:
         An lxml video_asset element containing export data
@@ -837,22 +839,15 @@ def create_trancript_file(video_id, language_code, file_format, resource_fs, sta
         static_dir (str): The Directory to store transcript file.
         resource_fs (OSFS): The file system to store transcripts.
     """
-    transcript_name = u'{static_dir}/{video_id}-{language_code}.{file_format}'.format(
-        static_dir=static_dir,
+    transcript_name = u'{video_id}-{language_code}.{file_format}'.format(
         video_id=video_id,
         language_code=language_code,
         file_format=file_format
     )
-    try:
-        transcript_data = get_video_transcript_data(video_id, language_code)
-        if transcript_data:
-            transcript_content = transcript_data['content']
-            with resource_fs.open(transcript_name, 'wb') as f:
-                f.write(transcript_content)
-    except Exception:
-        # Do not raise exception in case no transcript file is found for now.
-        # TODO: Remove this - EDUCATOR-2173
-        pass
+    transcript_data = get_video_transcript_data(video_id, language_code)
+    if transcript_data:
+        transcript_content = transcript_data['content']
+        create_file_in_fs(transcript_content, transcript_name, resource_fs, static_dir)
 
 
 def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
@@ -886,7 +881,6 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
                 transcripts_el,
                 'transcript',
                 {
-                    'file_name': video_transcript.transcript.name,
                     'language_code': language_code,
                     'file_format': file_format,
                     'provider': video_transcript.provider,
@@ -897,7 +891,7 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     return video_el
 
 
-def import_from_xml(xml, edx_video_id, course_id=None):
+def import_from_xml(xml, edx_video_id, resource_fs, static_dir, course_id=None):
     """
     Imports data from a video_asset element about the given video_id.
 
@@ -907,6 +901,8 @@ def import_from_xml(xml, edx_video_id, course_id=None):
     Arguments:
         xml (Element): An lxml video_asset element containing import data
         edx_video_id (str): val video id
+        resource_fs (OSFS): Import file system.
+        static_dir (str): The Directory to retrieve transcript file.
         course_id (str): The ID of a course to associate the video with
 
     Raises:
@@ -915,7 +911,7 @@ def import_from_xml(xml, edx_video_id, course_id=None):
     if xml.tag != 'video_asset':
         raise ValCannotCreateError('Invalid XML')
 
-    # TODO this will be moved as a part of EDUCATOR-2173
+    # TODO this will be moved as a part of EDUCATOR-2403
     if not edx_video_id:
         return
 
@@ -968,26 +964,43 @@ def import_from_xml(xml, edx_video_id, course_id=None):
             'bitrate': encoded_video_el.get('bitrate'),
         })
     create_video(data)
-    create_transcript_objects(xml)
+    create_transcript_objects(xml, edx_video_id, resource_fs, static_dir)
 
 
-def create_transcript_objects(xml):
+def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir):
     """
     Create VideoTranscript objects.
 
     Arguments:
-        xml (Element): lxml Element object
+        xml (Element): lxml Element object.
+        edx_video_id (str): Video id of the video.
+        resource_fs (OSFS): Import file system.
+        static_dir (str): The Directory to retrieve transcript file.
     """
     for transcript in xml.findall('.//transcripts/transcript'):
         try:
-            create_or_update_video_transcript(
-                transcript.attrib['video_id'],
-                transcript.attrib['language_code'],
-                metadata=dict(
-                    provider=transcript.attrib['provider'],
-                    file_name=transcript.attrib['file_name'],
-                    file_format=transcript.attrib['file_format'],
+            file_format = transcript.attrib['file_format']
+            language_code = transcript.attrib['language_code']
+            transcript_data = get_video_transcript_data(edx_video_id, language_code)
+
+            # First check if transcript record does not exist.
+            if not transcript_data:
+                transcript_file_name = u'{edx_video_id}-{language_code}.{file_format}'.format(
+                    edx_video_id=edx_video_id,
+                    language_code=language_code,
+                    file_format=file_format
                 )
-            )
+
+                # Read file from import file system and attach File to transcript record in DS.
+                file_data = File(resource_fs.open(combine(static_dir, transcript_file_name)))
+
+                # Create transcript record.
+                create_video_transcript(
+                    video_id=edx_video_id,
+                    language_code=language_code,
+                    file_format=file_format,
+                    content=file_data,
+                    provider=transcript.attrib['provider']
+                )
         except KeyError:
             logger.warn("VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip())

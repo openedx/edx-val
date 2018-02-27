@@ -813,6 +813,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         Tests POSTing transcript successfully.
         """
         post_transcript_data = dict(self.transcript_data)
+        post_transcript_data.pop('file_data')
         post_transcript_data['name'] = post_transcript_data.pop('transcript')
 
         response = self.client.post(self.url, post_transcript_data, format='json')
