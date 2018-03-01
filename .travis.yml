@@ -6,8 +6,7 @@ env:
 - TOXENV=django110
 - TOXENV=django111
 install:
-- pip install tox
-- pip install coveralls
+- pip install -r requirements/travis.txt
 script:
 - tox
 after_success: coveralls

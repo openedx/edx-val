@@ -1,9 +1,12 @@
+# Core requirements for using this application
+
+boto
+Django>=1.8,<2
+django-model-utils
 -e git+https://github.com/edx/django-oauth2-provider.git@0.2.7-fork-edx-6a#egg=django-oauth2-provider==0.2.7-fork-edx-6
+-e git+https://github.com/edx/django-rest-framework.git@1ceda7c086fddffd1c440cc86856441bbf0bd9cb#egg=djangorestframework==3.6.3
 -e git+https://github.com/edx/django-rest-framework-oauth.git@f0b503fda8c254a38f97fef802ded4f5fe367f7a#egg=djangorestframework-oauth
-pillow==4.2.1
-boto==2.46.1
-django-model-utils==2.3.1
-django-storages==1.5.2
-enum34==1.1.6
-git+https://github.com/edx/django-rest-framework.git@1ceda7c086fddffd1c440cc86856441bbf0bd9cb#egg=djangorestframework==3.6.3
-lxml==3.8.0
+django-storages
+enum34
+lxml
+pillow

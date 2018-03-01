@@ -34,7 +34,7 @@ def load_requirements(*requirements_paths):
     requirements = set()
     for path in requirements_paths:
         requirements.update(
-            line.strip() for line in open(path).readlines()
+            line.split('#')[0].strip() for line in open(path).readlines()
             if is_requirement(line)
         )
     return list(requirements)
@@ -54,6 +54,6 @@ setup(
         'Programming Language :: Python',
     ],
     packages=PACKAGES,
-    install_requires=load_requirements('requirements.txt', 'django-requirements.txt'),
-    tests_require=load_requirements('test-requirements.txt'),
+    install_requires=load_requirements('requirements/base.in'),
+    tests_require=load_requirements('requirements/test.in'),
 )
