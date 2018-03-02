@@ -1,0 +1,7 @@
+# Requirements for test runs.
+
+coverage
+ddt
+django-nose
+fs
+mock
