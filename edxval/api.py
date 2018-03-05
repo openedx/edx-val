@@ -843,11 +843,16 @@ def create_trancript_file(video_id, language_code, file_format, resource_fs, sta
         language_code=language_code,
         file_format=file_format
     )
-    transcript_data = get_video_transcript_data(video_id, language_code)
-    if transcript_data:
-        transcript_content = transcript_data['content']
-        with resource_fs.open(transcript_name, 'wb') as f:
-            f.write(transcript_content)
+    try:
+        transcript_data = get_video_transcript_data(video_id, language_code)
+        if transcript_data:
+            transcript_content = transcript_data['content']
+            with resource_fs.open(transcript_name, 'wb') as f:
+                f.write(transcript_content)
+    except Exception:
+        # Do not raise exception in case no transcript file is found for now.
+        # TODO: Remove this - EDUCATOR-2173
+        pass
 
 
 def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
