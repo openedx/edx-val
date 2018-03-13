@@ -2,9 +2,21 @@
 Util methods to be used in api and models.
 """
 
+import json
 from django.conf import settings
 from django.core.files.storage import get_storage_class
 from fs.path import combine
+from pysrt import SubRipFile
+
+
+class TranscriptFormat(object):
+    SRT = 'srt'
+    SJSON = 'sjson'
+
+    CHOICES = (
+        (SRT, 'SubRip'),
+        (SJSON, 'SRT JSON')
+    )
 
 
 # 3rd Party Transcription Plans
@@ -185,3 +197,21 @@ def create_file_in_fs(file_data, file_name, file_system, static_dir):
     """
     with file_system.open(combine(static_dir, file_name), 'wb') as f:
         f.write(file_data)
+
+
+def get_transcript_format(transcript_content):
+    """
+    Returns transcript format.
+
+    Arguments:
+        transcript_content (str): Transcript file content.
+    """
+    try:
+        sjson_obj = json.loads(transcript_content)
+    except ValueError:
+        # With error handling (set to 'ERROR_RAISE'), we will be getting
+        # the exception if something went wrong in parsing the transcript.
+        srt_subs = SubRipFile.from_string(transcript_content, error_handling=SubRipFile.ERROR_RAISE)
+        if len(srt_subs) > 0:
+            return TranscriptFormat.SRT
+    return TranscriptFormat.SJSON

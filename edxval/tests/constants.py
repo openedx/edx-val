@@ -4,15 +4,17 @@
 Constants used for tests.
 """
 from edxval.models import (
-    TranscriptFormat,
     TranscriptProviderType,
     Cielo24Fidelity,
     Cielo24Turnaround,
     ThreePlayTurnaround
 )
 
+from edxval.utils import TranscriptFormat
+
 EDX_VIDEO_ID = "itchyjacket"
 
+EXPORT_IMPORT_COURSE_DIR = u'course'
 EXPORT_IMPORT_STATIC_DIR = u'static'
 
 """
@@ -380,12 +382,24 @@ I am overwatch.
 1
 00:00:07,180 --> 00:00:08,460
 This is Flash line 1.""",
-    "wow": {
-        "start": [10],
-        "end": [100],
-        "text": ["Hi, welcome to edxval."],
-    }
+    "wow": """{\n   "start": [10],\n   "end": [100],\n   "text": ["Hi, welcome to edxval."]\n}\n"""
 }
+
+VIDEO_TRANSCRIPT_CUSTOM_SRT = dict(
+    language_code='en',
+    transcript='edxval/tests/data/The_Flash.srt',
+    provider=TranscriptProviderType.CUSTOM,
+    file_format=TranscriptFormat.SRT,
+    file_data=TRANSCRIPT_DATA['flash']
+)
+
+VIDEO_TRANSCRIPT_CUSTOM_SJSON = dict(
+    language_code='en',
+    transcript='edxval/tests/data/wow.sjson',
+    provider=TranscriptProviderType.CUSTOM,
+    file_format=TranscriptFormat.SJSON,
+    file_data=TRANSCRIPT_DATA['wow']
+)
 
 VIDEO_TRANSCRIPT_CIELO24 = dict(
     video_id='super-soaker',

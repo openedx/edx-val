@@ -8,10 +8,11 @@ from ddt import data, ddt, unpack
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from edxval.models import (CourseVideo, Profile, TranscriptFormat,
+from edxval.models import (CourseVideo, Profile,
                            TranscriptProviderType, Video, VideoTranscript)
 from edxval.serializers import TranscriptSerializer
 from edxval.tests import APIAuthTestCase, constants
+from edxval.utils import TranscriptFormat
 
 
 class VideoDetail(APIAuthTestCase):
