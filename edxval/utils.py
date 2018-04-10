@@ -4,6 +4,8 @@ Util methods to be used in api and models.
 
 from django.conf import settings
 from django.core.files.storage import get_storage_class
+from fs.path import combine
+
 
 # 3rd Party Transcription Plans
 THIRD_PARTY_TRANSCRIPTION_PLANS = {
@@ -169,3 +171,17 @@ def get_video_transcript_storage():
         # during edx-platform loading this method gets called but settings are not ready yet
         # so in that case we will return default(FileSystemStorage) storage class instance
         return get_storage_class()()
+
+
+def create_file_in_fs(file_data, file_name, file_system, static_dir):
+    """
+    Writes file in specific file system.
+
+    Arguments:
+        file_data (str): Data to store into the file.
+        file_name (str): File name of the file to be created.
+        resource_fs (OSFS): Import file system.
+        static_dir (str): The Directory to retrieve transcript file.
+    """
+    with file_system.open(combine(static_dir, file_name), 'wb') as f:
+        f.write(file_data)
