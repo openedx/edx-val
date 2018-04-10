@@ -25,7 +25,7 @@ from django.dispatch import receiver
 from django.utils.six import python_2_unicode_compatible
 from model_utils.models import TimeStampedModel
 
-from edxval.utils import (get_video_image_storage,
+from edxval.utils import (TranscriptFormat, get_video_image_storage,
                           get_video_transcript_storage, video_image_path,
                           video_transcript_path)
 
@@ -370,16 +370,6 @@ class TranscriptProviderType(object):
         (CUSTOM, CUSTOM),
         (THREE_PLAY_MEDIA, THREE_PLAY_MEDIA),
         (CIELO24, CIELO24),
-    )
-
-
-class TranscriptFormat(object):
-    SRT = 'srt'
-    SJSON = 'sjson'
-
-    CHOICES = (
-        (SRT, 'SubRip'),
-        (SJSON, 'SRT JSON')
     )
 
 
