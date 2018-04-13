@@ -4,14 +4,19 @@
 Constants used for tests.
 """
 from edxval.models import (
-    TranscriptFormat,
     TranscriptProviderType,
     Cielo24Fidelity,
     Cielo24Turnaround,
     ThreePlayTurnaround
 )
 
+from edxval.utils import TranscriptFormat
+
 EDX_VIDEO_ID = "itchyjacket"
+
+EXPORT_IMPORT_COURSE_DIR = u'course'
+EXPORT_IMPORT_STATIC_DIR = u'static'
+
 """
 Generic Profiles for manually creating profile objects
 """
@@ -363,12 +368,46 @@ VIDEO_DICT_UPDATE_ANIMAL = dict(
     encoded_videos=[],
 )
 
+
+TRANSCRIPT_DATA = {
+    "overwatch": """
+1
+00:00:14,370 --> 00:00:16,530
+I am overwatch.
+
+2
+00:00:16,500 --> 00:00:18,600
+可以用“我不太懂艺术 但我知道我喜欢什么”做比喻.""",
+    "flash": """
+1
+00:00:07,180 --> 00:00:08,460
+This is Flash line 1.""",
+    "wow": """{\n   "start": [10],\n   "end": [100],\n   "text": ["Hi, welcome to edxval."]\n}\n"""
+}
+
+VIDEO_TRANSCRIPT_CUSTOM_SRT = dict(
+    language_code='en',
+    transcript='edxval/tests/data/The_Flash.srt',
+    provider=TranscriptProviderType.CUSTOM,
+    file_format=TranscriptFormat.SRT,
+    file_data=TRANSCRIPT_DATA['flash']
+)
+
+VIDEO_TRANSCRIPT_CUSTOM_SJSON = dict(
+    language_code='en',
+    transcript='edxval/tests/data/wow.sjson',
+    provider=TranscriptProviderType.CUSTOM,
+    file_format=TranscriptFormat.SJSON,
+    file_data=TRANSCRIPT_DATA['wow']
+)
+
 VIDEO_TRANSCRIPT_CIELO24 = dict(
     video_id='super-soaker',
     language_code='en',
     transcript='edxval/tests/data/The_Flash.srt',
     provider=TranscriptProviderType.CIELO24,
     file_format=TranscriptFormat.SRT,
+    file_data=TRANSCRIPT_DATA['flash']
 )
 
 VIDEO_TRANSCRIPT_3PLAY = dict(
@@ -377,6 +416,7 @@ VIDEO_TRANSCRIPT_3PLAY = dict(
     transcript='edxval/tests/data/wow.sjson',
     provider=TranscriptProviderType.THREE_PLAY_MEDIA,
     file_format=TranscriptFormat.SJSON,
+    file_data=TRANSCRIPT_DATA['wow']
 )
 
 TRANSCRIPT_PREFERENCES_CIELO24 = dict(

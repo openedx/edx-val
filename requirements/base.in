@@ -10,3 +10,4 @@ django-storages
 enum34
 lxml
 pillow
+pysrt==0.4.7

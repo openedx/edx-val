@@ -2,8 +2,22 @@
 Util methods to be used in api and models.
 """
 
+import json
 from django.conf import settings
 from django.core.files.storage import get_storage_class
+from fs.path import combine
+from pysrt import SubRipFile
+
+
+class TranscriptFormat(object):
+    SRT = 'srt'
+    SJSON = 'sjson'
+
+    CHOICES = (
+        (SRT, 'SubRip'),
+        (SJSON, 'SRT JSON')
+    )
+
 
 # 3rd Party Transcription Plans
 THIRD_PARTY_TRANSCRIPTION_PLANS = {
@@ -169,3 +183,35 @@ def get_video_transcript_storage():
         # during edx-platform loading this method gets called but settings are not ready yet
         # so in that case we will return default(FileSystemStorage) storage class instance
         return get_storage_class()()
+
+
+def create_file_in_fs(file_data, file_name, file_system, static_dir):
+    """
+    Writes file in specific file system.
+
+    Arguments:
+        file_data (str): Data to store into the file.
+        file_name (str): File name of the file to be created.
+        resource_fs (OSFS): Import file system.
+        static_dir (str): The Directory to retrieve transcript file.
+    """
+    with file_system.open(combine(static_dir, file_name), 'wb') as f:
+        f.write(file_data)
+
+
+def get_transcript_format(transcript_content):
+    """
+    Returns transcript format.
+
+    Arguments:
+        transcript_content (str): Transcript file content.
+    """
+    try:
+        sjson_obj = json.loads(transcript_content)
+    except ValueError:
+        # With error handling (set to 'ERROR_RAISE'), we will be getting
+        # the exception if something went wrong in parsing the transcript.
+        srt_subs = SubRipFile.from_string(transcript_content, error_handling=SubRipFile.ERROR_RAISE)
+        if len(srt_subs) > 0:
+            return TranscriptFormat.SRT
+    return TranscriptFormat.SJSON

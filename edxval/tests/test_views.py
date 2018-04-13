@@ -8,10 +8,11 @@ from ddt import data, ddt, unpack
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from edxval.models import (CourseVideo, Profile, TranscriptFormat,
+from edxval.models import (CourseVideo, Profile,
                            TranscriptProviderType, Video, VideoTranscript)
 from edxval.serializers import TranscriptSerializer
 from edxval.tests import APIAuthTestCase, constants
+from edxval.utils import TranscriptFormat
 
 
 class VideoDetail(APIAuthTestCase):
@@ -813,6 +814,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         Tests POSTing transcript successfully.
         """
         post_transcript_data = dict(self.transcript_data)
+        post_transcript_data.pop('file_data')
         post_transcript_data['name'] = post_transcript_data.pop('transcript')
 
         response = self.client.post(self.url, post_transcript_data, format='json')

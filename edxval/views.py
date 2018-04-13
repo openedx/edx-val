@@ -15,13 +15,13 @@ from rest_framework_oauth.authentication import OAuth2Authentication
 from edxval.api import create_or_update_video_transcript
 from edxval.models import (
     CourseVideo,
-    TranscriptFormat,
     TranscriptProviderType,
     Video,
     VideoImage,
     VideoTranscript
 )
 from edxval.serializers import VideoSerializer
+from edxval.utils import TranscriptFormat
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=C0103
 
