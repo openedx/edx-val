@@ -4,6 +4,7 @@
 The internal API for VAL.
 """
 import logging
+import urllib2
 from enum import Enum
 from uuid import uuid4
 
@@ -12,7 +13,7 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from fs import open_fs
 from fs.errors import ResourceNotFound
-from fs.path import combine
+from fs.path import basename, combine
 from lxml import etree
 from lxml.etree import Element, SubElement
 from pysrt.srtexc import Error
@@ -29,6 +30,9 @@ from edxval.utils import TranscriptFormat, THIRD_PARTY_TRANSCRIPTION_PLANS, crea
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
+
+EXPORTED_VIDEO_PREFIX = 'olx'
+IMPORTED_VIDEO_PREFIX = 'local-video'
 
 
 class VideoSortField(Enum):
@@ -548,7 +552,7 @@ def get_video_info(edx_video_id):
             'client_video_id': u'The example video',
             'encoded_videos': [
                 {
-                    'url': u'http://www.example.com',
+                    'url': u'http://www.example.com/name-of-video.mp4',
                     'file_size': 25556,
                     'bitrate': 9600,
                     'profile': u'mobile'
@@ -783,8 +787,7 @@ def copy_course_videos(source_course_id, destination_course_id):
                 file_name=course_video.video_image.image.name
             )
 
-
-def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
+def export_to_xml(video_id, resource_fs, static_dir, video_download_dir=None, course_id=None):
     """
     Exports data for a video into an xml object.
 
@@ -795,6 +798,8 @@ def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
         video_id (str): Video id of the video to export transcripts.
         course_id (str): The ID of the course with which this video is associated.
         static_dir (str): The Directory to store transcript file.
+        video_download_dir (str): The directory to download videos files to. If None, do not
+                                  download videos.
         resource_fs (SubFS): Export file system.
 
     Returns:
@@ -821,13 +826,22 @@ def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
         }
     )
     for encoded_video in video.encoded_videos.all():
+        attributes = {
+            name: unicode(getattr(encoded_video, name))
+            for name in ['profile', 'url', 'file_size', 'bitrate']
+        }
+
+        # TODO: only download the mobile low profile?
+        if video_download_dir and unicode(encoded_video.profile) == u'mobile_low':
+            video_url = unicode(encoded_video.url)
+            create_video_file(video_url, resource_fs, video_download_dir)
+            exported_url = combine(video_download_dir, basename(video_url))
+            attributes['url'] = '{}://{}'.format(EXPORTED_VIDEO_PREFIX, exported_url)
+
         SubElement(
             video_el,
             'encoded_video',
-            {
-                name: unicode(getattr(encoded_video, name))
-                for name in ['profile', 'url', 'file_size', 'bitrate']
-            }
+            attributes,
         )
     return create_transcripts_xml(video_id, video_el, resource_fs, static_dir)
 
@@ -899,6 +913,19 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
             exported_language_codes.append(video_transcript.language_code)
 
     return video_el
+
+
+def create_video_file(video_url, resource_fs, video_download_dir):
+    """
+    Writes video file to file system.
+
+    Arguments:
+        resource_fs (SubFS): The file system to store downloaded videos.
+        video_url (str): URL where the video file should be fetched from.
+        video_dowload_dir (str): The Directory to store the video file.
+    """
+    resp = urllib2.urlopen(video_url)
+    create_file_in_fs(resp.read(), basename(video_url), resource_fs, video_download_dir)
 
 
 def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=dict(), course_id=None):
@@ -976,9 +1003,12 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
                     profile_name
                 )
                 continue
+            url = encoded_video_el.get('url')
+            if url.startswith(EXPORTED_VIDEO_PREFIX):
+                url = url.replace(EXPORTED_VIDEO_PREFIX, IMPORTED_VIDEO_PREFIX)
             data['encoded_videos'].append({
                 'profile': profile_name,
-                'url': encoded_video_el.get('url'),
+                'url': url,
                 'file_size': encoded_video_el.get('file_size'),
                 'bitrate': encoded_video_el.get('bitrate'),
             })
