@@ -2480,6 +2480,37 @@ class TranscriptTest(TestCase):
 
         self.assertEqual(transcript_exception.exception.message, exception_message)
 
+    @mock.patch.object(VideoTranscript, 'save')
+    def test_create_or_update_transcript_atomicity(self, mock_save):
+        """
+        Verify `create_or_update_video_transcript` api function atomicity.
+        """
+        file_data = ContentFile(constants.TRANSCRIPT_DATA['overwatch'])
+        file_name = None
+        file_format = utils.TranscriptFormat.SRT
+        language_code = 'en'
+        provider = TranscriptProviderType.THREE_PLAY_MEDIA
+        edx_video_id = 'super-soaker'
+
+        mock_save.side_effect = DatabaseError
+        with self.assertRaises(DatabaseError):
+            transcript_url = api.create_or_update_video_transcript(
+                video_id=edx_video_id,
+                language_code=language_code,
+                metadata=dict(
+                    provider=provider,
+                    file_name=file_name,
+                    file_format=file_format
+                ),
+                file_data=file_data
+            )
+
+        # Assert that there are no updates to the transcript data
+        video_transcript = VideoTranscript.objects.get(video__edx_video_id=edx_video_id,
+                                                       language_code=language_code)
+        with open(video_transcript.transcript.name) as saved_transcript:
+            self.assertNotEqual(saved_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
+
     def test_create_video_transcript(self):
         """
         Verify that `create_video_transcript` api function creates transcript as expected.
@@ -2662,7 +2693,6 @@ class TranscriptTest(TestCase):
 
         # Verify no file is created.
         self.assertEqual(file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR), [])
-
 
 @ddt
 class TranscriptPreferencesTest(TestCase):
