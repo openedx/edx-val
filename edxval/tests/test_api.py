@@ -2480,6 +2480,60 @@ class TranscriptTest(TestCase):
 
         self.assertEqual(transcript_exception.exception.message, exception_message)
 
+    @mock.patch.object(VideoTranscript, 'save')
+    def test_create_or_update_transcript_exception_on_update(self, mock_save):
+        """
+        Verify `create_or_update_video_transcript` api function does not update transcript on exception
+        """
+        file_data = ContentFile(constants.TRANSCRIPT_DATA['overwatch'])
+        language_code = 'en'
+        edx_video_id = 'super-soaker'
+
+        mock_save.side_effect = DatabaseError
+        with self.assertRaises(DatabaseError):
+            api.create_or_update_video_transcript(
+                video_id=edx_video_id,
+                language_code=language_code,
+                metadata=dict(
+                    provider=TranscriptProviderType.THREE_PLAY_MEDIA,
+                    file_name=None,
+                    file_format=utils.TranscriptFormat.SRT
+                ),
+                file_data=file_data
+            )
+
+        # Assert that there are no updates to the transcript data
+        video_transcript = VideoTranscript.objects.get(video__edx_video_id=edx_video_id,
+                                                       language_code=language_code)
+        with open(video_transcript.transcript.name) as saved_transcript:
+            self.assertNotEqual(saved_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
+
+    @mock.patch.object(VideoTranscript, 'save')
+    def test_create_or_update_transcript_exception_on_create(self, mock_save):
+        """
+        Verify `create_or_update_video_transcript` api function does not create transcript on exception.
+        """
+        file_data = ContentFile(constants.TRANSCRIPT_DATA['overwatch'])
+        language_code = 'ar'
+        edx_video_id = 'super-soaker'
+
+        mock_save.side_effect = DatabaseError
+        with self.assertRaises(DatabaseError):
+            api.create_or_update_video_transcript(
+                video_id=edx_video_id,
+                language_code=language_code,
+                metadata=dict(
+                    provider=TranscriptProviderType.THREE_PLAY_MEDIA,
+                    file_name=None,
+                    file_format=utils.TranscriptFormat.SRT
+                ),
+                file_data=file_data
+            )
+
+        # Assert that there is no transcript record
+        with self.assertRaises(VideoTranscript.DoesNotExist):
+            VideoTranscript.objects.get(video__edx_video_id=edx_video_id, language_code=language_code)
+
     def test_create_video_transcript(self):
         """
         Verify that `create_video_transcript` api function creates transcript as expected.
@@ -2540,37 +2594,6 @@ class TranscriptTest(TestCase):
             api.create_video_transcript(video_id, language_code, file_format, ContentFile(constants.TRANSCRIPT_DATA['overwatch']), provider)
 
         self.assertIn(exception_msg, unicode(transcript_exception.exception.message))
-
-    def test_video_transcript_deletion(self):
-        """
-        Test video transcript deletion works as expected.
-        """
-        edx_video_id = 'super-soaker'
-        # get an existing video transcript
-        video_transcript = VideoTranscript.objects.get(video__edx_video_id=edx_video_id, language_code='en')
-        existing_transcript_url = video_transcript.url()
-
-        # This will replace the transcript for an existing video and delete the existing transcript
-        new_transcript_url = api.create_or_update_video_transcript(
-            video_id=edx_video_id,
-            language_code='en',
-            metadata=dict(provider=TranscriptProviderType.CIELO24),
-            file_data=ContentFile(constants.TRANSCRIPT_DATA['overwatch'])
-        )
-
-        # Verify that new transcript is set to video
-        video_transcript = VideoTranscript.objects.get(video__edx_video_id=edx_video_id, language_code='en')
-        self.assertEqual(video_transcript.url(), new_transcript_url)
-
-        # verify that new data is written correctly
-        with open(video_transcript.transcript.name) as saved_transcript:
-            self.assertEqual(saved_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
-
-        # Verify that an exception is raised if we try to open a deleted transcript file
-        with self.assertRaises(IOError) as file_open_exception:
-            File(open(existing_transcript_url))
-
-        self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
 
     def test_get_available_transcript_languages(self):
         """
