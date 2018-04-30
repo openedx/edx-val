@@ -498,14 +498,11 @@ class VideoTranscript(TimeStampedModel):
                 setattr(video_transcript, prop, value)
 
         transcript_name = metadata.get('file_name')
+        old_transcript_path = video_transcript.transcript.path
+
         if transcript_name:
             video_transcript.transcript.name = transcript_name
         elif file_data:
-            # Delete the existing transcript file and
-            # recreate with the new content
-            if not created:
-                video_transcript.transcript.delete()
-
             with closing(file_data) as transcript_file_data:
                 file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=video_transcript.file_format)
                 try:
@@ -517,6 +514,11 @@ class VideoTranscript(TimeStampedModel):
                         language_code
                     )
                     raise
+
+            # Delete the existing transcript file from storage(for example, AWS S3)
+            if not created:
+                transcript_storage = get_video_transcript_storage()
+                transcript_storage.delete(old_transcript_path)
 
         video_transcript.save()
         return video_transcript, created
