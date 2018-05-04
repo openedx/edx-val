@@ -491,35 +491,37 @@ class VideoTranscript(TimeStampedModel):
         Returns:
             Returns a tuple of (video_transcript, created).
         """
-        video_transcript, created = cls.objects.get_or_create(video=video, language_code=language_code)
+        try:
+            video_transcript = cls.objects.get(video=video, language_code=language_code)
+            retrieved = True
+        except cls.DoesNotExist:
+            video_transcript = cls(video=video, language_code=language_code)
+            retrieved = False
 
         for prop, value in metadata.iteritems():
             if prop in ['language_code', 'file_format', 'provider']:
                 setattr(video_transcript, prop, value)
 
         transcript_name = metadata.get('file_name')
-        if transcript_name:
-            video_transcript.transcript.name = transcript_name
-        elif file_data:
-            # Delete the existing transcript file and
-            # recreate with the new content
-            if not created:
-                video_transcript.transcript.delete()
 
-            with closing(file_data) as transcript_file_data:
-                file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=video_transcript.file_format)
-                try:
+        try:
+            if transcript_name:
+                video_transcript.transcript.name = transcript_name
+            elif file_data:
+                with closing(file_data) as transcript_file_data:
+                    file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=video_transcript.file_format)
                     video_transcript.transcript.save(file_name, transcript_file_data)
-                except Exception:
-                    logger.exception(
-                        '[VAL] Transcript save failed to storage for video_id "%s" language code "%s"',
-                        video.edx_video_id,
-                        language_code
-                    )
-                    raise
 
-        video_transcript.save()
-        return video_transcript, created
+            video_transcript.save()
+        except Exception:
+            logger.exception(
+                '[VAL] Transcript save failed to storage for video_id "%s" language code "%s"',
+                video.edx_video_id,
+                language_code
+            )
+            raise
+
+        return video_transcript, not retrieved
 
     def url(self):
         """
