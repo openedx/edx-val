@@ -192,11 +192,11 @@ def create_file_in_fs(file_data, file_name, file_system, static_dir):
     Arguments:
         file_data (str): Data to store into the file.
         file_name (str): File name of the file to be created.
-        resource_fs (OSFS): Import file system.
+        file_system (OSFS): Import file system.
         static_dir (str): The Directory to retrieve transcript file.
     """
     with file_system.open(combine(static_dir, file_name), 'wb') as f:
-        f.write(file_data)
+        f.write(file_data.encode('utf-8'))
 
 
 def get_transcript_format(transcript_content):
