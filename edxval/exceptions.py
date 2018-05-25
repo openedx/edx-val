@@ -62,3 +62,10 @@ class InvalidTranscriptProvider(ValError):
     This error is raised when an transcript provider is not supported
     """
     pass
+
+
+class TranscriptsGenerationException(ValError):
+    """
+    This error is raised when a transcript content is not parse-able in specified format.
+    """
+    pass

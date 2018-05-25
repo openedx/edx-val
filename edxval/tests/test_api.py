@@ -35,6 +35,7 @@ from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
                            VideoTranscript)
 from edxval.serializers import VideoSerializer
 from edxval.tests import APIAuthTestCase, constants
+from edxval.transcript_utils import Transcript
 
 
 def omit_attrs(dict, attrs_to_omit=[]):
@@ -973,10 +974,13 @@ class ExportTest(TestCase):
         expected = self.parse_xml("""
             <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
         """)
-        self.assert_xml_equal(
-            api.export_to_xml(constants.VIDEO_DICT_STAR['edx_video_id'], self.file_system, constants.EXPORT_IMPORT_STATIC_DIR),
-            expected
+        exported_metadata = api.export_to_xml(
+            resource_fs=self.file_system,
+            static_dir=constants.EXPORT_IMPORT_STATIC_DIR,
+            video_id=constants.VIDEO_DICT_STAR['edx_video_id'],
         )
+
+        self.assert_xml_equal(exported_metadata['xml'], expected)
 
     def test_no_video_transcript(self):
         """
@@ -986,11 +990,12 @@ class ExportTest(TestCase):
             <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
         """)
 
-        exported_xml = api.export_to_xml(
+        exported_metadata = api.export_to_xml(
             constants.VIDEO_DICT_STAR['edx_video_id'],
             self.file_system,
             constants.EXPORT_IMPORT_STATIC_DIR
         )
+        exported_xml = exported_metadata['xml']
         self.assert_xml_equal(exported_xml, expected)
 
         # Verify that no transcript is present in the XML.
@@ -1011,21 +1016,21 @@ class ExportTest(TestCase):
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
                 <transcripts>
-                    <transcript file_format="sjson" language_code="de" provider="3PlayMedia" />
+                    <transcript file_format="srt" language_code="de" provider="3PlayMedia" />
                     <transcript file_format="srt" language_code="en" provider="Cielo24" />
                 </transcripts>
             </video_asset>
         """.format(image=image))
 
-        self.assert_xml_equal(
-            api.export_to_xml(
-                constants.VIDEO_DICT_FISH['edx_video_id'],
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR,
-                course_id
-            ),
-            expected
+        exported_metadata = api.export_to_xml(
+            constants.VIDEO_DICT_FISH['edx_video_id'],
+            self.file_system,
+            constants.EXPORT_IMPORT_STATIC_DIR,
+            course_id
         )
+
+        self.assert_xml_equal(exported_metadata['xml'], expected)
+        self.assertItemsEqual(exported_metadata['transcripts'].keys(), ['en', 'de'])
 
     def test_transcript_export(self):
         """
@@ -1033,7 +1038,7 @@ class ExportTest(TestCase):
         """
         language_code = 'en'
         video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        transcript_files = {'de': u'super-soaker-de.sjson', 'en': u'super-soaker-en.srt'}
+        transcript_files = {'de': u'super-soaker-de.srt', 'en': u'super-soaker-en.srt'}
         expected_transcript_path = combine(
             self.temp_dir,
             combine(constants.EXPORT_IMPORT_COURSE_DIR, constants.EXPORT_IMPORT_STATIC_DIR)
@@ -1045,16 +1050,21 @@ class ExportTest(TestCase):
                 <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
                 <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
                 <transcripts>
-                    <transcript file_format="sjson" language_code="de" provider="3PlayMedia" />
+                    <transcript file_format="srt" language_code="de" provider="3PlayMedia" />
                     <transcript file_format="srt" language_code="en" provider="Cielo24" />
                 </transcripts>
             </video_asset>
         """)
 
-        exported_xml = api.export_to_xml(video_id, self.file_system, constants.EXPORT_IMPORT_STATIC_DIR, 'test-course')
+        exported_metadata = api.export_to_xml(
+            video_id=video_id,
+            course_id='test-course',
+            resource_fs=self.file_system,
+            static_dir=constants.EXPORT_IMPORT_STATIC_DIR
+        )
 
         # Assert video and transcript xml is exported correctly.
-        self.assert_xml_equal(exported_xml, expected_xml)
+        self.assert_xml_equal(exported_metadata['xml'], expected_xml)
 
         # Verify transcript file is created.
         self.assertItemsEqual(transcript_files.values(), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
@@ -1065,7 +1075,13 @@ class ExportTest(TestCase):
                 open(combine(expected_transcript_path, transcript_files[language_code]))
             ).read()
             transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
-            self.assertEqual(transcript['content'], expected_transcript_content)
+            transcript_format = os.path.splitext(transcript['file_name'])[1][1:]
+            exported_transcript_content = Transcript.convert(
+                transcript['content'],
+                input_format=transcript_format,
+                output_format=Transcript.SRT,
+            ).encode('utf-8')
+            self.assertEqual(exported_transcript_content, expected_transcript_content)
 
 
     def test_unknown_video(self):
@@ -1728,19 +1744,17 @@ class ImportTest(TestCase):
         """
         language_code = 'en'
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        # First create transcript file.
+
+        # First create non utf-8 encoded transcript file in the file system.
         transcript_file_name = 'invalid-transcript.txt'
         invalid_transcript = dict(
             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
             video_id=edx_video_id,
-            file_data=u'Привіт, edX вітає вас.'.encode('cp1251')
+            file_data=u'Привіт, edX вітає вас.'
         )
-        utils.create_file_in_fs(
-            invalid_transcript['file_data'],
-            transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
+
+        with self.file_system.open(combine(constants.EXPORT_IMPORT_STATIC_DIR, transcript_file_name), 'wb') as f:
+            f.write(invalid_transcript['file_data'].encode('cp1251'))
 
         api.import_transcript_from_fs(
             edx_video_id=edx_video_id,

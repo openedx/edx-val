@@ -3,6 +3,7 @@
 """
 The internal API for VAL.
 """
+import os
 import logging
 from enum import Enum
 from uuid import uuid4
@@ -17,15 +18,35 @@ from lxml import etree
 from lxml.etree import Element, SubElement
 from pysrt.srtexc import Error
 
-from edxval.exceptions import (InvalidTranscriptFormat,
-                               InvalidTranscriptProvider, ValCannotCreateError,
-                               ValCannotUpdateError, ValInternalError,
-                               ValVideoNotFoundError)
-from edxval.models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference,
-                           TranscriptProviderType, Video, VideoImage,
-                           VideoTranscript, ThirdPartyTranscriptCredentialsState)
+from edxval.exceptions import (
+    InvalidTranscriptFormat,
+    TranscriptsGenerationException,
+    InvalidTranscriptProvider,
+    ValCannotCreateError,
+    ValCannotUpdateError,
+    ValInternalError,
+    ValVideoNotFoundError,
+)
+from edxval.models import (
+    CourseVideo,
+    EncodedVideo,
+    Profile,
+    TranscriptPreference,
+    TranscriptProviderType,
+    Video,
+    VideoImage,
+    VideoTranscript,
+    ThirdPartyTranscriptCredentialsState,
+)
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
-from edxval.utils import TranscriptFormat, THIRD_PARTY_TRANSCRIPTION_PLANS, create_file_in_fs, get_transcript_format
+from edxval.utils import (
+    TranscriptFormat,
+    THIRD_PARTY_TRANSCRIPTION_PLANS,
+    create_file_in_fs,
+    get_transcript_format,
+)
+
+from edxval.transcript_utils import Transcript
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
@@ -829,6 +850,7 @@ def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
                 for name in ['profile', 'url', 'file_size', 'bitrate']
             }
         )
+
     return create_transcripts_xml(video_id, video_el, resource_fs, static_dir)
 
 
@@ -843,21 +865,26 @@ def create_transcript_file(video_id, language_code, file_format, resource_fs, st
         static_dir (str): The Directory to store transcript file.
         resource_fs (SubFS): The file system to store transcripts.
     """
-    transcript_name = u'{video_id}-{language_code}.{file_format}'.format(
+    transcript_filename = '{video_id}-{language_code}.srt'.format(
         video_id=video_id,
-        language_code=language_code,
-        file_format=file_format
+        language_code=language_code
     )
     transcript_data = get_video_transcript_data(video_id, language_code)
     if transcript_data:
-        transcript_content = transcript_data['content']
-        create_file_in_fs(transcript_content, transcript_name, resource_fs, static_dir)
+        transcript_content = Transcript.convert(
+            transcript_data['content'],
+            input_format=file_format,
+            output_format=Transcript.SRT
+        )
+        create_file_in_fs(transcript_content, transcript_filename, resource_fs, static_dir)
+
+    return transcript_filename
 
 
 def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     """
     Creates xml for transcripts.
-    For each transcript elment, an associated transcript file is also created in course OLX.
+    For each transcript element, an associated transcript file is also created in course OLX.
 
     Arguments:
         video_id (str): Video id of the video.
@@ -873,32 +900,36 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     if video_transcripts.exists():
         transcripts_el = SubElement(video_el, 'transcripts')
 
-    exported_language_codes = []
+    transcript_files_map = {}
     for video_transcript in video_transcripts:
-        if video_transcript.language_code not in exported_language_codes:
-            language_code = video_transcript.language_code
-            file_format = video_transcript.file_format
+        language_code = video_transcript.language_code
+        file_format = video_transcript.file_format
 
-            create_transcript_file(
-                video_id,
-                language_code,
-                file_format,
-                resource_fs.delegate_fs(),
-                combine(u'course', static_dir)  # File system should not start from /draft directory.
+        try:
+            transcript_filename = create_transcript_file(
+                video_id=video_id,
+                language_code=language_code,
+                file_format=file_format,
+                resource_fs=resource_fs.delegate_fs(),
+                static_dir=combine(u'course', static_dir)  # File system should not start from /draft directory.
             )
+            transcript_files_map[language_code] = transcript_filename
+        except TranscriptsGenerationException:
+            # we don't want to halt export in this case, just log and move to the next transcript.
+            logger.exception('[VAL] Error while generating "%s" transcript for video["%s"].', language_code, video_id)
+            continue
 
-            SubElement(
-                transcripts_el,
-                'transcript',
-                {
-                    'language_code': language_code,
-                    'file_format': file_format,
-                    'provider': video_transcript.provider,
-                }
-            )
-            exported_language_codes.append(video_transcript.language_code)
+        SubElement(
+            transcripts_el,
+            'transcript',
+            {
+                'language_code': language_code,
+                'file_format': Transcript.SRT,
+                'provider': video_transcript.provider,
+            }
+        )
 
-    return video_el
+    return dict(xml=video_el, transcripts=transcript_files_map)
 
 
 def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=dict(), course_id=None):
@@ -1032,7 +1063,6 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
                 edx_video_id
             )
             return
-
 
         # Get file format from transcript content.
         try:
