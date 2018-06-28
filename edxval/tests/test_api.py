@@ -261,10 +261,10 @@ class CreateProfileTest(TestCase):
         with self.assertRaises(ValCannotCreateError):
             api.create_profile(constants.PROFILE_DESKTOP)
 
-
+@ddt
 class GetVideoInfoTest(TestCase):
     """
-    Tests for our get_video_info function in api.py
+    Tests for our `get_video_info` and `is_video_available` methods in api.py
     """
 
     def setUp(self):
@@ -329,6 +329,17 @@ class GetVideoInfoTest(TestCase):
             api.get_video_info(
                 constants.VIDEO_DICT_FISH.get("edx_video_id")
             )
+
+    @data(
+        ('non-existent-edx-video-id', False),
+        ('super-soaker', True)
+    )
+    @unpack
+    def test_is_video_available(self, edx_video_id, expected_availability):
+        """
+        Tests to see if a video exists for an `edx_video_id`.
+        """
+        self.assertEqual(api.is_video_available(edx_video_id), expected_availability)
 
 
 class GetUrlsForProfileTest(TestCase):

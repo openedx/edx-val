@@ -195,6 +195,16 @@ def update_video_status(edx_video_id, status):
     video.save()
 
 
+def is_video_available(edx_video_id):
+    """
+    Returns whether a video exists given a video ID.
+
+    Arguments:
+     edx_video_id: A video ID representing a video record in db.
+    """
+    return Video.objects.filter(edx_video_id=edx_video_id).exists()
+
+
 def get_transcript_credentials_state_for_org(org, provider=None):
     """
     Returns transcript credentials state for an org
