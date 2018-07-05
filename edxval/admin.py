@@ -57,6 +57,7 @@ class VideoImageAdmin(admin.ModelAdmin):
 
 class CourseVideoAdmin(admin.ModelAdmin):
     list_display = ('course_id', 'get_video_id', 'is_hidden')
+    search_fields = ('id', 'course_id', 'video__status', 'video__edx_video_id')
 
     def get_video_id(self, obj):
         return obj.video.edx_video_id

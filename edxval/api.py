@@ -3,13 +3,11 @@
 """
 The internal API for VAL.
 """
-import os
 import logging
 from enum import Enum
 from uuid import uuid4
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.files import File
 from django.core.files.base import ContentFile
 from fs import open_fs
 from fs.errors import ResourceNotFound
@@ -36,6 +34,7 @@ from edxval.models import (
     Video,
     VideoImage,
     VideoTranscript,
+    EXTERNAL_VIDEO_STATUS,
     ThirdPartyTranscriptCredentialsState,
 )
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
@@ -122,7 +121,7 @@ def create_external_video(display_name):
     """
     return create_video({
         'edx_video_id': generate_video_id(),
-        'status': 'external',
+        'status': EXTERNAL_VIDEO_STATUS,
         'client_video_id': display_name,
         'duration': 0,
         'encoded_videos': [],
@@ -982,7 +981,11 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
             edx_video_id,
             course_id,
         )
-        if course_id:
+
+        # We don't want to link an existing video to course if its an external video.
+        # External videos do not have any playback profiles associated, these are just to track video
+        # transcripts for those video components who do not use edx hosted videos for playback.
+        if course_id and video.status != EXTERNAL_VIDEO_STATUS:
             course_video, __ = CourseVideo.get_or_create_with_validation(video=video, course_id=course_id)
 
             image_file_name = xml.get('image', '').strip()

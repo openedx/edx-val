@@ -7,7 +7,8 @@ from edxval.models import (
     TranscriptProviderType,
     Cielo24Fidelity,
     Cielo24Turnaround,
-    ThreePlayTurnaround
+    ThreePlayTurnaround,
+    EXTERNAL_VIDEO_STATUS
 )
 
 from edxval.utils import TranscriptFormat
@@ -135,6 +136,12 @@ VIDEO_DICT_DIFFERENT_ID_FISH = dict(
     duration=122.00,
     edx_video_id="medium-soaker",
     status="test",
+)
+EXTERNAL_VIDEO_DICT_FISH = dict(
+    client_video_id="External Video",
+    duration=0.0,
+    edx_video_id="external-video",
+    status=EXTERNAL_VIDEO_STATUS,
 )
 ENCODED_VIDEO_DICT_FISH_MOBILE = dict(
     url="https://www.swordsingers.com",

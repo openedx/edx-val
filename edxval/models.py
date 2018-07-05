@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
 URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
 LIST_MAX_ITEMS = 3
+EXTERNAL_VIDEO_STATUS = 'external'
 
 
 class ModelFactoryWithValidation(object):
