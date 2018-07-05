@@ -1431,6 +1431,26 @@ class ImportTest(TestCase):
         xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
         self.assert_invalid_import(xml, "x" * 300)
 
+    def test_external_video_not_imported(self):
+        """
+        Verify that external videos are not imported into a course.
+        """
+        # Setup an external Video.
+        Video.objects.create(**constants.EXTERNAL_VIDEO_DICT_FISH)
+        xml = self.make_import_xml(video_dict=constants.EXTERNAL_VIDEO_DICT_FISH)
+        api.import_from_xml(
+            xml,
+            constants.EXTERNAL_VIDEO_DICT_FISH['edx_video_id'],
+            self.file_system,
+            constants.EXPORT_IMPORT_STATIC_DIR,
+            course_id='test_course_id'
+        )
+        # Assert that the existing video is not imported into the course.
+        self.assertFalse(CourseVideo.objects.filter(
+            course_id='test_course_id',
+            video__edx_video_id=constants.EXTERNAL_VIDEO_DICT_FISH['edx_video_id']
+        ).exists())
+
     def test_external_no_video_transcript(self):
         """
         Verify that transcript import for external video working as expected when there is no transcript.
