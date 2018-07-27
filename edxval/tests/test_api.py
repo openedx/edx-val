@@ -1428,8 +1428,47 @@ class ImportTest(TestCase):
         self.assert_invalid_import(xml)
 
     def test_invalid_course_id(self):
-        xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
+        """
+        Test the video xml import raises `ValCannotCreateError` on invalid course id.
+        """
+        xml = self.make_import_xml(
+            video_dict=constants.VIDEO_DICT_FISH,
+            encoded_video_dicts=[
+                constants.ENCODED_VIDEO_DICT_STAR,
+                constants.ENCODED_VIDEO_DICT_FISH_HLS
+            ]
+        )
         self.assert_invalid_import(xml, "x" * 300)
+
+    def test_video_not_linked_to_course_if_no_encodes(self):
+        """
+        Test that an imported video is not linked to the corresponding course if it has no
+        playable encodings.
+        """
+        course_id = 'existing_course_id'
+        video_data = dict(constants.VIDEO_DICT_FISH, edx_video_id='video_with_no_encoding')
+
+        xml = self.make_import_xml(
+            video_dict=video_data,
+            encoded_video_dicts=[]
+        )
+
+        #from nose.tools import set_trace; set_trace()
+        api.import_from_xml(
+            xml=xml,
+            course_id=course_id,
+            resource_fs=self.file_system,
+            edx_video_id=video_data['edx_video_id'],
+            static_dir = constants.EXPORT_IMPORT_STATIC_DIR,
+        )
+
+        # Assert that the video has been created and its status is external.
+        video = Video.objects.get(edx_video_id=video_data['edx_video_id'])
+        self.assertEqual(video.status, 'external')
+
+        # Assert that the created video is not linked to any course
+        with self.assertRaises(CourseVideo.DoesNotExist):
+            CourseVideo.objects.get(video=video)
 
     def test_external_video_not_imported(self):
         """

@@ -1027,6 +1027,16 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
                 'bitrate': encoded_video_el.get('bitrate'),
             })
 
+        if not data['encoded_videos']:
+            # Video's status does not get included in video xml at the time of export. So, at this point,
+            # we cannot tell from xml that whether a video had an external status. But if encoded videos
+            # are not set, the chances are, the video was an external one, in which case, we will not link
+            # it to the course(s). Even if the video wasn't an external one and it is having 0 encodes in
+            # xml, it does not have a side effect if not linked to a course, since the video was already
+            # non-playable.
+            data['status'] = EXTERNAL_VIDEO_STATUS
+            data['courses'] = []
+
         # Create external video if no edx_video_id.
         edx_video_id = create_video(data)
     else:
