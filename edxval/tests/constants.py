@@ -34,6 +34,11 @@ ENCODED_VIDEO_DICT_MOBILE = dict(
     file_size=11,
     bitrate=22,
 )
+ENCODED_VIDEO_DICT_YOUTUBE = dict(
+    url="https://www.youtube.com/watch?v=OscRe3pSP80",
+    file_size=0,
+    bitrate=42,
+)
 ENCODED_VIDEO_DICT_DESKTOP = dict(
     url="http://www.meowmagic.com",
     file_size=33,
