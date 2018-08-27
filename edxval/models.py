@@ -427,7 +427,7 @@ class VideoTranscript(TimeStampedModel):
         """
         client_id, __ = os.path.splitext(self.video.client_video_id)
         file_name = u'{name}-{language}.{format}'.format(
-            name=client_id,
+            name=unicode(client_id, 'utf-8'),
             language=self.language_code,
             format=self.file_format
         )
