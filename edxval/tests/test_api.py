@@ -7,6 +7,7 @@ import os
 import shutil
 
 import mock
+from unittest import skip
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -692,6 +693,73 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
                 sort_direction,
             )
         self.check_sort_params_of_api(api_func)
+
+@ddt
+class GetYouTubeProfileVideosTest(TestCase):
+    """
+    Tests for get_course_video_ids_with_youtube_profile function in api.py
+    """
+
+    def setUp(self):
+        """
+        Creates two courses for testing
+
+        Creates two videos with two encodings for first course
+        and then two videos with one encoded video for the second course.
+        """
+        encodes = [
+            dict(constants.ENCODED_VIDEO_DICT_YOUTUBE, profile=constants.PROFILE_YOUTUBE),
+            dict(constants.ENCODED_VIDEO_DICT_DESKTOP, profile=constants.PROFILE_DESKTOP)
+        ]
+        self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+        import copy
+        for course_id in range(1, 3):
+            self._setup_video_with_encodes_for_course(
+                course_id='test-course'+str(course_id),
+                video=self.video,
+                encodes_data=copy.deepcopy(encodes)
+            )
+
+    def _setup_video_with_encodes_for_course(self, course_id, video, encodes_data):
+
+        for encode_data in encodes_data:
+            profile, __ = Profile.objects.get_or_create(profile_name=encode_data.pop('profile'))
+            EncodedVideo.objects.create(video=video, profile=profile, **encode_data)
+
+        course_video = CourseVideo.objects.create(video=video, course_id=course_id)
+        return course_video
+
+    @skip("iahmad: 08/07/18: re-enable once EDUCATOR-3297 is resolved")
+    @data(
+        ([], 2),
+        (['test-course1'], 1),
+        (['test-course2'], 1),
+        (['test-course1', 'test-course2'], 2),
+        (['test-course1', 'test-course2', 'test-course2'], 2)
+    )
+    @unpack
+    def test_get_course_video_ids_with_youtube_profile_count(self, course_ids, count):
+        """
+        Tests count for course ids and video ids with youtube profile
+        """
+        ids = api.get_course_video_ids_with_youtube_profile(course_ids)
+        self.assertEqual(len(ids), count)
+
+    @skip("iahmad: 08/07/18: re-enable once EDUCATOR-3297 is resolved")
+    def test_get_course_video_ids_with_youtube_profile_content(self):
+        """
+        Tests content of course ids and video ids with youtube profile
+        """
+        ids = api.get_course_video_ids_with_youtube_profile(['test-course1'])
+        self.assertEqual(ids, [('test-course1', 'super-soaker', 'https://www.youtube.com/watch?v=OscRe3pSP80')])
+
+    @skip("iahmad: 08/07/18: re-enable once EDUCATOR-3297 is resolved")
+    def test_get_course_video_ids_with_youtube_profile_query_count(self):
+        """
+        Tests the query count for retrieving course ids and video ids with youtube profile
+        """
+        with self.assertNumQueries(5):
+            api.get_course_video_ids_with_youtube_profile()
 
 
 class GetVideosForIdsTest(TestCase, SortedVideoTestMixin):
