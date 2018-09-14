@@ -657,7 +657,7 @@ def get_course_video_ids_with_youtube_profile(course_ids=None):
     course_videos = (CourseVideo.objects.select_related('video')
                      .prefetch_related('video__encoded_videos', 'video__encoded_videos__profile')
                      .filter(video__encoded_videos__profile__profile_name='youtube')
-                     .distinct('course_id', 'video'))
+                     .distinct())
 
     if course_ids:
         course_videos = course_videos.filter(course_id__in=course_ids)

@@ -729,7 +729,6 @@ class GetYouTubeProfileVideosTest(TestCase):
         course_video = CourseVideo.objects.create(video=video, course_id=course_id)
         return course_video
 
-    @skip("iahmad: 08/07/18: re-enable once EDUCATOR-3297 is resolved")
     @data(
         ([], 2),
         (['test-course1'], 1),
@@ -745,7 +744,6 @@ class GetYouTubeProfileVideosTest(TestCase):
         ids = api.get_course_video_ids_with_youtube_profile(course_ids)
         self.assertEqual(len(ids), count)
 
-    @skip("iahmad: 08/07/18: re-enable once EDUCATOR-3297 is resolved")
     def test_get_course_video_ids_with_youtube_profile_content(self):
         """
         Tests content of course ids and video ids with youtube profile
@@ -753,7 +751,6 @@ class GetYouTubeProfileVideosTest(TestCase):
         ids = api.get_course_video_ids_with_youtube_profile(['test-course1'])
         self.assertEqual(ids, [('test-course1', 'super-soaker', 'https://www.youtube.com/watch?v=OscRe3pSP80')])
 
-    @skip("iahmad: 08/07/18: re-enable once EDUCATOR-3297 is resolved")
     def test_get_course_video_ids_with_youtube_profile_query_count(self):
         """
         Tests the query count for retrieving course ids and video ids with youtube profile
