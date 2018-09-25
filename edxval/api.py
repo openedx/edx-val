@@ -645,29 +645,43 @@ def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection
     return (VideoSerializer(video).data for video in videos)
 
 
-def get_course_video_ids_with_youtube_profile(course_ids=None):
+def get_course_video_ids_with_youtube_profile(course_ids=None, offset=None, limit=None):
     """
     Returns a list that contains all the course ids and video ids with the youtube profile
 
     Args:
          course_ids (list): valid course ids
+         limit (int): batch records limit
+         offset (int): an offset for selecting a batch
     Returns:
          (list): Tuples of course_id, edx_video_id and youtube video url
     """
     course_videos = (CourseVideo.objects.select_related('video')
                      .prefetch_related('video__encoded_videos', 'video__encoded_videos__profile')
                      .filter(video__encoded_videos__profile__profile_name='youtube')
+                     .order_by('id')
                      .distinct())
 
     if course_ids:
         course_videos = course_videos.filter(course_id__in=course_ids)
 
-    return [
-        (course_video.course_id,
-         course_video.video.edx_video_id,
-         course_video.video.encoded_videos.filter(profile__profile_name='youtube').first().url)
-        for course_video in course_videos
-    ]
+    course_videos = course_videos.values_list('course_id', 'video__edx_video_id')
+    if limit is not None and offset is not None:
+        course_videos = course_videos[offset: offset+limit]
+
+    course_videos_with_yt_profile = []
+    for course_id, edx_video_id in course_videos:
+        yt_profile = EncodedVideo.objects.filter(
+            video__edx_video_id=edx_video_id,
+            profile__profile_name='youtube'
+        ).first()
+
+        if yt_profile:
+            course_videos_with_yt_profile.append((
+                course_id, edx_video_id, yt_profile.url
+            ))
+
+    return course_videos_with_yt_profile
 
 
 def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc):
