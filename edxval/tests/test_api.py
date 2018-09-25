@@ -755,7 +755,7 @@ class GetYouTubeProfileVideosTest(TestCase):
         """
         Tests the query count for retrieving course ids and video ids with youtube profile
         """
-        with self.assertNumQueries(5):
+        with self.assertNumQueries(3):
             api.get_course_video_ids_with_youtube_profile()
 
 
