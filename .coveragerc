@@ -4,10 +4,8 @@ branch = True
 [report]
 include = edxval/*
 omit =
-    **/__init__.py
-    **/tests/*
-    **/settings.py
-    **/migrations*
+    */settings.py
+    */migrations*
 
 [html]
 title = edx-val Python Test Coverage Report
