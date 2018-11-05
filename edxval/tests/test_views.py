@@ -3,13 +3,17 @@
 Tests for Video Abstraction Layer views
 """
 import json
+from urlparse import urljoin
+from urllib import urlencode
 
 from ddt import data, ddt, unpack
 from django.core.urlresolvers import reverse
 from rest_framework import status
 
-from edxval.models import (CourseVideo, Profile,
-                           TranscriptProviderType, Video, VideoTranscript)
+from edxval.models import (
+    CourseVideo, Profile, TranscriptProviderType,
+    Video, VideoTranscript, EncodedVideo
+)
 from edxval.serializers import TranscriptSerializer
 from edxval.tests import APIAuthTestCase, constants
 from edxval.utils import TranscriptFormat
@@ -930,3 +934,90 @@ class VideoStatusViewTest(APIAuthTestCase):
         response = self.client.patch(self.url, patch_data, format='json')
         self.assertEqual(response.status_code, status_code)
         self.assertEqual(response.data.get('message'), message)
+
+
+@ddt
+class HLSMissingVideoListViewTest(APIAuthTestCase):
+    """
+    HLSMissingVideoListView Tests.
+    """
+    def setUp(self):
+        """
+        Tests setup.
+        """
+        self.url = reverse('hls-missing-video-list')
+
+        desktop_profile, __ = Profile.objects.get_or_create(profile_name=constants.PROFILE_DESKTOP)
+        hls_profile, __ = Profile.objects.get_or_create(profile_name=constants.PROFILE_HLS)
+
+        # Setup 2 videos without hls profile
+        video_wo_hls1 = Video.objects.create(**dict(
+            constants.VIDEO_DICT_FISH, edx_video_id='video-wo-hls1', status='file_complete'
+        ))
+        video_wo_hls2 = Video.objects.create(**dict(
+            constants.VIDEO_DICT_FISH, edx_video_id='video-wo-hls2', status='file_complete'
+        ))
+        EncodedVideo.objects.create(
+            video=video_wo_hls1,
+            profile=desktop_profile,
+            **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+        EncodedVideo.objects.create(
+            video=video_wo_hls2,
+            profile=desktop_profile,
+            **constants.ENCODED_VIDEO_DICT_DESKTOP
+        )
+
+        # Setup 2 videos with hls profile
+        video_w_hls1 = Video.objects.create(**dict(
+            constants.VIDEO_DICT_FISH, edx_video_id='video-w-hls1', status='file_complete'
+        ))
+        video_w_hls2 = Video.objects.create(**dict(
+            constants.VIDEO_DICT_FISH, edx_video_id='video-w-hls2', status='file_complete'
+        ))
+        EncodedVideo.objects.create(
+            video=video_w_hls1,
+            profile=hls_profile,
+            **constants.ENCODED_VIDEO_DICT_HLS
+        )
+        EncodedVideo.objects.create(
+            video=video_w_hls2,
+            profile=hls_profile,
+            **constants.ENCODED_VIDEO_DICT_HLS
+        )
+
+        # Put `video_wo_hls1` into two courses
+        course_id1, course_id2 = 'test-course-1', 'test-course-2'
+        CourseVideo.objects.create(video=video_wo_hls1, course_id=course_id1)
+        CourseVideo.objects.create(video=video_wo_hls1, course_id=course_id2)
+
+        super(HLSMissingVideoListViewTest, self).setUp()
+
+    @data(
+        (1, 0),
+        (2, 1),
+        (2, 0),
+        (2, 2),
+    )
+    @unpack
+    def test_videos_list_missing_hls_encodes(self, batch_size, offset):
+        """
+        Test that videos that are missing HLS encodes are returned correctly.
+        """
+        expected_video_ids = ['video-wo-hls1', 'video-wo-hls2']
+        endpoint = urljoin(self.url, '?{}'.format(urlencode({'batch_size': batch_size, 'offset': offset})))
+        response = self.client.get(endpoint)
+        response = json.loads(response.content)
+        self.assertEqual(response['videos'], expected_video_ids[offset: offset+batch_size])
+
+    def test_videos_list_missing_hls_encodes_for_courses(self):
+        """
+        Test that videos that are missing HLS encodes are returned correctly for the specified courses.
+        """
+        expected_video_ids = ['video-wo-hls1']
+        endpoint = urljoin(self.url, '?{}'.format(urlencode({
+            'courses': ['test-course-1', 'test-course-2']
+        }, True)))
+        response = self.client.get(endpoint)
+        response = json.loads(response.content)
+        self.assertEqual(response['videos'], expected_video_ids)
