@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.authentication import SessionAuthentication
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -258,3 +259,43 @@ class VideoImagesView(APIView):
             )
 
         return Response()
+
+
+class HLSMissingVideoListView(APIView):
+    """
+    Returns list of the video ids that are missing HLS encodes
+    """
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+
+    def get(self, request):
+        courses = request.query_params.getlist('courses')
+        batch_size = int(request.query_params.get('batch_size', 50))
+        offset = int(request.query_params.get('offset', 0))
+        if courses:
+            videos = (CourseVideo.objects.select_related('video')
+                      .prefetch_related('video__encoded_videos', 'video__encoded_videos__profile')
+                      .filter(course_id__in=courses, video__status='file_complete')
+                      .exclude(video__encoded_videos__profile__profile_name='hls')
+                      .values_list('video__edx_video_id', flat=True)
+                      .distinct())
+
+            response = Response({'videos': videos}, status=status.HTTP_200_OK)
+        else:
+            videos = (Video.objects.prefetch_related('encoded_videos', 'encoded_videos__profile')
+                      .filter(status='file_complete')
+                      .exclude(encoded_videos__profile__profile_name='hls')
+                      .order_by('id')
+                      .values_list('edx_video_id', flat=True)
+                      .distinct())
+
+            response = Response(
+                {
+                    'videos': videos[offset: offset+batch_size],
+                    'total': videos.count(),
+                    'offset': offset,
+                    'batch_size': batch_size,
+                },
+                status=status.HTTP_200_OK
+            )
+
+        return response
