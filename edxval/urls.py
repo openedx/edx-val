@@ -23,8 +23,8 @@ urlpatterns = [
     ),
     url(
         r'^videos/missing-hls/$',
-        views.HLSMissingVideoListView.as_view(),
-        name='hls-missing-video-list'
+        views.HLSMissingVideoView.as_view(),
+        name='hls-missing-video'
     ),
     url(
         r'^videos/video-transcripts/create/$',

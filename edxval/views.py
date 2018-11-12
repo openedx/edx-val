@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,6 +15,8 @@ from rest_framework_oauth.authentication import OAuth2Authentication
 from edxval.api import create_or_update_video_transcript
 from edxval.models import (
     CourseVideo,
+    EncodedVideo,
+    Profile,
     TranscriptProviderType,
     Video,
     VideoImage,
@@ -261,9 +262,9 @@ class VideoImagesView(APIView):
         return Response()
 
 
-class HLSMissingVideoListView(APIView):
+class HLSMissingVideoView(APIView):
     """
-    Returns list of the video ids that are missing HLS encodes
+    A View to list video ids which are missing HLS encodes and update an encode profile for a video.
     """
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
 
@@ -299,3 +300,32 @@ class HLSMissingVideoListView(APIView):
             )
 
         return response
+
+    def post(self, request):
+        """
+        Update a single profile for a given video.
+
+        Example request data:
+            {
+                'edx_video_id': '1234'
+                'profile': 'hls',
+                'encode_data': {
+                    'url': 'foo.com/qwe.m3u8'
+                    'file_size': 34
+                    'bitrate': 12
+                }
+            }
+        """
+        edx_video_id = request.data['edx_video_id']
+        profile = request.data['profile']
+        encode_data = request.data['encode_data']
+
+        video = Video.objects.get(edx_video_id=edx_video_id)
+        profile = Profile.objects.get(profile_name=profile)
+
+        # Delete existing similar profile if its present and
+        # create new one with updated data.
+        EncodedVideo.objects.filter(video=video, profile=profile).delete()
+        EncodedVideo.objects.create(video=video, profile=profile, **encode_data)
+
+        return Response(status=status.HTTP_200_OK)

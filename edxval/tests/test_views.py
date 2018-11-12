@@ -937,15 +937,15 @@ class VideoStatusViewTest(APIAuthTestCase):
 
 
 @ddt
-class HLSMissingVideoListViewTest(APIAuthTestCase):
+class HLSMissingVideoViewTest(APIAuthTestCase):
     """
-    HLSMissingVideoListView Tests.
+    HLSMissingVideoView Tests.
     """
     def setUp(self):
         """
         Tests setup.
         """
-        self.url = reverse('hls-missing-video-list')
+        self.url = reverse('hls-missing-video')
 
         desktop_profile, __ = Profile.objects.get_or_create(profile_name=constants.PROFILE_DESKTOP)
         hls_profile, __ = Profile.objects.get_or_create(profile_name=constants.PROFILE_HLS)
@@ -991,7 +991,7 @@ class HLSMissingVideoListViewTest(APIAuthTestCase):
         CourseVideo.objects.create(video=video_wo_hls1, course_id=course_id1)
         CourseVideo.objects.create(video=video_wo_hls1, course_id=course_id2)
 
-        super(HLSMissingVideoListViewTest, self).setUp()
+        super(HLSMissingVideoViewTest, self).setUp()
 
     @data(
         (1, 0),
@@ -1021,3 +1021,32 @@ class HLSMissingVideoListViewTest(APIAuthTestCase):
         response = self.client.get(endpoint)
         response = json.loads(response.content)
         self.assertEqual(response['videos'], expected_video_ids)
+
+    def test_update_hls_encodes_for_video(self):
+        """
+        Test that the encode profile gets updated successfully.
+        """
+        expected_data = {
+            'edx_video_id': 'video-w-hls1',
+            'profile': 'hls',
+            'encode_data': {
+                'file_size': 12,
+                'bitrate': 12,
+                'url': 'foo.com/abcd.m3u8'
+            }
+        }
+        response = self.client.post(self.url, expected_data, format='json')
+        # Assert the success response.
+        self.assertEqual(response.status_code, 200)
+
+        encoded_videos = EncodedVideo.objects.filter(
+            video__edx_video_id=expected_data['edx_video_id'],
+            profile__profile_name=expected_data['profile']
+        )
+        actual_encoded_video = encoded_videos.first()
+
+        # Assert the updated profile and be sure its the only one.
+        self.assertEqual(encoded_videos.count(), 1)
+        self.assertEqual(actual_encoded_video.url, expected_data['encode_data']['url'])
+        self.assertEqual(actual_encoded_video.file_size, expected_data['encode_data']['file_size'])
+        self.assertEqual(actual_encoded_video.bitrate, expected_data['encode_data']['bitrate'])
