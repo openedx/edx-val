@@ -22,6 +22,11 @@ urlpatterns = [
         name='video-status-update'
     ),
     url(
+        r'^videos/missing-hls/$',
+        views.HLSMissingVideoView.as_view(),
+        name='hls-missing-video'
+    ),
+    url(
         r'^videos/video-transcripts/create/$',
         views.VideoTranscriptView.as_view(),
         name='create-video-transcript'

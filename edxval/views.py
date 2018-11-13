@@ -15,6 +15,8 @@ from rest_framework_oauth.authentication import OAuth2Authentication
 from edxval.api import create_or_update_video_transcript
 from edxval.models import (
     CourseVideo,
+    EncodedVideo,
+    Profile,
     TranscriptProviderType,
     Video,
     VideoImage,
@@ -258,3 +260,72 @@ class VideoImagesView(APIView):
             )
 
         return Response()
+
+
+class HLSMissingVideoView(APIView):
+    """
+    A View to list video ids which are missing HLS encodes and update an encode profile for a video.
+    """
+    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+
+    def get(self, request):
+        courses = request.query_params.getlist('courses')
+        batch_size = int(request.query_params.get('batch_size', 50))
+        offset = int(request.query_params.get('offset', 0))
+        if courses:
+            videos = (CourseVideo.objects.select_related('video')
+                      .prefetch_related('video__encoded_videos', 'video__encoded_videos__profile')
+                      .filter(course_id__in=courses, video__status='file_complete')
+                      .exclude(video__encoded_videos__profile__profile_name='hls')
+                      .values_list('video__edx_video_id', flat=True)
+                      .distinct())
+
+            response = Response({'videos': videos}, status=status.HTTP_200_OK)
+        else:
+            videos = (Video.objects.prefetch_related('encoded_videos', 'encoded_videos__profile')
+                      .filter(status='file_complete')
+                      .exclude(encoded_videos__profile__profile_name='hls')
+                      .order_by('id')
+                      .values_list('edx_video_id', flat=True)
+                      .distinct())
+
+            response = Response(
+                {
+                    'videos': videos[offset: offset+batch_size],
+                    'total': videos.count(),
+                    'offset': offset,
+                    'batch_size': batch_size,
+                },
+                status=status.HTTP_200_OK
+            )
+
+        return response
+
+    def post(self, request):
+        """
+        Update a single profile for a given video.
+
+        Example request data:
+            {
+                'edx_video_id': '1234'
+                'profile': 'hls',
+                'encode_data': {
+                    'url': 'foo.com/qwe.m3u8'
+                    'file_size': 34
+                    'bitrate': 12
+                }
+            }
+        """
+        edx_video_id = request.data['edx_video_id']
+        profile = request.data['profile']
+        encode_data = request.data['encode_data']
+
+        video = Video.objects.get(edx_video_id=edx_video_id)
+        profile = Profile.objects.get(profile_name=profile)
+
+        # Delete existing similar profile if its present and
+        # create new one with updated data.
+        EncodedVideo.objects.filter(video=video, profile=profile).delete()
+        EncodedVideo.objects.create(video=video, profile=profile, **encode_data)
+
+        return Response(status=status.HTTP_200_OK)
