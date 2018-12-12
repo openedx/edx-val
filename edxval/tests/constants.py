@@ -380,6 +380,12 @@ VIDEO_DICT_UPDATE_ANIMAL = dict(
     encoded_videos=[],
 )
 
+VIDEO_DICT_NEW_LINE = dict(
+    client_video_id="New \n Line",
+    duration=888.00,
+    edx_video_id="new-line-not-allowed",
+    status="test",
+)
 
 TRANSCRIPT_DATA = {
     "overwatch": """

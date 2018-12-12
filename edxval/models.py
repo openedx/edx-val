@@ -430,8 +430,8 @@ class VideoTranscript(TimeStampedModel):
             name=client_id,
             language=self.language_code,
             format=self.file_format
-        )
-
+        ).replace('\n', ' ')
+        
         return file_name
 
     @classmethod
