@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+import os
+import sys
+
 from setuptools import setup
 
 PACKAGES = [
@@ -39,9 +42,18 @@ def load_requirements(*requirements_paths):
         )
     return list(requirements)
 
+
+VERSION = '0.1.24'
+
+if sys.argv[-1] == 'tag':
+    print("Tagging the version on github:")
+    os.system("git tag -a v%s -m 'version %s'" % (VERSION, VERSION))
+    os.system("git push --tags")
+    sys.exit()
+
 setup(
     name='edxval',
-    version='0.1.23',
+    version=VERSION,
     author='edX',
     url='http://github.com/edx/edx-val',
     description='edx-val',
