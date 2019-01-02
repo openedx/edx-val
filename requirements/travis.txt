@@ -5,23 +5,25 @@
 #    pip-compile --output-file requirements/travis.txt requirements/travis.in
 #
 asn1crypto==0.24.0        # via cryptography
-certifi==2018.1.18        # via requests, urllib3
+certifi==2018.11.29       # via requests, urllib3
 cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
-coverage==4.5.1           # via coveralls
-coveralls==1.2.0
-cryptography==2.1.4       # via pyopenssl, urllib3
+coverage==4.5.2           # via coveralls
+coveralls==1.5.1
+cryptography==2.4.2       # via pyopenssl, urllib3
 docopt==0.6.2             # via coveralls
 enum34==1.1.6             # via cryptography
-idna==2.6                 # via cryptography, requests, urllib3
-ipaddress==1.0.19         # via cryptography, urllib3
-pluggy==0.6.0             # via tox
-py==1.5.2                 # via tox
-pycparser==2.18           # via cffi
-pyopenssl==17.5.0         # via urllib3
-requests==2.18.4          # via coveralls
-six==1.11.0               # via cryptography, pyopenssl, tox
-tox-battery==0.5
-tox==2.9.1
-urllib3[secure]==1.22     # via coveralls, requests
-virtualenv==15.1.0        # via tox
+filelock==3.0.10          # via tox
+idna==2.8                 # via cryptography, requests, urllib3
+ipaddress==1.0.22         # via cryptography, urllib3
+pluggy==0.8.0             # via tox
+py==1.7.0                 # via tox
+pycparser==2.19           # via cffi
+pyopenssl==18.0.0         # via urllib3
+requests==2.21.0          # via coveralls
+six==1.12.0               # via cryptography, pyopenssl, tox
+toml==0.10.0              # via tox
+tox-battery==0.5.1
+tox==3.6.1
+urllib3[secure]==1.24.1   # via coveralls, requests
+virtualenv==16.1.0        # via tox
