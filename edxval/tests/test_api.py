@@ -674,24 +674,45 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
 
     def test_get_videos_for_course(self):
         """
-        Tests retrieving videos for a course id
+        Tests retrieving all videos for a course id
         """
-        videos = list(api.get_videos_for_course(self.course_id))
+        videos, pagination_context = api.get_videos_for_course(self.course_id)
+        videos = list(videos)
         self.assertEqual(len(videos), 1)
+        self.assertEqual(pagination_context, {})
         self.assertEqual(videos[0]['edx_video_id'], constants.VIDEO_DICT_FISH['edx_video_id'])
-        videos = list(api.get_videos_for_course('unknown'))
+        videos, __ = api.get_videos_for_course('unknown')
+        videos = list(videos)
         self.assertEqual(len(videos), 0)
+
+    def test_get_paginated_videos_for_course(self):
+        """
+        Test retrieving paginated videos for a course id
+        """
+        pagination_conf = {
+            'page_number':1,
+            'videos_per_page':1
+        }
+        videos, pagination_context = api.get_videos_for_course(
+            self.course_id,
+            pagination_conf=pagination_conf
+            )
+        videos = list(videos)
+        self.assertEqual(len(videos), 1)
+        self.assertNotEqual(pagination_context, {})
+
 
     def test_get_videos_for_course_sort(self):
         """
         Tests retrieving videos for a course id according to sort
         """
         def api_func(_expected_ids, sort_field, sort_direction):
-            return api.get_videos_for_course(
+            videos, __ = api.get_videos_for_course(
                 self.course_id,
                 sort_field,
                 sort_direction,
-            )
+                )
+            return videos
         self.check_sort_params_of_api(api_func)
 
 @ddt
@@ -2070,12 +2091,14 @@ class GetCourseVideoRemoveTest(TestCase):
         Tests video removal for a course
         """
         # we have one video for this course
-        videos = list(api.get_videos_for_course(self.course_id))
+        videos, __ = api.get_videos_for_course(self.course_id)
+        videos = list(videos)
         self.assertEqual(len(videos), 1)
 
         # remove the video and verify that video is removed from correct course
         api.remove_video_for_course(self.course_id, self.edx_video_id)
-        videos = list(api.get_videos_for_course(self.course_id))
+        videos, __ = api.get_videos_for_course(self.course_id)
+        videos = list(videos)
         self.assertEqual(len(videos), 0)
 
         # verify that CourseVideo related object exists(soft removal) for removed video
@@ -2083,7 +2106,8 @@ class GetCourseVideoRemoveTest(TestCase):
         self.assertEqual(course_video.is_hidden, True)
 
         # verify that video still exists for other course
-        videos = list(api.get_videos_for_course('other-course'))
+        videos, __ = api.get_videos_for_course('other-course')
+        videos = list(videos)
         self.assertEqual(len(videos), 1)
 
         # verify that video for other course has the correct info
@@ -2197,7 +2221,7 @@ class CourseVideoImageTest(TestCase):
         """
         Verify that `get_videos_for_course` api function has correct course_video_image_url.
         """
-        video_data_generator = api.get_videos_for_course(self.course_id)
+        video_data_generator, __ = api.get_videos_for_course(self.course_id)
         video_data = list(video_data_generator)[0]
         self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
 

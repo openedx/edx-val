@@ -8,6 +8,7 @@ from enum import Enum
 from uuid import uuid4
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.paginator import Paginator
 from django.core.files.base import ContentFile
 from fs import open_fs
 from fs.errors import ResourceNotFound
@@ -630,19 +631,32 @@ def get_url_for_profile(edx_video_id, profile):
     return get_urls_for_profiles(edx_video_id, [profile])[profile]
 
 
-def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection.asc):
+def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection.asc, pagination_conf=None):
     """
     Returns a generator expression that contains the videos found, sorted by
     the given field and direction, with ties broken by edx_video_id to ensure a
     total order.
     """
     videos = Video.objects.filter(**video_filter)
+    paginator_context = {}
+
     if sort_field:
         # Refining by edx_video_id ensures a total order
         videos = videos.order_by(sort_field.value, "edx_video_id")
         if sort_dir == SortDirection.desc:
             videos = videos.reverse()
-    return (VideoSerializer(video).data for video in videos)
+
+    if pagination_conf:
+        videos_per_page = pagination_conf.get('videos_per_page')
+        paginator = Paginator(videos, videos_per_page)
+        videos = paginator.page(pagination_conf.get('page_number'))
+        paginator_context = {
+            'current_page':   videos.number,
+            'total_pages': videos.paginator.num_pages,
+            'items_on_one_page':videos_per_page
+        }
+
+    return (VideoSerializer(video).data for video in videos), paginator_context
 
 
 def get_course_video_ids_with_youtube_profile(course_ids=None, offset=None, limit=None):
@@ -684,7 +698,7 @@ def get_course_video_ids_with_youtube_profile(course_ids=None, offset=None, limi
     return course_videos_with_yt_profile
 
 
-def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc):
+def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc, pagination_conf=None):
     """
     Returns an iterator of videos for the given course id.
 
@@ -702,6 +716,7 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
         {'courses__course_id': unicode(course_id), 'courses__is_hidden': False},
         sort_field,
         sort_dir,
+        pagination_conf,
     )
 
 
@@ -736,11 +751,12 @@ def get_videos_for_ids(
         given field and direction, with ties broken by edx_video_id to ensure a
         total order
     """
-    return _get_videos_for_filter(
+    videos, __ = _get_videos_for_filter(
         {"edx_video_id__in":edx_video_ids},
         sort_field,
         sort_dir,
     )
+    return videos
 
 
 def get_video_info_for_course_and_profiles(course_id, profiles):
