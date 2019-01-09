@@ -1005,8 +1005,7 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         Test that videos that are missing HLS encodes are returned correctly.
         """
         expected_video_ids = ['video-wo-hls1', 'video-wo-hls2']
-        endpoint = urljoin(self.url, '?{}'.format(urlencode({'batch_size': batch_size, 'offset': offset})))
-        response = self.client.get(endpoint)
+        response = self.client.post(self.url, {'batch_size': batch_size, 'offset': offset}, format='json')
         response = json.loads(response.content)
         self.assertEqual(response['videos'], expected_video_ids[offset: offset+batch_size])
 
@@ -1015,10 +1014,9 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         Test that videos that are missing HLS encodes are returned correctly for the specified courses.
         """
         expected_video_ids = ['video-wo-hls1']
-        endpoint = urljoin(self.url, '?{}'.format(urlencode({
+        response = self.client.post(self.url, {
             'courses': ['test-course-1', 'test-course-2']
-        }, True)))
-        response = self.client.get(endpoint)
+        }, format='json')
         response = json.loads(response.content)
         self.assertEqual(response['videos'], expected_video_ids)
 
@@ -1035,7 +1033,7 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
                 'url': 'foo.com/abcd.m3u8'
             }
         }
-        response = self.client.post(self.url, expected_data, format='json')
+        response = self.client.put(self.url, expected_data, format='json')
         # Assert the success response.
         self.assertEqual(response.status_code, 200)
 

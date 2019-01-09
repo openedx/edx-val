@@ -268,10 +268,41 @@ class HLSMissingVideoView(APIView):
     """
     authentication_classes = (OAuth2Authentication, SessionAuthentication)
 
-    def get(self, request):
-        courses = request.query_params.getlist('courses')
-        batch_size = int(request.query_params.get('batch_size', 50))
-        offset = int(request.query_params.get('offset', 0))
+    def post(self, request):
+        """
+        Retrieve video IDs that are missing HLS profiles. This endpoint supports 2 types of input data:
+
+        1. If we want a batch of video ids which are missing HLS profile irrespective of their courses, the request
+           data should be in following format:
+                {
+                    'batch_size': 50,
+                    'offset': 0
+                }
+           And response will be in following format:
+                {
+                    'videos': ['video_id1', 'video_id2', 'video_id3', ... , video_id50],
+                    'total': 300,
+                    'offset': 50,
+                    'batch_size': 50
+                }
+
+        2. If we want all the videos which are missing HLS profiles in a set of specific courses, the request data
+           should be in following format:
+                {
+                    'courses': [
+                        'course_id1',
+                        'course_id2',
+                        ...
+                    ]
+                }
+           And response will be in following format:
+                {
+                    'videos': ['video_id1', 'video_id2', 'video_id3', ...]
+                }
+        """
+        courses = request.data.get('courses')
+        batch_size = request.data.get('batch_size', 50)
+        offset = request.data.get('offset', 0)
         if courses:
             videos = (CourseVideo.objects.select_related('video')
                       .prefetch_related('video__encoded_videos', 'video__encoded_videos__profile')
@@ -301,7 +332,7 @@ class HLSMissingVideoView(APIView):
 
         return response
 
-    def post(self, request):
+    def put(self, request):
         """
         Update a single profile for a given video.
 
