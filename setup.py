@@ -43,7 +43,7 @@ def load_requirements(*requirements_paths):
     return list(requirements)
 
 
-VERSION = '0.1.25'
+VERSION = '1.1.25'
 
 if sys.argv[-1] == 'tag':
     print("Tagging the version on github:")
