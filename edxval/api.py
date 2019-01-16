@@ -295,12 +295,11 @@ def get_video_transcript_data(video_id, language_code):
         try:
             return dict(file_name=video_transcript.filename, content=video_transcript.transcript.file.read())
         except Exception:
-            logger.exception(
-                '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
-                video_id,
-                language_code
+            message = (
+                '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s', video_id, language_code
             )
-            raise TranscriptsGenerationException('Error while retrieving transcript')
+            logger.exception(message)
+            raise TranscriptsGenerationException(message)
 
 
 def get_available_transcript_languages(video_id):
