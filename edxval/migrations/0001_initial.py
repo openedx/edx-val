@@ -63,22 +63,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='subtitle',
             name='video',
-            field=models.ForeignKey(related_name='subtitles', to='edxval.Video'),
+            field=models.ForeignKey(related_name='subtitles', to='edxval.Video', on_delete = models.CASCADE),
         ),
         migrations.AddField(
             model_name='encodedvideo',
             name='profile',
-            field=models.ForeignKey(related_name='+', to='edxval.Profile'),
+            field=models.ForeignKey(related_name='+', to='edxval.Profile', on_delete = models.CASCADE),
         ),
         migrations.AddField(
             model_name='encodedvideo',
             name='video',
-            field=models.ForeignKey(related_name='encoded_videos', to='edxval.Video'),
+            field=models.ForeignKey(related_name='encoded_videos', to='edxval.Video', on_delete = models.CASCADE),
         ),
         migrations.AddField(
             model_name='coursevideo',
             name='video',
-            field=models.ForeignKey(related_name='courses', to='edxval.Video'),
+            field=models.ForeignKey(related_name='courses', to='edxval.Video', on_delete = models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='coursevideo',

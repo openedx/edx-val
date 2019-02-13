@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, verbose_name='modified', editable=False)),
                 ('image', edxval.models.CustomizableImageField(null=True, blank=True)),
                 ('generated_images', edxval.models.ListField()),
-                ('course_video', models.OneToOneField(related_name='video_image', to='edxval.CourseVideo')),
+                ('course_video', models.OneToOneField(related_name='video_image', to='edxval.CourseVideo', on_delete = models.CASCADE)),
             ],
             options={
                 'abstract': False,
