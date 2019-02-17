@@ -7,7 +7,7 @@ from urlparse import urljoin
 from urllib import urlencode
 
 from ddt import data, ddt, unpack
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import status
 
 from edxval.models import (

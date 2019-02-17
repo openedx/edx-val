@@ -18,7 +18,7 @@ from contextlib import closing
 from uuid import uuid4
 
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.dispatch import receiver
@@ -156,7 +156,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
     multiple course_id's but each pair is unique together.
     """
     course_id = models.CharField(max_length=255)
-    video = models.ForeignKey(Video, related_name='courses')
+    video = models.ForeignKey(Video, related_name='courses', on_delete = models.CASCADE)
     is_hidden = models.BooleanField(default=False, help_text='Hide video for course.')
 
     class Meta:  # pylint: disable=C1001
@@ -186,8 +186,9 @@ class EncodedVideo(models.Model):
     file_size = models.PositiveIntegerField()
     bitrate = models.PositiveIntegerField()
 
-    profile = models.ForeignKey(Profile, related_name="+")
-    video = models.ForeignKey(Video, related_name="encoded_videos")
+    profile = models.ForeignKey(Profile, related_name="+", on_delete = models.CASCADE)
+    video = models.ForeignKey(Video, related_name="encoded_videos",
+                              on_delete = models.CASCADE)
 
 
 class CustomizableImageField(models.ImageField):
@@ -299,7 +300,8 @@ class VideoImage(TimeStampedModel):
     """
     Image model for course video.
     """
-    course_video = models.OneToOneField(CourseVideo, related_name="video_image")
+    course_video = models.OneToOneField(CourseVideo, related_name="video_image",
+                                        on_delete = models.CASCADE)
     image = CustomizableImageField()
     generated_images = ListField()
 
@@ -407,7 +409,8 @@ class VideoTranscript(TimeStampedModel):
     """
     Transcript for a video
     """
-    video = models.ForeignKey(Video, related_name='video_transcripts', null=True)
+    video = models.ForeignKey(Video, related_name='video_transcripts', null=True,
+                              on_delete = models.CASCADE)
     transcript = CustomizableFileField()
     language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(

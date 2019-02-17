@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='videotranscript',
             name='video',
-            field=models.ForeignKey(related_name='video_transcripts', to='edxval.Video', null=True),
+            field=models.ForeignKey(related_name='video_transcripts', to='edxval.Video', null=True, on_delete = models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='videotranscript',

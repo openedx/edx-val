@@ -1,10 +1,18 @@
 language: python
 python:
 - '2.7'
+- '3.6'
+- '3.7'
 env:
-- TOXENV=django18
-- TOXENV=django110
 - TOXENV=django111
+- TOXENV=django20
+- TOXENV=django21
+matrix:
+  allow_failures:
+    - python: '3.6'
+    - python: '3.7'
+    - env: TOXENV=django20
+    - env: TOXENV=django21
 install:
 - pip install -r requirements/travis.txt
 script:

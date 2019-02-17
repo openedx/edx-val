@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.images import ImageFile
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import DatabaseError
 from django.test import TestCase
 from fs.osfs import OSFS
