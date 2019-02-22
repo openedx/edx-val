@@ -8,7 +8,8 @@
 -e git+https://github.com/edx/django-rest-framework.git@1ceda7c086fddffd1c440cc86856441bbf0bd9cb#egg=djangorestframework==3.6.3
 appdirs==1.4.3            # via fs
 argparse==1.4.0           # via caniusepython3
-astroid==2.1.0            # via edx-lint, pylint, pylint-celery
+astroid==1.6.5; python_version == "2.7"  # via edx-lint, pylint, pylint-celery
+astroid==2.1.0; python_version >= "3.0"  # via edx-lint, pylint, pylint-celery
 backports.functools-lru-cache==1.5  # via astroid, caniusepython3, pylint
 backports.os==0.1.1       # via fs
 boto==2.49.0
