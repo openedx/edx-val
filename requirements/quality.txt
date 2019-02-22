@@ -50,7 +50,7 @@ pydocstyle==3.0.0
 pylint-celery==0.3        # via edx-lint
 pylint-django==0.7.2      # via edx-lint
 pylint-plugin-utils==0.4  # via pylint-celery, pylint-django
-pylint==2.2.2            # via edx-lint, pylint-celery, pylint-django, pylint-plugin-utils
+pylint==2.2.2             # via edx-lint, pylint-celery, pylint-django, pylint-plugin-utils
 pyparsing==2.3.1          # via packaging
 pysrt==1.1.1
 pytz==2018.9              # via django, fs
