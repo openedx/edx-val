@@ -20,8 +20,8 @@ matrix:
     - python: 2.7
       env: TOXENV=django21
   allow_failures:
-    - python: '3.6'
-    - python: '3.7'
+    - python: 3.6
+    - python: 3.7
     - env: TOXENV=quality
 install:
 - pip install -r requirements/travis.txt
