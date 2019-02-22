@@ -1,0 +1,7 @@
+astroid==1.6.5; python_version < "3.0"  # v2 does not support legacy Python
+astroid==2.1.0; python_version >= "3.0"
+
+futures==3.2.0; python_version < "3.0"  # backport of the Python 3 standard module
+
+pylint==1.9.4; python_version < "3.0"   # v2 does not support legacy Python
+pylint==2.2.2; python_version >= "3.0"
