@@ -11,6 +11,7 @@ themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
+from __future__ import absolute_import
 import json
 import logging
 import os
@@ -28,6 +29,7 @@ from model_utils.models import TimeStampedModel
 from edxval.utils import (TranscriptFormat, get_video_image_storage,
                           get_video_transcript_storage, video_image_path,
                           video_transcript_path)
+import six
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -156,7 +158,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
     multiple course_id's but each pair is unique together.
     """
     course_id = models.CharField(max_length=255)
-    video = models.ForeignKey(Video, related_name='courses', on_delete = models.CASCADE)
+    video = models.ForeignKey(Video, related_name='courses', on_delete=models.CASCADE)
     is_hidden = models.BooleanField(default=False, help_text='Hide video for course.')
 
     class Meta:  # pylint: disable=C1001
@@ -186,9 +188,9 @@ class EncodedVideo(models.Model):
     file_size = models.PositiveIntegerField()
     bitrate = models.PositiveIntegerField()
 
-    profile = models.ForeignKey(Profile, related_name="+", on_delete = models.CASCADE)
+    profile = models.ForeignKey(Profile, related_name="+", on_delete=models.CASCADE)
     video = models.ForeignKey(Video, related_name="encoded_videos",
-                              on_delete = models.CASCADE)
+                              on_delete=models.CASCADE)
 
 
 class CustomizableImageField(models.ImageField):
@@ -283,7 +285,7 @@ class ListField(models.TextField):
                 u'list must not contain more than {max_items} items.'.format(max_items=self.max_items)
             )
 
-        if all(isinstance(item, basestring) for item in value) is False:
+        if all(isinstance(item, six.string_types) for item in value) is False:
             raise ValidationError(u'list must only contain strings.')
 
         return value
@@ -301,7 +303,7 @@ class VideoImage(TimeStampedModel):
     Image model for course video.
     """
     course_video = models.OneToOneField(CourseVideo, related_name="video_image",
-                                        on_delete = models.CASCADE)
+                                        on_delete=models.CASCADE)
     image = CustomizableImageField()
     generated_images = ListField()
 
@@ -410,7 +412,7 @@ class VideoTranscript(TimeStampedModel):
     Transcript for a video
     """
     video = models.ForeignKey(Video, related_name='video_transcripts', null=True,
-                              on_delete = models.CASCADE)
+                              on_delete=models.CASCADE)
     transcript = CustomizableFileField()
     language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(
@@ -434,7 +436,7 @@ class VideoTranscript(TimeStampedModel):
             language=self.language_code,
             format=self.file_format
         ).replace('\n', ' ')
-        
+
         return file_name
 
     @classmethod
@@ -502,7 +504,7 @@ class VideoTranscript(TimeStampedModel):
             video_transcript = cls(video=video, language_code=language_code)
             retrieved = False
 
-        for prop, value in metadata.iteritems():
+        for prop, value in six.iteritems(metadata):
             if prop in ['language_code', 'file_format', 'provider']:
                 setattr(video_transcript, prop, value)
 
@@ -570,9 +572,9 @@ class ThreePlayTurnaround(object):
     """
     EXTENDED = 'extended'
     STANDARD = 'standard'
-    EXPEDITED= 'expedited'
+    EXPEDITED = 'expedited'
     RUSH = 'rush'
-    SAME_DAY= 'same_day'
+    SAME_DAY = 'same_day'
     TWO_HOUR = 'two_hour'
 
     CHOICES = (

@@ -2,10 +2,11 @@
 """
 Tests for transcript utils.
 """
-import ddt
+from __future__ import absolute_import
 import json
 import textwrap
 import unittest
+import ddt
 
 from edxval.transcript_utils import Transcript
 from edxval.exceptions import TranscriptsGenerationException

@@ -3,6 +3,7 @@
 """
 Constants used for tests.
 """
+from __future__ import absolute_import
 from edxval.models import (
     TranscriptProviderType,
     Cielo24Fidelity,

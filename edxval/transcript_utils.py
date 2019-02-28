@@ -1,8 +1,11 @@
 """
 A module containing transcripts utils.
 """
+from __future__ import absolute_import
 import json
+import six
 from six import text_type
+from six.moves import range
 
 from pysrt import SubRipFile, SubRipItem, SubRipTime
 from pysrt.srtexc import Error
@@ -68,7 +71,7 @@ class Transcript(object):
                 end=SubRipTime(milliseconds=sjson_subs['end'][i]),
                 text=sjson_subs['text'][i]
             )
-            output += (unicode(item))
+            output += (six.text_type(item))
             output += '\n'
         return output
 

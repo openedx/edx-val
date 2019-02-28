@@ -2,6 +2,7 @@
 Util methods to be used in api and models.
 """
 
+from __future__ import absolute_import
 import json
 from django.conf import settings
 from django.core.files.storage import get_storage_class
@@ -10,6 +11,7 @@ from pysrt import SubRipFile
 
 
 class TranscriptFormat(object):
+    """Formats a Transcript"""
     SRT = 'srt'
     SJSON = 'sjson'
 
@@ -154,10 +156,10 @@ def get_video_image_storage():
         return get_storage_class(
             settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_CLASS'),
         )(**settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {}))
-    else:
-        # during edx-platform loading this method gets called but settings are not ready yet
-        # so in that case we will return default(FileSystemStorage) storage class instance
-        return get_storage_class()()
+
+    # during edx-platform loading this method gets called but settings are not ready yet
+    # so in that case we will return default(FileSystemStorage) storage class instance
+    return get_storage_class()()
 
 
 def video_transcript_path(video_transcript_instance, filename):  # pylint:disable=unused-argument
@@ -179,10 +181,10 @@ def get_video_transcript_storage():
         return get_storage_class(
             settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_CLASS'),
         )(**settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_KWARGS', {}))
-    else:
-        # during edx-platform loading this method gets called but settings are not ready yet
-        # so in that case we will return default(FileSystemStorage) storage class instance
-        return get_storage_class()()
+
+    # during edx-platform loading this method gets called but settings are not ready yet
+    # so in that case we will return default(FileSystemStorage) storage class instance
+    return get_storage_class()()
 
 
 def create_file_in_fs(file_data, file_name, file_system, static_dir):
@@ -207,11 +209,11 @@ def get_transcript_format(transcript_content):
         transcript_content (str): Transcript file content.
     """
     try:
-        sjson_obj = json.loads(transcript_content)
+        json.loads(transcript_content)
     except ValueError:
         # With error handling (set to 'ERROR_RAISE'), we will be getting
         # the exception if something went wrong in parsing the transcript.
         srt_subs = SubRipFile.from_string(transcript_content, error_handling=SubRipFile.ERROR_RAISE)
-        if len(srt_subs) > 0:
+        if srt_subs:
             return TranscriptFormat.SRT
     return TranscriptFormat.SJSON

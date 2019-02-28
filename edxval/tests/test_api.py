@@ -2,12 +2,15 @@
 """
 Tests for the API for Video Abstraction Layer
 """
+from __future__ import absolute_import
 import json
 import os
 import shutil
+from tempfile import mkdtemp
+from unittest import skip
 
 import mock
-from unittest import skip
+from mock import patch
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -19,9 +22,7 @@ from django.db import DatabaseError
 from django.test import TestCase
 from fs.osfs import OSFS
 from fs.path import combine
-from tempfile import mkdtemp
 from lxml import etree
-from mock import patch
 from rest_framework import status
 
 from edxval import api as api
@@ -37,13 +38,17 @@ from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
 from edxval.serializers import VideoSerializer
 from edxval.tests import APIAuthTestCase, constants
 from edxval.transcript_utils import Transcript
+import six
+from six.moves import range
+from six.moves import zip
 
 
-def omit_attrs(dict, attrs_to_omit=[]):
+def omit_attrs(in_dict, attrs_to_omit=None):
     """
-    Omits provided attributes from the dict.
+    Omits provided attributes from in_dict.
     """
-    return {attr: value for attr, value in dict.iteritems() if attr not in attrs_to_omit}
+    attrs_to_omit = attrs_to_omit or []
+    return {attr: value for attr, value in six.iteritems(in_dict) if attr not in attrs_to_omit}
 
 
 class SortedVideoTestMixin(object):
@@ -193,7 +198,7 @@ class UpdateVideoTest(TestCase):
             ],
             **constants.VIDEO_DICT_FISH_UPDATE
         )
-        result = api.update_video(video_data)
+        _ = api.update_video(video_data)
         videos = Video.objects.all()
         updated_video = videos[0]
         self.assertEqual(len(videos), 1)
@@ -234,7 +239,7 @@ class CreateProfileTest(TestCase):
         """
         api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
-        profile_names = [unicode(profile) for profile in profiles]
+        profile_names = [six.text_type(profile) for profile in profiles]
         self.assertEqual(len(profiles), 8)
         self.assertIn(
             constants.PROFILE_DESKTOP,
@@ -497,7 +502,7 @@ class GetVideoForCourseProfiles(TestCase):
                         "url": encoding["url"],
                         "file_size": encoding["file_size"],
                     }
-                    for (profile_name, encoding) in encoding_dict.iteritems()
+                    for (profile_name, encoding) in six.iteritems(encoding_dict)
                 }
             }
         }
@@ -1127,7 +1132,7 @@ class ExportTest(TestCase):
         )
 
         self.assert_xml_equal(exported_metadata['xml'], expected)
-        self.assertItemsEqual(exported_metadata['transcripts'].keys(), ['en', 'de'])
+        self.assertItemsEqual(list(exported_metadata['transcripts'].keys()), ['en', 'de'])
 
     def test_transcript_export(self):
         """
@@ -1164,10 +1169,10 @@ class ExportTest(TestCase):
         self.assert_xml_equal(exported_metadata['xml'], expected_xml)
 
         # Verify transcript file is created.
-        self.assertItemsEqual(transcript_files.values(), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
+        self.assertItemsEqual(list(transcript_files.values()), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
 
         # Also verify the content of created transcript file.
-        for language_code in transcript_files.keys():
+        for language_code in transcript_files:
             expected_transcript_content = File(
                 open(combine(expected_transcript_path, transcript_files[language_code]))
             ).read()
@@ -1225,7 +1230,7 @@ class ImportTest(TestCase):
         import_xml = etree.Element(
             "video_asset",
             attrib={
-                key: unicode(video_dict[key])
+                key: six.text_type(video_dict[key])
                 for key in ["client_video_id", "duration"]
             }
         )
@@ -1233,15 +1238,17 @@ class ImportTest(TestCase):
         if image:
             import_xml.attrib['image'] = image
 
+        # pylint: disable=superfluous-parens
         for encoding_dict in (encoded_video_dicts or []):
             etree.SubElement(
                 import_xml,
                 "encoded_video",
                 attrib={
-                    key: unicode(val)
+                    key: six.text_type(val)
                     for key, val in encoding_dict.items()
                 }
             )
+        # pylint: enable=superfluous-parens
 
         if video_transcripts:
             transcripts_el = etree.SubElement(import_xml, 'transcripts')
@@ -1545,7 +1552,7 @@ class ImportTest(TestCase):
             course_id=course_id,
             resource_fs=self.file_system,
             edx_video_id=video_data['edx_video_id'],
-            static_dir = constants.EXPORT_IMPORT_STATIC_DIR,
+            static_dir=constants.EXPORT_IMPORT_STATIC_DIR,
         )
 
         # Assert that the video has been created and its status is external.
@@ -1677,7 +1684,7 @@ class ImportTest(TestCase):
         self.assertIsNotNone(edx_video_id)
 
         # Verify transcript records are created with correct data.
-        expected_transcripts =  [
+        expected_transcripts = [
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en'),
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='es')
         ]
@@ -1730,7 +1737,7 @@ class ImportTest(TestCase):
         self.assertIsNotNone(edx_video_id)
 
         # Verify transcript record is created with correct data i.e sub field transcript.
-        expected_transcripts =  [
+        expected_transcripts = [
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en')
         ]
 
@@ -1945,7 +1952,7 @@ class ImportTest(TestCase):
         # Create internal video transcripts
         transcript_data = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video=video)
         transcript_data = omit_attrs(transcript_data, ['video_id', 'file_data'])
-        transcript = VideoTranscript.objects.create(**transcript_data)
+        _ = VideoTranscript.objects.create(**transcript_data)
 
         # Verify that video has expected transcripts before import.
         self.assert_transcripts(
@@ -2234,7 +2241,7 @@ class CourseVideoImageTest(TestCase):
         self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
 
     # attr_class is django magic: https://github.com/django/django/blob/master/django/db/models/fields/files.py#L214
-    @patch('edxval.models.CustomizableImageField.attr_class.save', side_effect = Exception("pretend save doesn't work"))
+    @patch('edxval.models.CustomizableImageField.attr_class.save', side_effect=Exception("pretend save doesn't work"))
     @patch('edxval.models.logger')
     def test_create_or_update_logging(self, mock_logger, mock_image_save):
         """
@@ -2766,7 +2773,7 @@ class TranscriptTest(TestCase):
         with self.assertRaises(ValCannotCreateError) as transcript_exception:
             api.create_video_transcript(video_id, language_code, file_format, ContentFile(constants.TRANSCRIPT_DATA['overwatch']), provider)
 
-        self.assertIn(exception_msg, unicode(transcript_exception.exception.message))
+        self.assertIn(exception_msg, six.text_type(transcript_exception.exception.message))
 
     def test_get_available_transcript_languages(self):
         """

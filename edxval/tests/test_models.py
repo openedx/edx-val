@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+"""
+Test models.
+"""
+
+from __future__ import absolute_import
 from django.test import TestCase
 
 from edxval.models import Video, VideoTranscript
@@ -17,10 +22,10 @@ class VideoTranscriptTest(TestCase):
         """
         self.transcript_data = constants.VIDEO_TRANSCRIPT_CIELO24
         super(VideoTranscriptTest, self).setUp()
-    
+
     def test_filename_property_new_line(self):
         """
-        Test that filename does not contain any "\n". 
+        Test that filename does not contain any "\n".
         New line is not permmited in response headers.
         """
         video = Video.objects.create(**constants.VIDEO_DICT_NEW_LINE)
