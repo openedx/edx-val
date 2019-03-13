@@ -2,6 +2,7 @@
 """
 Tests for the API for Video Abstraction Layer
 """
+from __future__ import absolute_import
 import json
 import os
 import shutil
@@ -37,13 +38,16 @@ from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
 from edxval.serializers import VideoSerializer
 from edxval.tests import APIAuthTestCase, constants
 from edxval.transcript_utils import Transcript
+import six
+from six.moves import range
+from six.moves import zip
 
 
 def omit_attrs(dict, attrs_to_omit=[]):
     """
     Omits provided attributes from the dict.
     """
-    return {attr: value for attr, value in dict.iteritems() if attr not in attrs_to_omit}
+    return {attr: value for attr, value in six.iteritems(dict) if attr not in attrs_to_omit}
 
 
 class SortedVideoTestMixin(object):
@@ -234,7 +238,7 @@ class CreateProfileTest(TestCase):
         """
         api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
-        profile_names = [unicode(profile) for profile in profiles]
+        profile_names = [six.text_type(profile) for profile in profiles]
         self.assertEqual(len(profiles), 8)
         self.assertIn(
             constants.PROFILE_DESKTOP,
@@ -497,7 +501,7 @@ class GetVideoForCourseProfiles(TestCase):
                         "url": encoding["url"],
                         "file_size": encoding["file_size"],
                     }
-                    for (profile_name, encoding) in encoding_dict.iteritems()
+                    for (profile_name, encoding) in six.iteritems(encoding_dict)
                 }
             }
         }
@@ -1127,7 +1131,7 @@ class ExportTest(TestCase):
         )
 
         self.assert_xml_equal(exported_metadata['xml'], expected)
-        self.assertItemsEqual(exported_metadata['transcripts'].keys(), ['en', 'de'])
+        self.assertItemsEqual(list(exported_metadata['transcripts'].keys()), ['en', 'de'])
 
     def test_transcript_export(self):
         """
@@ -1164,7 +1168,7 @@ class ExportTest(TestCase):
         self.assert_xml_equal(exported_metadata['xml'], expected_xml)
 
         # Verify transcript file is created.
-        self.assertItemsEqual(transcript_files.values(), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
+        self.assertItemsEqual(list(transcript_files.values()), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
 
         # Also verify the content of created transcript file.
         for language_code in transcript_files.keys():
@@ -1225,7 +1229,7 @@ class ImportTest(TestCase):
         import_xml = etree.Element(
             "video_asset",
             attrib={
-                key: unicode(video_dict[key])
+                key: six.text_type(video_dict[key])
                 for key in ["client_video_id", "duration"]
             }
         )
@@ -1238,7 +1242,7 @@ class ImportTest(TestCase):
                 import_xml,
                 "encoded_video",
                 attrib={
-                    key: unicode(val)
+                    key: six.text_type(val)
                     for key, val in encoding_dict.items()
                 }
             )
@@ -2766,7 +2770,7 @@ class TranscriptTest(TestCase):
         with self.assertRaises(ValCannotCreateError) as transcript_exception:
             api.create_video_transcript(video_id, language_code, file_format, ContentFile(constants.TRANSCRIPT_DATA['overwatch']), provider)
 
-        self.assertIn(exception_msg, unicode(transcript_exception.exception.message))
+        self.assertIn(exception_msg, six.text_type(transcript_exception.exception.message))
 
     def test_get_available_transcript_languages(self):
         """

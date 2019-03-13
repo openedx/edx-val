@@ -4,6 +4,7 @@
 Tests the serializers for the Video Abstraction Layer
 """
 
+from __future__ import absolute_import
 from django.test import TestCase
 
 from edxval.serializers import EncodedVideoSerializer, VideoSerializer

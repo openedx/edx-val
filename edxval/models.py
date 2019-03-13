@@ -11,6 +11,7 @@ themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
 
+from __future__ import absolute_import
 import json
 import logging
 import os
@@ -28,6 +29,7 @@ from model_utils.models import TimeStampedModel
 from edxval.utils import (TranscriptFormat, get_video_image_storage,
                           get_video_transcript_storage, video_image_path,
                           video_transcript_path)
+import six
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -283,7 +285,7 @@ class ListField(models.TextField):
                 u'list must not contain more than {max_items} items.'.format(max_items=self.max_items)
             )
 
-        if all(isinstance(item, basestring) for item in value) is False:
+        if all(isinstance(item, six.string_types) for item in value) is False:
             raise ValidationError(u'list must only contain strings.')
 
         return value
@@ -502,7 +504,7 @@ class VideoTranscript(TimeStampedModel):
             video_transcript = cls(video=video, language_code=language_code)
             retrieved = False
 
-        for prop, value in metadata.iteritems():
+        for prop, value in six.iteritems(metadata):
             if prop in ['language_code', 'file_format', 'provider']:
                 setattr(video_transcript, prop, value)
 

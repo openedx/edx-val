@@ -2,6 +2,7 @@
 """
 Tests for transcript utils.
 """
+from __future__ import absolute_import
 import ddt
 import json
 import textwrap
