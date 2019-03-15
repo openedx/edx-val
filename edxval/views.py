@@ -1,6 +1,7 @@
 """
 Views file for django app edxval.
 """
+from __future__ import absolute_import
 import logging
 
 from django.core.exceptions import ValidationError
@@ -24,6 +25,7 @@ from edxval.models import (
 )
 from edxval.serializers import VideoSerializer
 from edxval.utils import TranscriptFormat
+import six
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -243,7 +245,7 @@ class VideoImagesView(APIView):
 
         try:
             course_video = CourseVideo.objects.select_related('video_image').get(
-                course_id=unicode(course_id), video__edx_video_id=edx_video_id
+                course_id=six.text_type(course_id), video__edx_video_id=edx_video_id
             )
         except CourseVideo.DoesNotExist:
             return Response(
