@@ -2,9 +2,10 @@
 """
 Tests for Video Abstraction Layer views
 """
+from __future__ import absolute_import
 import json
-from urlparse import urljoin
-from urllib import urlencode
+from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urlencode
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
