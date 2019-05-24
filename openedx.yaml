@@ -2,8 +2,11 @@
 # http://open-edx-proposals.readthedocs.io/en/latest/oeps/oep-0002.html#specification
 
 nick: val
-oeps: {}
 owner: edx/teaching-and-learning
+oeps:
+  oep-2: true
+  oep-7: false
+  oep-18: true
 tags:
   - video pipline
-track-pulls: true
+  - library
