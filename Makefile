@@ -32,6 +32,7 @@ coverage: clean ## generate and view HTML coverage report
 	coverage report html
 	$(BROWSER) htmlcov/index.html
 
+export CUSTOM_COMPILE_COMMAND = make upgrade
 upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	pip install -q pip-tools
 	pip-compile --upgrade -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/travis.in
