@@ -31,6 +31,7 @@ from edxval.api import (InvalidTranscriptFormat, InvalidTranscriptProvider,
                         SortDirection, ValCannotCreateError,
                         ValCannotUpdateError, ValVideoNotFoundError,
                         VideoSortField)
+from edxval.exceptions import TranscriptsGenerationException
 from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
                            ThirdPartyTranscriptCredentialsState, TranscriptPreference,
                            TranscriptProviderType, Video, VideoImage,
@@ -2533,7 +2534,7 @@ class TranscriptTest(TestCase):
         """
         video_id = u'medium-soaker'
         language_code = u'zh'
-        with self.assertRaises(IOError):
+        with self.assertRaises(TranscriptsGenerationException):
             api.get_video_transcript_data(video_id, language_code)
 
         mock_logger.exception.assert_called_with(
