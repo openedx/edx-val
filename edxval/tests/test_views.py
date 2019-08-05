@@ -10,6 +10,7 @@ from six.moves.urllib.parse import urlencode
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
+from django.core.urlresolvers import reverse_lazy
 from rest_framework import status
 
 from edxval.models import (
