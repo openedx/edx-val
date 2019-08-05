@@ -4,6 +4,7 @@
 The internal API for VAL.
 """
 from __future__ import absolute_import
+from __future__ import unicode_literals
 import logging
 from enum import Enum
 from uuid import uuid4
@@ -162,7 +163,7 @@ def update_video(video_data):
     try:
         video = _get_video(video_data.get("edx_video_id"))
     except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id"))
+        error_message = "Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id"))
         raise ValVideoNotFoundError(error_message)
 
     serializer = VideoSerializer(video, data=video_data)
@@ -188,7 +189,7 @@ def update_video_status(edx_video_id, status):
     try:
         video = _get_video(edx_video_id)
     except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video status with edx_video_id: {0}".format(
+        error_message = "Video not found when trying to update video status with edx_video_id: {0}".format(
             edx_video_id
         )
         raise ValVideoNotFoundError(error_message)
@@ -496,7 +497,7 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
             course_id=course_id, video__edx_video_id=edx_video_id
         )
     except ObjectDoesNotExist:
-        error_message = u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+        error_message = 'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
             edx_video_id,
             course_id
         )
@@ -535,10 +536,10 @@ def _get_video(edx_video_id):
     try:
         return Video.objects.prefetch_related("encoded_videos", "courses").get(edx_video_id=edx_video_id)
     except Video.DoesNotExist:
-        error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
+        error_message = "Video not found for edx_video_id: {0}".format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
     except Exception:
-        error_message = u"Could not get edx_video_id: {0}".format(edx_video_id)
+        error_message = "Could not get edx_video_id: {0}".format(edx_video_id)
         logger.exception(error_message)
         raise ValInternalError(error_message)
 
@@ -821,7 +822,7 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
             video__courses__course_id=course_id
         ).select_related()
     except Exception:
-        error_message = u"Could not get encoded videos for course: {0}".format(course_id)
+        error_message = "Could not get encoded videos for course: {0}".format(course_id)
         logger.exception(error_message)
         raise ValInternalError(error_message)
 
@@ -977,7 +978,7 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
                 language_code=language_code,
                 file_format=file_format,
                 resource_fs=resource_fs.delegate_fs(),
-                static_dir=combine(u'course', static_dir)  # File system should not start from /draft directory.
+                static_dir=combine('course', static_dir)  # File system should not start from /draft directory.
             )
             transcript_files_map[language_code] = transcript_filename
         except TranscriptsGenerationException:
@@ -1190,7 +1191,7 @@ def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, extern
             try:
                 file_format = transcript.attrib['file_format']
                 language_code = transcript.attrib['language_code']
-                transcript_file_name = u'{edx_video_id}-{language_code}.{file_format}'.format(
+                transcript_file_name = '{edx_video_id}-{language_code}.{file_format}'.format(
                     edx_video_id=edx_video_id,
                     language_code=language_code,
                     file_format=file_format

@@ -2,6 +2,7 @@
 VAL Exceptions.
 """
 
+from __future__ import unicode_literals
 class ValError(Exception):
     """
     An error that occurs during VAL actions.
