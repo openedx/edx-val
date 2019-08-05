@@ -41,7 +41,7 @@ class VideoDetail(APIAuthTestCase):
         Tests that reading/writing is not allowed for anonymous users.
         """
         self._logout()
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response = self.client.get(url)
@@ -810,7 +810,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         """
         Tests setup.
         """
-        self.url = reverse('create-video-transcript')
+        self.url = reverse_lazy('create-video-transcript')
         self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         self.transcript_data = constants.VIDEO_TRANSCRIPT_CIELO24
         super(VideoTranscriptViewTest, self).setUp()
@@ -902,7 +902,7 @@ class VideoStatusViewTest(APIAuthTestCase):
         """
         Tests setup.
         """
-        self.url = reverse('video-status-update')
+        self.url = reverse_lazy('video-status-update')
         self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         super(VideoStatusViewTest, self).setUp()
 
@@ -947,7 +947,7 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         """
         Tests setup.
         """
-        self.url = reverse('hls-missing-video')
+        self.url = reverse_lazy('hls-missing-video')
 
         desktop_profile, __ = Profile.objects.get_or_create(profile_name=constants.PROFILE_DESKTOP)
         hls_profile, __ = Profile.objects.get_or_create(profile_name=constants.PROFILE_HLS)
