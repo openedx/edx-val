@@ -2175,10 +2175,10 @@ class CourseVideoImageTest(TestCase):
         self.image_path1 = 'edxval/tests/data/image.jpg'
         self.image_path2 = 'edxval/tests/data/edx.jpg'
         self.image_url = api.update_video_image(
-            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1,'rb')), 'image.jpg'
         )
         self.image_url2 = api.update_video_image(
-            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2)), 'image.jpg'
+            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2, 'rb')), 'image.jpg'
         )
 
     def test_update_video_image(self):
