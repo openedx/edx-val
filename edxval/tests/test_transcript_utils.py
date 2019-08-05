@@ -91,12 +91,6 @@ class TestTranscriptUtils(unittest.TestCase):
         Tests that TranscriptsGenerationException was raises on trying
         to convert invalid srt transcript to sjson.
         """
-        invalid_srt_transcript  = textwrap.dedent("""\
-            invalid SubRip file content
-            000 00 0 0 00 
-            123745 
-            9234
-
-        """)
+        invalid_srt_transcript = 'invalid SubRip file content'
         with self.assertRaises(TranscriptsGenerationException):
             Transcript.convert(invalid_srt_transcript, 'srt', 'sjson')
