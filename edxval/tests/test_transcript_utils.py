@@ -3,7 +3,6 @@
 Tests for transcript utils.
 """
 from __future__ import absolute_import
-from __future__ import unicode_literals
 import ddt
 import json
 import textwrap

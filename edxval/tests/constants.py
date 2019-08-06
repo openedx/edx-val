@@ -4,7 +4,6 @@
 Constants used for tests.
 """
 from __future__ import absolute_import
-from __future__ import unicode_literals
 from edxval.models import (
     TranscriptProviderType,
     Cielo24Fidelity,
@@ -17,8 +16,8 @@ from edxval.utils import TranscriptFormat
 
 EDX_VIDEO_ID = "itchyjacket"
 
-EXPORT_IMPORT_COURSE_DIR = 'course'
-EXPORT_IMPORT_STATIC_DIR = 'static'
+EXPORT_IMPORT_COURSE_DIR = u'course'
+EXPORT_IMPORT_STATIC_DIR = u'static'
 
 """
 Generic Profiles for manually creating profile objects
@@ -108,7 +107,7 @@ ENCODED_VIDEO_DICT_NEGATIVE_BITRATE = dict(
 Non-latin/invalid
 """
 VIDEO_DICT_NON_LATIN_TITLE = dict(
-    client_video_id="배고픈 햄스터",
+    client_video_id=u"배고픈 햄스터",
     duration=42,
     edx_video_id="ID",
     status="test",

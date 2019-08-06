@@ -2,7 +2,6 @@
 Settings file for django app edxval.
 """
 
-from __future__ import unicode_literals
 DEBUG = True
 
 ADMINS = (

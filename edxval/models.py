@@ -12,7 +12,6 @@ invalid profile_name will be returned.
 """
 
 from __future__ import absolute_import
-from __future__ import unicode_literals
 import json
 import logging
 import os
@@ -236,7 +235,7 @@ class ListField(models.TextField):
         Converts a list to its json representation to store in database as text.
         """
         if value and not isinstance(value, list):
-            raise ValidationError('ListField value {} is not a list.'.format(value))
+            raise ValidationError(u'ListField value {} is not a list.'.format(value))
         return json.dumps(self.validate_list(value) or [])
 
     def from_db_value(self, value, expression, connection, context):
@@ -264,7 +263,7 @@ class ListField(models.TextField):
 
                 self.validate_list(py_list)
             except (ValueError, TypeError):
-                raise ValidationError('Must be a valid list of strings.')
+                raise ValidationError(u'Must be a valid list of strings.')
 
         return py_list
 
@@ -283,11 +282,11 @@ class ListField(models.TextField):
         """
         if len(value) > self.max_items:
             raise ValidationError(
-                'list must not contain more than {max_items} items.'.format(max_items=self.max_items)
+                u'list must not contain more than {max_items} items.'.format(max_items=self.max_items)
             )
 
         if all(isinstance(item, six.string_types) for item in value) is False:
-            raise ValidationError('list must only contain strings.')
+            raise ValidationError(u'list must only contain strings.')
 
         return value
 
@@ -432,7 +431,7 @@ class VideoTranscript(TimeStampedModel):
         Returns readable filename for a transcript
         """
         client_id, __ = os.path.splitext(self.video.client_video_id)
-        file_name = '{name}-{language}.{format}'.format(
+        file_name = u'{name}-{language}.{format}'.format(
             name=client_id,
             language=self.language_code,
             format=self.file_format
@@ -538,7 +537,7 @@ class VideoTranscript(TimeStampedModel):
         return storage.url(self.transcript.name)
 
     def __unicode__(self):
-        return '{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video.edx_video_id)
+        return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video.edx_video_id)
 
 
 class Cielo24Turnaround(object):
@@ -629,7 +628,7 @@ class TranscriptPreference(TimeStampedModel):
     )
 
     def __unicode__(self):
-        return '{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
+        return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
 
 
 class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
@@ -668,7 +667,7 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
             edX has Cielo24 credentials
             edX doesn't have 3PlayMedia credentials
         """
-        return '{org} {state} {provider} credentials'.format(
+        return u'{org} {state} {provider} credentials'.format(
             org=self.org, provider=self.provider, state='has' if self.exists else "doesn't have"
         )
 

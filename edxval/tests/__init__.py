@@ -2,7 +2,6 @@
 init
 """
 from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.contrib.auth.models import User, Permission
 from rest_framework.test import APITestCase
 

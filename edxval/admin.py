@@ -2,7 +2,6 @@
 Admin file for django app edxval.
 """
 from __future__ import absolute_import
-from __future__ import unicode_literals
 from django.contrib import admin
 
 from .models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference,
@@ -43,7 +42,7 @@ class VideoImageAdmin(admin.ModelAdmin):
     search_fields = ('id', 'course_video__course_id', 'course_video__video__edx_video_id', 'generated_images')
 
     def get_course_video(self, obj):
-        return '"{course_id}" -- "{edx_video_id}" '.format(
+        return u'"{course_id}" -- "{edx_video_id}" '.format(
             course_id=obj.course_video.course_id,
             edx_video_id=obj.course_video.video.edx_video_id
         )

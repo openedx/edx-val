@@ -5,7 +5,6 @@ Serialization is usually sent through the VideoSerializer which uses the
 EncodedVideoSerializer which uses the profile_name as it's profile field.
 """
 from __future__ import absolute_import
-from __future__ import unicode_literals
 from rest_framework import serializers
 from rest_framework.fields import DateTimeField, IntegerField
 
