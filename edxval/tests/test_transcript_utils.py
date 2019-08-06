@@ -20,7 +20,7 @@ class TestTranscriptUtils(unittest.TestCase):
     def setUp(self):
         super(TestTranscriptUtils, self).setUp()
 
-        self.srt_transcript = textwrap.dedent("""\
+        self.srt_transcript = textwrap.dedent(u"""\
             0
             00:00:10,500 --> 00:00:13,000
             Elephant&#39;s Dream 大象的梦想
@@ -31,7 +31,7 @@ class TestTranscriptUtils(unittest.TestCase):
 
         """)
 
-        self.sjson_transcript = textwrap.dedent("""\
+        self.sjson_transcript = textwrap.dedent(u"""\
             {
                 "start": [
                     10500,
@@ -65,7 +65,7 @@ class TestTranscriptUtils(unittest.TestCase):
         """
         Tests that srt to srt conversion works as expected.
         """
-        expected = self.srt_transcript.decode('utf-8')
+        expected = self.srt_transcript
         actual = Transcript.convert(self.srt_transcript, 'srt', 'srt')
         self.assertEqual(actual, expected)
 
@@ -73,7 +73,7 @@ class TestTranscriptUtils(unittest.TestCase):
         """
         Tests that the sjson transcript is successfully converted into srt format.
         """
-        expected = self.srt_transcript.decode('utf-8')
+        expected = self.srt_transcript
         actual = Transcript.convert(self.sjson_transcript, 'sjson', 'srt')
         self.assertEqual(actual, expected)
 
@@ -81,7 +81,7 @@ class TestTranscriptUtils(unittest.TestCase):
         """
         Tests that the srt transcript is successfully converted into sjson format.
         """
-        expected = self.sjson_transcript.decode('utf-8')
+        expected = self.sjson_transcript
         actual = Transcript.convert(self.srt_transcript, 'srt', 'sjson')
         self.assertDictEqual(json.loads(actual), json.loads(expected))
 
