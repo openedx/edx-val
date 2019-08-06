@@ -53,7 +53,7 @@ class VideoDetail(APIAuthTestCase):
         """
         self._logout()
         self._login(unauthorized=True)
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.get(url)
@@ -63,10 +63,10 @@ class VideoDetail(APIAuthTestCase):
         """
         Tests PUTting a single video with no encoded videos.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.VIDEO_DICT_ANIMAL.get("edx_video_id")}
         )
@@ -90,10 +90,10 @@ class VideoDetail(APIAuthTestCase):
         """
         Tests PUTting one encoded video.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_STAR.get("edx_video_id")}
         )
@@ -119,11 +119,11 @@ class VideoDetail(APIAuthTestCase):
         """
         Tests PUTting three encoded videos and then PUT back.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.COMPLETE_SET_FISH_WITH_HLS, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH_WITH_HLS.get("edx_video_id")}
         )
@@ -170,11 +170,11 @@ class VideoDetail(APIAuthTestCase):
         """
         Tests PUTting one of two EncodedVideo(s) and then a single EncodedVideo PUT back.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
 
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
         )
@@ -225,7 +225,7 @@ class VideoDetail(APIAuthTestCase):
         self.assertEqual(len(videos[0].encoded_videos.all()), 1)
 
         # Update with an empty list of videos
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_STAR.get("edx_video_id")}
         )
@@ -251,7 +251,7 @@ class VideoDetail(APIAuthTestCase):
         self.assertEqual(course_keys, constants.COMPLETE_SET_WITH_COURSE_KEY["courses"])
 
         # Update the video to associate it with other courses
-        url = reverse('video-detail', kwargs={"edx_video_id": video.edx_video_id})
+        url = reverse_lazy('video-detail', kwargs={"edx_video_id": video.edx_video_id})
         response = self.client.put(
             url,
             constants.COMPLETE_SET_WITH_OTHER_COURSE_KEYS,
@@ -275,10 +275,10 @@ class VideoDetail(APIAuthTestCase):
 
         The new edx_video_id is ignored in the VideoDetail view.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
         )
@@ -308,10 +308,10 @@ class VideoDetail(APIAuthTestCase):
         """
         Tests PUTting one of two invalid EncodedVideo(s)
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
         )
@@ -343,10 +343,10 @@ class VideoDetail(APIAuthTestCase):
         """
         Tests PUTting duplicate EncodedVideos for a Video
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        url = reverse(
+        url = reverse_lazy(
             'video-detail',
             kwargs={"edx_video_id": constants.COMPLETE_SET_FISH.get("edx_video_id")}
         )
@@ -378,7 +378,7 @@ class VideoDetail(APIAuthTestCase):
         """
         Create videos for use in tests.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -404,7 +404,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests POSTing Video and EncodedVideo pair
         """  # pylint: disable=R0801
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH_WITH_HLS, format='json'
         )
@@ -418,7 +418,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests the case where there is an additional unneeded video field vis POST
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_EXTRA_VIDEO_FIELD, format='json'
         )
@@ -432,7 +432,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests POSTing a new Video object and empty EncodedVideo
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.VIDEO_DICT_ANIMAL, format='json'
         )
@@ -445,7 +445,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests POSTing a new Video with course video list containing some invalid course keys.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_WITH_SOME_INVALID_COURSE_KEY, format='json'
         )
@@ -458,7 +458,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests POSTing non-latin client_video_id
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_NON_LATIN_TITLE, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -468,7 +468,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests POSTing same video.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.VIDEO_DICT_ANIMAL, format='json'
         )
@@ -490,7 +490,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Test that youtube is a valid profile.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
 
         video_data = dict(
             encoded_videos=[
@@ -512,7 +512,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests POSTing valid Video and partial valid EncodedVideos.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_INVALID_ENCODED_VIDEO_FISH, format='json'
         )
@@ -524,7 +524,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests invalid Video POST
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_INVALID_VIDEO_FISH, format='json'
         )
@@ -540,7 +540,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests for invalid video entry for POST
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_INVALID_ID, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = response.data
@@ -553,7 +553,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests POSTing non-latin edx_video_id
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_NON_LATIN_ID, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = response.data
@@ -567,7 +567,7 @@ class VideoListTest(APIAuthTestCase):
         Test adding a video with a course.
         Test retrieving videos from course list view.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         video = dict(**constants.VIDEO_DICT_ANIMAL)
         course1 = 'animals/fish/carp'
         course2 = 'animals/birds/cardinal'
@@ -581,12 +581,12 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['courses'], [{course1: None}, {course2: None}])
 
-        url = reverse('video-list') + '?course=%s' % course1
+        url = reverse_lazy('video-list') + '?course=%s' % course1
         videos = self.client.get(url).data
         self.assertEqual(len(videos), 1)
         self.assertEqual(videos[0]['edx_video_id'], constants.VIDEO_DICT_ANIMAL['edx_video_id'])
 
-        url = reverse('video-list') + '?course=animals/fish/salmon'
+        url = reverse_lazy('video-list') + '?course=animals/fish/salmon'
         response = self.client.get(url).data
         self.assertEqual(len(response), 0)
 
@@ -610,11 +610,11 @@ class VideoListTest(APIAuthTestCase):
             'duration': 122
         }
 
-        response = self.client.post(reverse('video-list'), video, format='json')
+        response = self.client.post(reverse_lazy('video-list'), video, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # now look up the vid by youtube id
-        url = reverse('video-list') + '?youtube=AbcDef'
+        url = reverse_lazy('video-list') + '?youtube=AbcDef'
         response = self.client.get(url).data
         self.assertEqual(len(response), 1)
         self.assertEqual(response[0]['edx_video_id'], video['edx_video_id'])
@@ -623,7 +623,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Test that hls is a valid profile.
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
 
         video_data = dict(
             encoded_videos=[
@@ -646,7 +646,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests number of queries for a Video with no Encoded Videos
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         with self.assertNumQueries(8):
             self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
 
@@ -654,7 +654,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests number of queries for a Video/EncodedVideo(2) pair
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         with self.assertNumQueries(13):
             self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
 
@@ -662,7 +662,7 @@ class VideoListTest(APIAuthTestCase):
         """
         Tests number of queries for a Video/EncodedVideo(1) pair
                 """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         with self.assertNumQueries(11):
             self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
 
@@ -683,7 +683,7 @@ class VideoDetailTest(APIAuthTestCase):
         """
         Tests getting all Video objects
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
@@ -695,7 +695,7 @@ class VideoDetailTest(APIAuthTestCase):
         """
         Tests number of queries when GETting all videos
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(url, constants.VIDEO_DICT_ANIMAL, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(url, constants.VIDEO_DICT_ZEBRA, format='json')
@@ -734,7 +734,7 @@ class VideoImagesViewTest(APIAuthTestCase):
         Tests POSTing generated images successfully.
         """
         generated_images = ['video-images/a.png', 'video-images/b.png', 'video-images/c.png']
-        url = reverse('update-video-images')
+        url = reverse_lazy('update-video-images')
         response = self.client.post(
             url,
             {
@@ -790,7 +790,7 @@ class VideoImagesViewTest(APIAuthTestCase):
         """
         Tests error responses occurred during POSTing.
         """
-        url = reverse('update-video-images')
+        url = reverse_lazy('update-video-images')
 
         response = self.client.post(url, post_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
