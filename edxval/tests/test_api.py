@@ -1175,7 +1175,7 @@ class ExportTest(TestCase):
         # Also verify the content of created transcript file.
         for language_code in transcript_files.keys():
             expected_transcript_content = File(
-                open(combine(expected_transcript_path, transcript_files[language_code]))
+                open(combine(expected_transcript_path, transcript_files[language_code]),'rb')
             ).read()
             transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
             transcript_format = os.path.splitext(transcript['file_name'])[1][1:]
@@ -2061,7 +2061,7 @@ class ImportTest(TestCase):
         Verify that video transcript import working as expected if transcript xml data is missing.
         """
         video_id = 'super-soaker'
-        transcript_xml = utils.b('<transcript file_format="srt" provider="Cielo24"/>')
+        transcript_xml = '<transcript file_format="srt" provider="Cielo24"/>'
         xml = etree.fromstring("""
             <video_asset>
                 <transcripts>
