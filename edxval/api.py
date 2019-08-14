@@ -1051,7 +1051,7 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
 
         return edx_video_id
     except ValidationError as err:
-        logger.exception(err.message)
+        logger.exception(err.messages)
         raise ValCannotCreateError(err.message_dict)
     except Video.DoesNotExist:
         pass

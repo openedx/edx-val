@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.files.storage import get_storage_class
 from fs.path import combine
 from pysrt import SubRipFile
+import sys
 
 
 class TranscriptFormat(object):
@@ -216,3 +217,11 @@ def get_transcript_format(transcript_content):
         if len(srt_subs) > 0:
             return TranscriptFormat.SRT
     return TranscriptFormat.SJSON
+
+
+if sys.version_info < (3,):
+    def b(x):
+        return x
+else:
+    def b(x):
+        return x.encode()

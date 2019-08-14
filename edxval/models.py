@@ -20,6 +20,7 @@ from uuid import uuid4
 
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.core.urlresolvers import reverse_lazy
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.dispatch import receiver
@@ -120,7 +121,7 @@ class Video(models.Model):
         """
         Returns the full url link to the edx_video_id
         """
-        return reverse('video-detail', args=[self.edx_video_id])
+        return reverse_lazy('video-detail', args=[self.edx_video_id])
 
     def __str__(self):
         return self.edx_video_id

@@ -11,6 +11,7 @@ from edxval.models import (
     ThreePlayTurnaround,
     EXTERNAL_VIDEO_STATUS
 )
+from edxval.utils import b
 
 from edxval.utils import TranscriptFormat
 

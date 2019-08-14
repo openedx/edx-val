@@ -16,6 +16,8 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.images import ImageFile
 from django.urls import reverse
+from django.core.urlresolvers import reverse_lazy
+
 from django.db import DatabaseError
 from django.test import TestCase
 from fs.osfs import OSFS
@@ -875,7 +877,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         super(GetVideoInfoTestWithHttpCalls, self).setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
         )
@@ -902,7 +904,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         """
         Tests number of queries for a Video/EncodedVideo(1) pair
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_STAR, format='json'
         )
@@ -914,7 +916,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         """
         Tests number of queries for a Video with no Encoded Videopair
         """
-        url = reverse('video-list')
+        url = reverse_lazy('video-list')
         response = self.client.post(
             url, constants.VIDEO_DICT_ZEBRA, format='json'
         )
@@ -1131,7 +1133,7 @@ class ExportTest(TestCase):
         )
 
         self.assert_xml_equal(exported_metadata['xml'], expected)
-        self.assertItemsEqual(list(exported_metadata['transcripts'].keys()), ['en', 'de'])
+        self.assertCountEqual(list(exported_metadata['transcripts'].keys()), ['en', 'de'])
 
     def test_transcript_export(self):
         """
@@ -1168,7 +1170,7 @@ class ExportTest(TestCase):
         self.assert_xml_equal(exported_metadata['xml'], expected_xml)
 
         # Verify transcript file is created.
-        self.assertItemsEqual(list(transcript_files.values()), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
+        self.assertCountEqual(list(transcript_files.values()), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
 
         # Also verify the content of created transcript file.
         for language_code in transcript_files.keys():
@@ -1212,8 +1214,16 @@ class ImportTest(TestCase):
         CourseVideo.objects.create(video=video, course_id='existing_course_id')
 
         self.transcript_data1 = dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id='little-star')
+        self.transcript_data1_byte = dict(self.transcript_data1)
+        self.transcript_data1_byte['file_data'] = utils.b(self.transcript_data1_byte['file_data'])
+
         self.transcript_data2 = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video_id='little-star')
+        self.transcript_data2_byte = dict(self.transcript_data2)
+        self.transcript_data2_byte['file_data'] = utils.b(self.transcript_data2_byte['file_data'])
+
         self.transcript_data3 = dict(self.transcript_data2, video_id='super-soaker')
+        self.transcript_data3_byte = dict(self.transcript_data3)
+        self.transcript_data3_byte['file_data'] = utils.b(self.transcript_data3_byte['file_data'])
 
         self.temp_dir = mkdtemp()
         self.file_system = OSFS(self.temp_dir)
@@ -1373,7 +1383,7 @@ class ImportTest(TestCase):
 
         self.assert_transcripts(
             constants.VIDEO_DICT_STAR['edx_video_id'],
-            [self.transcript_data1, self.transcript_data2]
+            [self.transcript_data1_byte, self.transcript_data2_byte]
         )
 
     def test_new_video_minimal(self):
@@ -1596,8 +1606,8 @@ class ImportTest(TestCase):
         )
 
     @data(
-        ('external-transcript.srt', constants.VIDEO_TRANSCRIPT_CUSTOM_SRT),
-        ('external-transcript.sjson', constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON)
+        ('external-transcript.srt', dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT)),
+        ('external-transcript.sjson', dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON))
     )
     @unpack
     def test_external_video_transcript(self, transcript_file_name, transcript_data):
@@ -1632,6 +1642,7 @@ class ImportTest(TestCase):
         # Verify that a new video is created.
         self.assertIsNotNone(edx_video_id)
 
+        transcript_data['file_data']=utils.b(transcript_data['file_data'])
         # Verify transcript record is created with correct data.
         self.assert_transcripts(
             edx_video_id,
@@ -1644,16 +1655,19 @@ class ImportTest(TestCase):
         """
         # First create external transcripts.
         en_transcript_file_name = 'external-transcript-en.srt'
+        test_data = str(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'])
+        test_data2 = str(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'])
         utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'],
+            test_data2,
             en_transcript_file_name,
             self.file_system,
             constants.EXPORT_IMPORT_STATIC_DIR
         )
 
         es_transcript_file_name = 'external-transcript-es.srt'
+
         utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'],
+            test_data,
             es_transcript_file_name,
             self.file_system,
             constants.EXPORT_IMPORT_STATIC_DIR
@@ -1685,6 +1699,8 @@ class ImportTest(TestCase):
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en'),
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='es')
         ]
+        for expected_transcript in expected_transcripts:
+            expected_transcript['file_data']=utils.b(expected_transcript['file_data'])
 
         self.assert_transcripts(
             edx_video_id,
@@ -1707,7 +1723,7 @@ class ImportTest(TestCase):
 
         ext_transcript_file_name = 'external-transcript-ext.sjson'
         utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON['file_data'],
+            str(constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON['file_data']),
             ext_transcript_file_name,
             self.file_system,
             constants.EXPORT_IMPORT_STATIC_DIR
@@ -1738,6 +1754,11 @@ class ImportTest(TestCase):
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en')
         ]
 
+        for expected_transcript in expected_transcripts:
+            expected_transcript['file_data']=utils.b(expected_transcript['file_data'])
+
+
+
         self.assert_transcripts(
             edx_video_id,
             expected_transcripts
@@ -1750,7 +1771,7 @@ class ImportTest(TestCase):
         # First create external transcript in sjson format.
         en_transcript_file_name = 'external-transcript-en.sjson'
         utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON['file_data'],
+            str(constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON['file_data']),
             en_transcript_file_name,
             self.file_system,
             constants.EXPORT_IMPORT_STATIC_DIR
@@ -1786,7 +1807,7 @@ class ImportTest(TestCase):
         # Verify transcript record is created with internal transcript data.
         self.assert_transcripts(
             constants.VIDEO_DICT_STAR['edx_video_id'],
-            [self.transcript_data1]
+            [self.transcript_data1_byte]
         )
 
     def test_external_internal_transcripts_different_languages(self):
@@ -1831,11 +1852,11 @@ class ImportTest(TestCase):
                 'es': [es_transcript_file_name]
             }
         )
-
+        es_external_transcript['file_data'] = utils.b(es_external_transcript['file_data'])
         # Verify all transcript records are created correctly.
         self.assert_transcripts(
             constants.VIDEO_DICT_STAR['edx_video_id'],
-            [self.transcript_data1, es_external_transcript]
+            [self.transcript_data1_byte, es_external_transcript]
         )
 
     @patch('edxval.api.logger')
@@ -1935,11 +1956,11 @@ class ImportTest(TestCase):
         """
         Verify that transcript import for existing video with transcript attached is working as expected.
         """
-        expected_video_transcripts = [self.transcript_data3]
+        expected_video_transcripts = [self.transcript_data3_byte]
 
         import_xml = self.make_import_xml(
             video_dict=constants.VIDEO_DICT_FISH,
-            video_transcripts=expected_video_transcripts
+            video_transcripts=[self.transcript_data3]
         )
 
         # Verify video is present before.
@@ -2006,11 +2027,10 @@ class ImportTest(TestCase):
         """
         Verify that transcript import for new video is working as expected when transcript is present in XML.
         """
-        expected_video_transcripts = [self.transcript_data1, self.transcript_data2]
 
         import_xml = self.make_import_xml(
             video_dict=constants.VIDEO_DICT_STAR,
-            video_transcripts=expected_video_transcripts
+            video_transcripts=[self.transcript_data1, self.transcript_data2]
         )
 
         # Verify video is not present before.
@@ -2032,7 +2052,7 @@ class ImportTest(TestCase):
         # Verify that transcript record is created with correct data.
         self.assert_transcripts(
             constants.VIDEO_DICT_STAR['edx_video_id'],
-            expected_video_transcripts
+            [self.transcript_data1_byte, self.transcript_data2_byte]
         )
 
     @patch('edxval.api.logger')
@@ -2041,7 +2061,7 @@ class ImportTest(TestCase):
         Verify that video transcript import working as expected if transcript xml data is missing.
         """
         video_id = 'super-soaker'
-        transcript_xml = '<transcript file_format="srt" provider="Cielo24"/>'
+        transcript_xml = utils.b('<transcript file_format="srt" provider="Cielo24"/>')
         xml = etree.fromstring("""
             <video_asset>
                 <transcripts>
@@ -2175,10 +2195,10 @@ class CourseVideoImageTest(TestCase):
         self.image_path1 = 'edxval/tests/data/image.jpg'
         self.image_path2 = 'edxval/tests/data/edx.jpg'
         self.image_url = api.update_video_image(
-            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1,'rb')), 'image.jpg'
         )
         self.image_url2 = api.update_video_image(
-            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2)), 'image.jpg'
+            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2, 'rb')), 'image.jpg'
         )
 
     def test_update_video_image(self):
@@ -2211,7 +2231,7 @@ class CourseVideoImageTest(TestCase):
         """
         with self.assertNumQueries(6):
             api.update_video_image(
-                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1,'rb')), 'image.jpg'
             )
 
     def test_num_queries_get_course_video_image_url(self):
@@ -2355,7 +2375,7 @@ class CourseVideoImageTest(TestCase):
 
         # This will replace the image for self.course_video and delete the existing image
         image_url = api.update_video_image(
-            self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg'
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path2,'rb')), 'image.jpg'
         )
 
         # Verify that new image is set to course_video
@@ -2364,7 +2384,7 @@ class CourseVideoImageTest(TestCase):
 
         # Verify that an exception is raised if we try to open a delete image file
         with self.assertRaises(IOError) as file_open_exception:
-            ImageFile(open(existing_image_name))
+            ImageFile(open(existing_image_name,))
 
         self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
 
@@ -2379,7 +2399,7 @@ class CourseVideoImageTest(TestCase):
 
         # This will replace the image for self.course_video but image will
         # not be deleted because it is also used by self.course_video2
-        api.update_video_image(self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg')
+        api.update_video_image(self.edx_video_id, self.course_id, ImageFile(open(self.image_path2,'rb')), 'image.jpg')
 
         # Verify image for course_video has changed
         course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
@@ -2560,7 +2580,7 @@ class TranscriptTest(TestCase):
         """
         expected_transcript = {
             'file_name': expected_file_name,
-            'content': File(open(expected_transcript_path)).read()
+            'content': File(open(expected_transcript_path,'rb')).read()
         }
         transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
         self.assertDictEqual(transcript, expected_transcript)
@@ -2623,8 +2643,8 @@ class TranscriptTest(TestCase):
         if file_data:
             self.assertTrue(transcript_url.startswith(settings.VIDEO_TRANSCRIPTS_SETTINGS['DIRECTORY_PREFIX']))
             self.assertEqual(video_transcript.transcript.name, transcript_url)
-            with open(video_transcript.transcript.name) as saved_transcript:
-                self.assertEqual(saved_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
+            with open(video_transcript.transcript.name,'rb') as saved_transcript:
+                self.assertEqual(saved_transcript.read(), utils.b(constants.TRANSCRIPT_DATA['overwatch']))
         else:
             self.assertEqual(video_transcript.transcript.name, file_name)
 
@@ -2743,8 +2763,8 @@ class TranscriptTest(TestCase):
         self.assertIsNotNone(video_transcript)
         self.assertEqual(video_transcript.file_format, transcript_props['file_format'])
         self.assertEqual(video_transcript.provider, transcript_props['provider'])
-        with open(video_transcript.transcript.name) as created_transcript:
-            self.assertEqual(created_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
+        with open(video_transcript.transcript.name,'rb') as created_transcript:
+            self.assertEqual(created_transcript.read(), utils.b(constants.TRANSCRIPT_DATA['overwatch']))
 
     @data(
         {
@@ -2778,7 +2798,7 @@ class TranscriptTest(TestCase):
         """
         # `super-soaker` has got 'en' and 'fr' transcripts
         transcript_languages = api.get_available_transcript_languages(video_id=u'super-soaker')
-        self.assertItemsEqual(transcript_languages, ['en', 'fr'])
+        self.assertCountEqual(transcript_languages, ['en', 'fr'])
 
     @patch('edxval.api.logger')
     def test_delete_video_transcript(self, mock_logger):
@@ -2835,7 +2855,7 @@ class TranscriptTest(TestCase):
         self.assertTrue(transcript_file_name in file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
 
         # Also verify the content of created transcript file.
-        expected_transcript_content = File(open(expected_transcript_path)).read()
+        expected_transcript_content = File(open(expected_transcript_path,'rb')).read()
         transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
         self.assertEqual(transcript['content'], expected_transcript_content)
 
