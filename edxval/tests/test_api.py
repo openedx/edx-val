@@ -877,7 +877,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         super(GetVideoInfoTestWithHttpCalls, self).setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
-        url = reverse_lazy('video-list')
+        url = reverse('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_FISH, format='json'
         )
@@ -904,7 +904,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         """
         Tests number of queries for a Video/EncodedVideo(1) pair
         """
-        url = reverse_lazy('video-list')
+        url = reverse('video-list')
         response = self.client.post(
             url, constants.COMPLETE_SET_STAR, format='json'
         )
@@ -916,7 +916,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         """
         Tests number of queries for a Video with no Encoded Videopair
         """
-        url = reverse_lazy('video-list')
+        url = reverse('video-list')
         response = self.client.post(
             url, constants.VIDEO_DICT_ZEBRA, format='json'
         )
@@ -2384,7 +2384,7 @@ class CourseVideoImageTest(TestCase):
 
         # Verify that an exception is raised if we try to open a delete image file
         with self.assertRaises(IOError) as file_open_exception:
-            ImageFile(open(existing_image_name,))
+            ImageFile(open(existing_image_name))
 
         self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
 
