@@ -1051,7 +1051,7 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
 
         return edx_video_id
     except ValidationError as err:
-        logger.exception(err.message)
+        logger.exception(xml)
         raise ValCannotCreateError(err.message_dict)
     except Video.DoesNotExist:
         pass
@@ -1122,9 +1122,8 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
     if not transcript_data:
         # Read file from import file system and attach it to transcript record in DS.
         try:
-            with resource_fs.open(combine(static_dir, file_name), 'rb') as f:
+            with resource_fs.open(combine(static_dir, file_name), 'r', encoding='utf-8-sig') as f:
                 file_content = f.read()
-                file_content = file_content.decode('utf-8-sig')
         except ResourceNotFound as exc:
             # Don't raise exception in case transcript file is not found in course OLX.
             logger.warn(

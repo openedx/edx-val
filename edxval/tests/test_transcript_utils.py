@@ -20,7 +20,7 @@ class TestTranscriptUtils(unittest.TestCase):
     def setUp(self):
         super(TestTranscriptUtils, self).setUp()
 
-        self.srt_transcript = textwrap.dedent("""\
+        self.srt_transcript = textwrap.dedent(u"""\
             0
             00:00:10,500 --> 00:00:13,000
             Elephant&#39;s Dream 大象的梦想
@@ -29,9 +29,9 @@ class TestTranscriptUtils(unittest.TestCase):
             00:00:15,000 --> 00:00:18,000
             At the left we can see...
 
-        """)
+        """).encode('utf8')
 
-        self.sjson_transcript = textwrap.dedent("""\
+        self.sjson_transcript = textwrap.dedent(u"""\
             {
                 "start": [
                     10500,
@@ -46,7 +46,7 @@ class TestTranscriptUtils(unittest.TestCase):
                     "At the left we can see..."
                 ]
             }
-        """)
+        """).encode('utf8')
 
     @ddt.data(
         ('invalid_input_format', 'sjson'),
@@ -90,6 +90,6 @@ class TestTranscriptUtils(unittest.TestCase):
         Tests that TranscriptsGenerationException was raises on trying
         to convert invalid srt transcript to sjson.
         """
-        invalid_srt_transcript = 'invalid SubRip file content'
+        invalid_srt_transcript = b'invalid SubRip file content'
         with self.assertRaises(TranscriptsGenerationException):
             Transcript.convert(invalid_srt_transcript, 'srt', 'sjson')
