@@ -98,8 +98,8 @@ class SerializerTests(TestCase):
         )
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            serializer.errors,
-            {"courses": ["Ensure this value has at most 255 characters (it has 300)."]}
+            str(serializer.errors['courses'][0]),
+            "Ensure this value has at most 255 characters (it has 300)."
         )
 
     def test_encoded_video_set_output(self):

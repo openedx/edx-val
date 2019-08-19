@@ -4,82 +4,89 @@
 #
 #    make upgrade
 #
--e git+https://github.com/edx/django-rest-framework-oauth.git@f0b503fda8c254a38f97fef802ded4f5fe367f7a#egg=djangorestframework-oauth
--e git+https://github.com/edx/django-rest-framework.git@1ceda7c086fddffd1c440cc86856441bbf0bd9cb#egg=djangorestframework==3.6.3
+-e git+https://github.com/edx/django-rest-framework-oauth.git@0a43e8525f1e3048efe4bc70c03de308a277197c#egg=djangorestframework-oauth==1.1.1
 appdirs==1.4.3            # via fs
 argparse==1.4.0           # via caniusepython3
-asn1crypto==0.24.0        # via cryptography
 astroid==1.5.3            # via pylint, pylint-celery
-backports.functools-lru-cache==1.5  # via astroid, caniusepython3, isort, pylint
-backports.os==0.1.1       # via fs
+attrs==19.1.0             # via packaging
+backports.functools-lru-cache==1.5  # via caniusepython3
 boto==2.49.0
 caniusepython3==7.1.0
-certifi==2019.3.9         # via requests, urllib3
-cffi==1.12.3              # via cryptography
+certifi==2019.6.16        # via requests
 chardet==3.0.4            # via pysrt, requests
 click-log==0.3.2          # via edx-lint
 click==7.0                # via click-log, edx-lint, pip-tools
-configparser==3.7.4       # via pydocstyle, pylint
-coverage==4.5.3
-coveralls==1.7.0
-cryptography==2.6.1       # via pyopenssl, urllib3
+coverage==4.5.4
+coveralls==1.8.2
 ddt==1.2.1
-diff-cover==2.0.1
+diff-cover==2.3.0
 distlib==0.2.9.post0      # via caniusepython3
-django-model-utils==3.1.2
+django-model-utils==3.2.0
 django-nose==1.4.6
-django-oauth-plus==2.2.9
 django-storages==1.7.1
-django==1.11.20
+django-waffle==0.17.0     # via edx-django-utils, edx-drf-extensions
+django==1.11.23
+djangorestframework-jwt==1.11.0  # via edx-drf-extensions
+djangorestframework==3.7.7
 docopt==0.6.2             # via coveralls
 edx-django-oauth2-provider==1.3.5
-edx-lint==1.2.1
+edx-django-utils==2.0.0   # via edx-drf-extensions
+edx-drf-extensions==2.4.0
+edx-lint==1.3.0
+edx-opaque-keys==1.0.1    # via edx-drf-extensions
 enum34==1.1.6
 filelock==3.0.12          # via tox
-fs==2.4.5
-funcsigs==1.0.2           # via mock
-future==0.17.1            # via backports.os
-futures==3.2.0            # via caniusepython3, isort
-httplib2==0.12.3          # via oauth2
-idna==2.8                 # via requests, urllib3
+fs==2.4.10
+future==0.17.1            # via pyjwkest
+idna==2.8                 # via requests
+importlib-metadata==0.19  # via pluggy, tox
 inflect==2.1.0            # via jinja2-pluralize
-ipaddress==1.0.22         # via cryptography, urllib3
-isort==4.3.20
+isort==4.3.21
 jinja2-pluralize==0.3.0   # via diff-cover
 jinja2==2.10.1            # via diff-cover, jinja2-pluralize
 lazy-object-proxy==1.4.1  # via astroid
-lxml==4.3.3
+lxml==4.4.1
 markupsafe==1.1.1         # via jinja2
 mccabe==0.6.1             # via pylint
 mock==3.0.5
+newrelic==5.0.2.126       # via edx-django-utils
 nose==1.3.7               # via django-nose
-oauth2==1.9.0.post1       # via django-oauth-plus
-packaging==19.0           # via caniusepython3
-pillow==6.0.0
-pip-tools==3.7.0
-pluggy==0.11.0            # via tox
+packaging==19.1           # via caniusepython3, tox
+pbr==5.4.2                # via stevedore
+pillow==6.1.0
+pip-tools==4.0.0
+pluggy==0.12.0            # via tox
+psutil==1.2.1             # via edx-django-utils, edx-drf-extensions
 py==1.8.0                 # via tox
 pycodestyle==2.5.0
-pycparser==2.19           # via cffi
-pydocstyle==3.0.0
-pygments==2.4.1           # via diff-cover
+pycryptodomex==3.8.2      # via pyjwkest
+pydocstyle==4.0.1
+pygments==2.4.2           # via diff-cover
+pyjwkest==1.3.2           # via edx-drf-extensions
+pyjwt==1.7.1              # via djangorestframework-jwt
 pylint-celery==0.3        # via edx-lint
 pylint-django==0.7.2      # via edx-lint
 pylint-plugin-utils==0.5  # via pylint-celery, pylint-django
 pylint==1.7.6             # via edx-lint, pylint-celery, pylint-django, pylint-plugin-utils
-pyopenssl==19.0.0         # via urllib3
-pyparsing==2.4.0          # via packaging
+pymongo==3.9.0            # via edx-opaque-keys
+pyparsing==2.4.2          # via packaging
 pysrt==1.1.1
-pytz==2019.1              # via django, fs
-requests==2.22.0          # via caniusepython3, coveralls
+python-dateutil==2.8.0    # via edx-drf-extensions
+pytz==2019.2              # via django, fs
+requests==2.22.0          # via caniusepython3, coveralls, edx-drf-extensions, pyjwkest
+rest-condition==1.0.3     # via edx-drf-extensions
+semantic-version==2.6.0   # via edx-drf-extensions
 shortuuid==0.5.0          # via edx-django-oauth2-provider
-singledispatch==3.4.0.3   # via astroid, pylint
-six==1.12.0               # via astroid, cryptography, diff-cover, edx-lint, fs, mock, packaging, pip-tools, pydocstyle, pylint, pyopenssl, singledispatch, tox
-snowballstemmer==1.2.1    # via pydocstyle
+six==1.12.0               # via astroid, diff-cover, edx-drf-extensions, edx-lint, edx-opaque-keys, fs, mock, packaging, pip-tools, pyjwkest, pylint, python-dateutil, stevedore, tox
+snowballstemmer==1.9.0    # via pydocstyle
+stevedore==1.30.1         # via edx-opaque-keys
 toml==0.10.0              # via tox
 tox-battery==0.5.1
-tox==3.12.1
-typing==3.6.6             # via fs
-urllib3[secure]==1.25.3   # via coveralls, requests
-virtualenv==16.6.0        # via tox
-wrapt==1.11.1             # via astroid
+tox==3.13.2
+urllib3==1.25.3           # via requests
+virtualenv==16.7.3        # via tox
+wrapt==1.11.2             # via astroid
+zipp==0.5.2               # via importlib-metadata
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools==41.1.0        # via caniusepython3, fs

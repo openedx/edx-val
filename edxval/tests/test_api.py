@@ -7,6 +7,8 @@ import json
 import os
 import shutil
 
+from io import open
+
 import mock
 from unittest import skip
 from ddt import data, ddt, unpack
@@ -1131,7 +1133,7 @@ class ExportTest(TestCase):
         )
 
         self.assert_xml_equal(exported_metadata['xml'], expected)
-        self.assertItemsEqual(list(exported_metadata['transcripts'].keys()), ['en', 'de'])
+        self.assertEqual(sorted(exported_metadata['transcripts'].keys()), ['de', 'en'])
 
     def test_transcript_export(self):
         """
@@ -1168,12 +1170,12 @@ class ExportTest(TestCase):
         self.assert_xml_equal(exported_metadata['xml'], expected_xml)
 
         # Verify transcript file is created.
-        self.assertItemsEqual(list(transcript_files.values()), self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
+        self.assertEqual(sorted(transcript_files.values()), sorted(self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR)))
 
         # Also verify the content of created transcript file.
         for language_code in transcript_files.keys():
             expected_transcript_content = File(
-                open(combine(expected_transcript_path, transcript_files[language_code]))
+                open(combine(expected_transcript_path, transcript_files[language_code]), 'rb')
             ).read()
             transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
             transcript_format = os.path.splitext(transcript['file_name'])[1][1:]
@@ -1327,7 +1329,7 @@ class ImportTest(TestCase):
             ).data
 
             # Assert transcript content
-            received_transcript['file_data'] = api.get_video_transcript_data(video_id, language_code)['content']
+            received_transcript['file_data'] = api.get_video_transcript_data(video_id, language_code)['content'].decode('utf8')
 
             # Omit not needed attrs.
             expected_transcript = omit_attrs(expected_transcript, ['transcript'])
@@ -2041,12 +2043,12 @@ class ImportTest(TestCase):
         Verify that video transcript import working as expected if transcript xml data is missing.
         """
         video_id = 'super-soaker'
-        transcript_xml = '<transcript file_format="srt" provider="Cielo24"/>'
+        transcript_xml = u'<transcript file_format="srt" provider="Cielo24"/>'
         xml = etree.fromstring("""
             <video_asset>
                 <transcripts>
                     {transcript_xml}
-                    <transcript language_code="de" file_format="sjson" provider='3PlayMedia'/>
+                    <transcript language_code="de" file_format="sjson" provider="3PlayMedia"/>
                 </transcripts>
             </video_asset>
         """.format(transcript_xml=transcript_xml))
@@ -2066,7 +2068,7 @@ class ImportTest(TestCase):
 
         mock_logger.warn.assert_called_with(
             "VAL: Required attributes are missing from xml, xml=[%s]",
-            transcript_xml
+            transcript_xml.encode('utf8')
         )
 
         self.assert_transcripts(video_id, [self.transcript_data3])
@@ -2175,10 +2177,10 @@ class CourseVideoImageTest(TestCase):
         self.image_path1 = 'edxval/tests/data/image.jpg'
         self.image_path2 = 'edxval/tests/data/edx.jpg'
         self.image_url = api.update_video_image(
-            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path1, 'rb')), 'image.jpg'
         )
         self.image_url2 = api.update_video_image(
-            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2)), 'image.jpg'
+            self.edx_video_id, self.course_id2, ImageFile(open(self.image_path2, 'rb')), 'image.jpg'
         )
 
     def test_update_video_image(self):
@@ -2187,8 +2189,8 @@ class CourseVideoImageTest(TestCase):
         """
         self.assertEqual(self.course_video.video_image.image.name, self.image_url)
         self.assertEqual(self.course_video2.video_image.image.name, self.image_url2)
-        self.assertEqual(ImageFile(open(self.image_path1)).size, ImageFile(open(self.image_url)).size)
-        self.assertEqual(ImageFile(open(self.image_path2)).size, ImageFile(open(self.image_url2)).size)
+        self.assertEqual(ImageFile(open(self.image_path1, 'rb')).size, ImageFile(open(self.image_url, 'rb')).size)
+        self.assertEqual(ImageFile(open(self.image_path2, 'rb')).size, ImageFile(open(self.image_url2, 'rb')).size)
 
     def test_get_course_video_image_url(self):
         """
@@ -2211,7 +2213,7 @@ class CourseVideoImageTest(TestCase):
         """
         with self.assertNumQueries(6):
             api.update_video_image(
-                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1)), 'image.jpg'
+                self.edx_video_id, self.course_id, ImageFile(open(self.image_path1, 'rb')), 'image.jpg'
             )
 
     def test_num_queries_get_course_video_image_url(self):
@@ -2245,7 +2247,7 @@ class CourseVideoImageTest(TestCase):
         Tests correct message is logged when save to storge is failed in `create_or_update`.
         """
         with self.assertRaises(Exception) as save_exception:  # pylint: disable=unused-variable
-            VideoImage.create_or_update(self.course_video, 'test.jpg', open(self.image_path2))
+            VideoImage.create_or_update(self.course_video, 'test.jpg', open(self.image_path2, 'rb'))
 
         mock_logger.exception.assert_called_with(
             'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
@@ -2260,10 +2262,10 @@ class CourseVideoImageTest(TestCase):
         does_not_course_id = 'does_not_exist'
 
         with self.assertRaises(Exception) as get_exception:
-            api.update_video_image(self.edx_video_id, does_not_course_id, open(self.image_path2), 'test.jpg')
+            api.update_video_image(self.edx_video_id, does_not_course_id, open(self.image_path2, 'rb'), 'test.jpg')
 
         self.assertEqual(
-            get_exception.exception.message,
+            get_exception.exception.args[0],
             u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
                 self.edx_video_id,
                 does_not_course_id
@@ -2355,7 +2357,7 @@ class CourseVideoImageTest(TestCase):
 
         # This will replace the image for self.course_video and delete the existing image
         image_url = api.update_video_image(
-            self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg'
+            self.edx_video_id, self.course_id, ImageFile(open(self.image_path2, 'rb')), 'image.jpg'
         )
 
         # Verify that new image is set to course_video
@@ -2364,7 +2366,7 @@ class CourseVideoImageTest(TestCase):
 
         # Verify that an exception is raised if we try to open a delete image file
         with self.assertRaises(IOError) as file_open_exception:
-            ImageFile(open(existing_image_name))
+            ImageFile(open(existing_image_name, 'rb'))
 
         self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
 
@@ -2379,7 +2381,7 @@ class CourseVideoImageTest(TestCase):
 
         # This will replace the image for self.course_video but image will
         # not be deleted because it is also used by self.course_video2
-        api.update_video_image(self.edx_video_id, self.course_id, ImageFile(open(self.image_path2)), 'image.jpg')
+        api.update_video_image(self.edx_video_id, self.course_id, ImageFile(open(self.image_path2, 'rb')), 'image.jpg')
 
         # Verify image for course_video has changed
         course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
@@ -2389,7 +2391,7 @@ class CourseVideoImageTest(TestCase):
         self.assertEqual(self.course_video2.video_image.image.name, shared_image)
 
         # Open the shared image file to verify it is not deleted
-        ImageFile(open(shared_image))
+        ImageFile(open(shared_image, 'rb'))
 
 
 @ddt
@@ -2413,7 +2415,7 @@ class TranscriptTest(TestCase):
                     'provider': TranscriptProviderType.THREE_PLAY_MEDIA,
                     'file_name': None,
                     'file_format': utils.TranscriptFormat.SRT,
-                    'file_data': File(open(self.flash_transcript_path))
+                    'file_data': File(open(self.flash_transcript_path, 'rb'))
                 },
                 {
                     'language_code': 'fr',
@@ -2437,7 +2439,7 @@ class TranscriptTest(TestCase):
                     'provider': TranscriptProviderType.CUSTOM,
                     'file_name': None,
                     'file_format': utils.TranscriptFormat.SRT,
-                    'file_data': File(open(self.arrow_transcript_path))
+                    'file_data': File(open(self.arrow_transcript_path, 'rb'))
                 },
                 {
                     'language_code': 'zh',
@@ -2560,7 +2562,7 @@ class TranscriptTest(TestCase):
         """
         expected_transcript = {
             'file_name': expected_file_name,
-            'content': File(open(expected_transcript_path)).read()
+            'content': File(open(expected_transcript_path, 'rb')).read()
         }
         transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
         self.assertDictEqual(transcript, expected_transcript)
@@ -2623,7 +2625,7 @@ class TranscriptTest(TestCase):
         if file_data:
             self.assertTrue(transcript_url.startswith(settings.VIDEO_TRANSCRIPTS_SETTINGS['DIRECTORY_PREFIX']))
             self.assertEqual(video_transcript.transcript.name, transcript_url)
-            with open(video_transcript.transcript.name) as saved_transcript:
+            with open(video_transcript.transcript.name, encoding='utf8') as saved_transcript:
                 self.assertEqual(saved_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
         else:
             self.assertEqual(video_transcript.transcript.name, file_name)
@@ -2655,7 +2657,7 @@ class TranscriptTest(TestCase):
                 'file_format': file_format
             })
 
-        self.assertEqual(transcript_exception.exception.message, exception_message)
+        self.assertEqual(transcript_exception.exception.args[0], exception_message)
 
     @mock.patch.object(VideoTranscript, 'save')
     def test_create_or_update_transcript_exception_on_update(self, mock_save):
@@ -2682,7 +2684,7 @@ class TranscriptTest(TestCase):
         # Assert that there are no updates to the transcript data
         video_transcript = VideoTranscript.objects.get(video__edx_video_id=edx_video_id,
                                                        language_code=language_code)
-        with open(video_transcript.transcript.name) as saved_transcript:
+        with open(video_transcript.transcript.name, 'rb') as saved_transcript:
             self.assertNotEqual(saved_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
 
     @mock.patch.object(VideoTranscript, 'save')
@@ -2743,7 +2745,7 @@ class TranscriptTest(TestCase):
         self.assertIsNotNone(video_transcript)
         self.assertEqual(video_transcript.file_format, transcript_props['file_format'])
         self.assertEqual(video_transcript.provider, transcript_props['provider'])
-        with open(video_transcript.transcript.name) as created_transcript:
+        with open(video_transcript.transcript.name, encoding='utf8') as created_transcript:
             self.assertEqual(created_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
 
     @data(
@@ -2770,7 +2772,7 @@ class TranscriptTest(TestCase):
         with self.assertRaises(ValCannotCreateError) as transcript_exception:
             api.create_video_transcript(video_id, language_code, file_format, ContentFile(constants.TRANSCRIPT_DATA['overwatch']), provider)
 
-        self.assertIn(exception_msg, six.text_type(transcript_exception.exception.message))
+        self.assertIn(exception_msg, six.text_type(transcript_exception.exception.args[0]))
 
     def test_get_available_transcript_languages(self):
         """
@@ -2778,7 +2780,7 @@ class TranscriptTest(TestCase):
         """
         # `super-soaker` has got 'en' and 'fr' transcripts
         transcript_languages = api.get_available_transcript_languages(video_id=u'super-soaker')
-        self.assertItemsEqual(transcript_languages, ['en', 'fr'])
+        self.assertEqual(transcript_languages, ['en', 'fr'])
 
     @patch('edxval.api.logger')
     def test_delete_video_transcript(self, mock_logger):
@@ -2835,7 +2837,7 @@ class TranscriptTest(TestCase):
         self.assertTrue(transcript_file_name in file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
 
         # Also verify the content of created transcript file.
-        expected_transcript_content = File(open(expected_transcript_path)).read()
+        expected_transcript_content = File(open(expected_transcript_path, 'rb')).read()
         transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
         self.assertEqual(transcript['content'], expected_transcript_content)
 
