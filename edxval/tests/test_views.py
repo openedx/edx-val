@@ -4,8 +4,6 @@ Tests for Video Abstraction Layer views
 """
 from __future__ import absolute_import
 import json
-from six.moves.urllib.parse import urljoin
-from six.moves.urllib.parse import urlencode
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
@@ -449,7 +447,7 @@ class VideoListTest(APIAuthTestCase):
             url, constants.COMPLETE_SET_WITH_SOME_INVALID_COURSE_KEY, format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = json.loads(response.content)
+        response = json.loads(response.content.decode('utf-8'))
         # Check that invalid course keys have been filtered out.
         self.assertEqual(response['courses'], [{u'edX/DemoX/Astonomy': None}])
 
@@ -1007,7 +1005,7 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         """
         expected_video_ids = ['video-wo-hls1', 'video-wo-hls2']
         response = self.client.post(self.url, {'batch_size': batch_size, 'offset': offset}, format='json')
-        response = json.loads(response.content)
+        response = json.loads(response.content.decode('utf-8'))
         self.assertEqual(response['videos'], expected_video_ids[offset: offset+batch_size])
 
     def test_videos_list_missing_hls_encodes_for_courses(self):
@@ -1018,7 +1016,7 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         response = self.client.post(self.url, {
             'courses': ['test-course-1', 'test-course-2']
         }, format='json')
-        response = json.loads(response.content)
+        response = json.loads(response.content.decode('utf-8'))
         self.assertEqual(response['videos'], expected_video_ids)
 
     def test_update_hls_encodes_for_video(self):
