@@ -11,7 +11,8 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_oauth.authentication import OAuth2Authentication
+
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 
 from edxval.api import create_or_update_video_transcript
 from edxval.models import (
@@ -75,7 +76,7 @@ class VideoList(generics.ListCreateAPIView):
     """
     GETs or POST video objects
     """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
     permission_classes = (ReadRestrictedDjangoModelPermissions,)
     queryset = Video.objects.all().prefetch_related("encoded_videos", "courses")
     lookup_field = "edx_video_id"
@@ -100,7 +101,7 @@ class VideoDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Gets a video instance given its edx_video_id
     """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
     permission_classes = (ReadRestrictedDjangoModelPermissions,)
     lookup_field = "edx_video_id"
     queryset = Video.objects.all()
@@ -111,7 +112,7 @@ class VideoTranscriptView(APIView):
     """
     A Transcription View, used by edx-video-pipeline to create video transcripts.
     """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
 
     # noinspection PyMethodMayBeStatic
     def post(self, request):
@@ -178,7 +179,7 @@ class VideoStatusView(APIView):
         was intended to only be used for video transcriptions but if you found it helpful to your needs, you
         can add more statuses so that you can use it for updating other video statuses too.
     """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
 
     def patch(self, request):
         """
@@ -221,7 +222,7 @@ class VideoImagesView(APIView):
     """
     View to update course video images.
     """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
 
     def post(self, request):
         """
@@ -268,7 +269,7 @@ class HLSMissingVideoView(APIView):
     """
     A View to list video ids which are missing HLS encodes and update an encode profile for a video.
     """
-    authentication_classes = (OAuth2Authentication, SessionAuthentication)
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
 
     def post(self, request):
         """
