@@ -4,24 +4,34 @@
 #
 #    make upgrade
 #
-attrs==19.1.0             # via packaging
-certifi==2019.6.16        # via requests
+certifi==2019.9.11        # via requests, urllib3
+cffi==1.13.1              # via cryptography
 chardet==3.0.4            # via requests
+configparser==4.0.2       # via importlib-metadata
+contextlib2==0.6.0.post1  # via importlib-metadata
 coverage==4.5.4           # via coveralls
 coveralls==1.8.2
+cryptography==2.8         # via pyopenssl, urllib3
 docopt==0.6.2             # via coveralls
+enum34==1.1.6             # via cryptography
 filelock==3.0.12          # via tox
-idna==2.8                 # via requests
-importlib-metadata==0.19  # via pluggy, tox
-packaging==19.1           # via tox
-pluggy==0.12.0            # via tox
+idna==2.8                 # via requests, urllib3
+importlib-metadata==0.23  # via pluggy, tox
+ipaddress==1.0.23         # via cryptography, urllib3
+more-itertools==5.0.0     # via zipp
+packaging==19.2           # via tox
+pathlib2==2.3.5           # via importlib-metadata
+pluggy==0.13.0            # via tox
 py==1.8.0                 # via tox
+pycparser==2.19           # via cffi
+pyopenssl==19.0.0         # via urllib3
 pyparsing==2.4.2          # via packaging
 requests==2.22.0          # via coveralls
-six==1.12.0               # via packaging, tox
+scandir==1.10.0           # via pathlib2
+six==1.12.0               # via cryptography, more-itertools, packaging, pathlib2, pyopenssl, tox
 toml==0.10.0              # via tox
 tox-battery==0.5.1
-tox==3.13.2
-urllib3==1.25.3           # via requests
-virtualenv==16.7.3        # via tox
-zipp==0.5.2               # via importlib-metadata
+tox==3.14.0
+urllib3[secure]==1.25.6   # via coveralls, requests
+virtualenv==16.7.7        # via tox
+zipp==0.6.0               # via importlib-metadata

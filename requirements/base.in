@@ -4,7 +4,7 @@ boto
 Django>=1.11,<2
 django-model-utils
 edx-django-oauth2-provider
-djangorestframework==3.7.7
+djangorestframework==3.9.4
 edx-drf-extensions
 -e git+https://github.com/edx/django-rest-framework-oauth.git@0a43e8525f1e3048efe4bc70c03de308a277197c#egg=djangorestframework-oauth==1.1.1
 django-storages

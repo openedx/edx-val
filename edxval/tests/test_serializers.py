@@ -98,7 +98,7 @@ class SerializerTests(TestCase):
         )
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
-            str(serializer.errors['courses'][0]),
+            str(serializer.errors['courses']['course_id'][0]),
             "Ensure this value has at most 255 characters (it has 300)."
         )
 
