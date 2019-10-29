@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='coursevideo',
             name='is_hidden',
-            field=models.BooleanField(default=False, help_text=b'Hide video for course.'),
+            field=models.BooleanField(default=False, help_text=u'Hide video for course.'),
         ),
     ]

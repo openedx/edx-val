@@ -33,7 +33,7 @@ import six
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
-URL_REGEX = r'^[a-zA-Z0-9\-_]*$'
+URL_REGEX = u'^[a-zA-Z0-9\\-_]*$'
 LIST_MAX_ITEMS = 3
 EXTERNAL_VIDEO_STATUS = 'external'
 
@@ -79,8 +79,8 @@ class Profile(models.Model):
         validators=[
             RegexValidator(
                 regex=URL_REGEX,
-                message='profile_name has invalid characters',
-                code='invalid profile_name'
+                message=u'profile_name has invalid characters',
+                code=u'invalid profile_name'
             ),
         ]
     )
@@ -107,8 +107,8 @@ class Video(models.Model):
         validators=[
             RegexValidator(
                 regex=URL_REGEX,
-                message='edx_video_id has invalid characters',
-                code='invalid edx_video_id'
+                message=u'edx_video_id has invalid characters',
+                code=u'invalid edx_video_id'
             ),
         ]
     )
@@ -159,7 +159,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
     """
     course_id = models.CharField(max_length=255)
     video = models.ForeignKey(Video, related_name='courses', on_delete = models.CASCADE)
-    is_hidden = models.BooleanField(default=False, help_text='Hide video for course.')
+    is_hidden = models.BooleanField(default=False, help_text=u'Hide video for course.')
 
     class Meta:  # pylint: disable=C1001
         """
@@ -367,9 +367,9 @@ class VideoImage(TimeStampedModel):
 
 
 class TranscriptProviderType(object):
-    CUSTOM = 'Custom'
-    THREE_PLAY_MEDIA = '3PlayMedia'
-    CIELO24 = 'Cielo24'
+    CUSTOM = u'Custom'
+    THREE_PLAY_MEDIA = u'3PlayMedia'
+    CIELO24 = u'Cielo24'
 
     CHOICES = (
         (CUSTOM, CUSTOM),
@@ -411,7 +411,7 @@ class VideoTranscript(TimeStampedModel):
     """
     Transcript for a video
     """
-    video = models.ForeignKey(Video, related_name='video_transcripts', null=True,
+    video = models.ForeignKey(Video, related_name=u'video_transcripts', null=True,
                               on_delete = models.CASCADE)
     transcript = CustomizableFileField()
     language_code = models.CharField(max_length=50, db_index=True)
@@ -544,11 +544,11 @@ class Cielo24Turnaround(object):
     """
     Cielo24 turnarounds.
     """
-    STANDARD = 'STANDARD'
-    PRIORITY = 'PRIORITY'
+    STANDARD = u'STANDARD'
+    PRIORITY = u'PRIORITY'
     CHOICES = (
-        (STANDARD, 'Standard, 48h'),
-        (PRIORITY, 'Priority, 24h'),
+        (STANDARD, u'Standard, 48h'),
+        (PRIORITY, u'Priority, 24h'),
     )
 
 
@@ -556,13 +556,13 @@ class Cielo24Fidelity(object):
     """
     Cielo24 fidelity.
     """
-    MECHANICAL = 'MECHANICAL'
-    PREMIUM = 'PREMIUM'
-    PROFESSIONAL = 'PROFESSIONAL'
+    MECHANICAL = u'MECHANICAL'
+    PREMIUM = u'PREMIUM'
+    PROFESSIONAL = u'PROFESSIONAL'
     CHOICES = (
-        (MECHANICAL, 'Mechanical, 75% Accuracy'),
-        (PREMIUM, 'Premium, 95% Accuracy'),
-        (PROFESSIONAL, 'Professional, 99% Accuracy'),
+        (MECHANICAL, u'Mechanical, 75% Accuracy'),
+        (PREMIUM, u'Premium, 95% Accuracy'),
+        (PROFESSIONAL, u'Professional, 99% Accuracy'),
     )
 
 
@@ -570,20 +570,20 @@ class ThreePlayTurnaround(object):
     """
     3PlayMedia turnarounds.
     """
-    EXTENDED = 'extended'
-    STANDARD = 'standard'
-    EXPEDITED= 'expedited'
-    RUSH = 'rush'
-    SAME_DAY= 'same_day'
-    TWO_HOUR = 'two_hour'
+    EXTENDED = u'extended'
+    STANDARD = u'standard'
+    EXPEDITED= u'expedited'
+    RUSH = u'rush'
+    SAME_DAY= u'same_day'
+    TWO_HOUR = u'two_hour'
 
     CHOICES = (
-        (EXTENDED, '10-Day/Extended'),
-        (STANDARD, '4-Day/Standard'),
-        (EXPEDITED, '2-Day/Expedited'),
-        (RUSH, '24 hour/Rush'),
-        (SAME_DAY, 'Same Day'),
-        (TWO_HOUR, '2 Hour'),
+        (EXTENDED, u'10-Day/Extended'),
+        (STANDARD, u'4-Day/Standard'),
+        (EXPEDITED, u'2-Day/Expedited'),
+        (RUSH, u'24 hour/Rush'),
+        (SAME_DAY, u'Same Day'),
+        (TWO_HOUR, u'2 Hour'),
     )
 
 
@@ -591,40 +591,40 @@ class TranscriptPreference(TimeStampedModel):
     """
     Third Party Transcript Preferences for a Course
     """
-    course_id = models.CharField(verbose_name='Course ID', max_length=255, unique=True)
+    course_id = models.CharField(verbose_name=u'Course ID', max_length=255, unique=True)
     provider = models.CharField(
-        verbose_name='Provider',
+        verbose_name=u'Provider',
         max_length=20,
         choices=TranscriptProviderType.CHOICES,
     )
     cielo24_fidelity = models.CharField(
-        verbose_name='Cielo24 Fidelity',
+        verbose_name=u'Cielo24 Fidelity',
         max_length=20,
         choices=Cielo24Fidelity.CHOICES,
         null=True,
         blank=True,
     )
     cielo24_turnaround = models.CharField(
-        verbose_name='Cielo24 Turnaround',
+        verbose_name=u'Cielo24 Turnaround',
         max_length=20,
         choices=Cielo24Turnaround.CHOICES,
         null=True,
         blank=True,
     )
     three_play_turnaround = models.CharField(
-        verbose_name='3PlayMedia Turnaround',
+        verbose_name=u'3PlayMedia Turnaround',
         max_length=20,
         choices=ThreePlayTurnaround.CHOICES,
         null=True,
         blank=True,
     )
-    preferred_languages = ListField(verbose_name='Preferred Languages', max_items=50, default=[], blank=True)
+    preferred_languages = ListField(verbose_name=u'Preferred Languages', max_items=50, default=[], blank=True)
     video_source_language = models.CharField(
-        verbose_name='Video Source Language',
+        verbose_name=u'Video Source Language',
         max_length=50,
         null=True,
         blank=True,
-        help_text='This specifies the speech language of a Video.'
+        help_text=u'This specifies the speech language of a Video.'
     )
 
     def __unicode__(self):
@@ -638,13 +638,13 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
     class Meta:
         unique_together = ('org', 'provider')
 
-    org = models.CharField(verbose_name='Course Organization', max_length=32)
+    org = models.CharField(verbose_name=u'Course Organization', max_length=32)
     provider = models.CharField(
-        verbose_name='Transcript Provider',
+        verbose_name=u'Transcript Provider',
         max_length=20,
         choices=TranscriptProviderType.CHOICES,
     )
-    exists = models.BooleanField(default=False, help_text='Transcript credentials state')
+    exists = models.BooleanField(default=False, help_text=u'Transcript credentials state')
 
     @classmethod
     def update_or_create(cls, org, provider, exists):
