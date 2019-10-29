@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='transcriptpreference',
             name='three_play_turnaround',
-            field=models.CharField(blank=True, choices=[(b'extended', b'10-Day/Extended'), (b'standard', b'4-Day/Standard'), (b'expedited', b'2-Day/Expedited'), (b'rush', b'24 hour/Rush'), (b'same_day', b'Same Day'), (b'two_hour', b'2 Hour')], max_length=20, null=True, verbose_name=b'3PlayMedia Turnaround'),
+            field=models.CharField(blank=True, choices=[(u'extended', u'10-Day/Extended'), (u'standard', u'4-Day/Standard'), (u'expedited', u'2-Day/Expedited'), (u'rush', u'24 hour/Rush'), (u'same_day', u'Same Day'), (u'two_hour', u'2 Hour')], max_length=20, null=True, verbose_name=u'3PlayMedia Turnaround'),
         ),
     ]
