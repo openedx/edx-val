@@ -12,24 +12,29 @@ invalid profile_name will be returned.
 """
 
 from __future__ import absolute_import
+
 import json
 import logging
 import os
 from contextlib import closing
 from uuid import uuid4
 
+import six
 from django.core.exceptions import ValidationError
-from django.urls import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.six import python_2_unicode_compatible
 from model_utils.models import TimeStampedModel
 
-from edxval.utils import (TranscriptFormat, get_video_image_storage,
-                          get_video_transcript_storage, video_image_path,
-                          video_transcript_path)
-import six
+from edxval.utils import (
+    TranscriptFormat,
+    get_video_image_storage,
+    get_video_transcript_storage,
+    video_image_path,
+    video_transcript_path,
+)
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -48,8 +53,8 @@ class ModelFactoryWithValidation(object):
         Factory method that creates and validates the model object before it is saved.
         """
         ret_val = cls(*args, **kwargs)
-        ret_val.full_clean()
-        ret_val.save()
+        ret_val.full_clean()  # pylint: disable=no-member
+        ret_val.save()  # pylint: disable=no-member
         return ret_val
 
     @classmethod
@@ -89,6 +94,7 @@ class Profile(models.Model):
         return self.profile_name
 
 
+@python_2_unicode_compatible
 class Video(models.Model):
     """
     Model for a Video group with the same content.
@@ -158,10 +164,10 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
     multiple course_id's but each pair is unique together.
     """
     course_id = models.CharField(max_length=255)
-    video = models.ForeignKey(Video, related_name='courses', on_delete = models.CASCADE)
+    video = models.ForeignKey(Video, related_name='courses', on_delete=models.CASCADE)
     is_hidden = models.BooleanField(default=False, help_text=u'Hide video for course.')
 
-    class Meta:  # pylint: disable=C1001
+    class Meta:
         """
         course_id is listed first in this composite index
         """
@@ -174,10 +180,13 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
         if hasattr(self, 'video_image'):
             return self.video_image.image_url()
 
+        return None
+
     def __str__(self):
         return self.course_id
 
 
+@python_2_unicode_compatible
 class EncodedVideo(models.Model):
     """
     Video/encoding pair
@@ -188,9 +197,11 @@ class EncodedVideo(models.Model):
     file_size = models.PositiveIntegerField()
     bitrate = models.PositiveIntegerField()
 
-    profile = models.ForeignKey(Profile, related_name="+", on_delete = models.CASCADE)
-    video = models.ForeignKey(Video, related_name="encoded_videos",
-                              on_delete = models.CASCADE)
+    profile = models.ForeignKey(Profile, related_name="+", on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, related_name="encoded_videos", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.id
 
 
 class CustomizableImageField(models.ImageField):
@@ -226,7 +237,7 @@ class ListField(models.TextField):
     """
     ListField use to store and retrieve list data.
     """
-    def __init__(self, max_items=LIST_MAX_ITEMS, *args, **kwargs):
+    def __init__(self, max_items=LIST_MAX_ITEMS, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
         self.max_items = max_items
         super(ListField, self).__init__(*args, **kwargs)
 
@@ -238,7 +249,7 @@ class ListField(models.TextField):
             raise ValidationError(u'ListField value {} is not a list.'.format(value))
         return json.dumps(self.validate_list(value) or [])
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection, context):  # pylint: disable=unused-argument
         """
         Converts a json list representation in a database to a python object.
         """
@@ -298,12 +309,12 @@ class ListField(models.TextField):
         return name, path, args, kwargs
 
 
+@python_2_unicode_compatible
 class VideoImage(TimeStampedModel):
     """
     Image model for course video.
     """
-    course_video = models.OneToOneField(CourseVideo, related_name="video_image",
-                                        on_delete = models.CASCADE)
+    course_video = models.OneToOneField(CourseVideo, related_name="video_image", on_delete=models.CASCADE)
     image = CustomizableImageField()
     generated_images = ListField()
 
@@ -340,7 +351,7 @@ class VideoImage(TimeStampedModel):
                 file_name = '{uuid}{ext}'.format(uuid=uuid4().hex, ext=os.path.splitext(file_name)[1])
                 try:
                     video_image.image.save(file_name, image_file)
-                except Exception:  # pylint: disable=broad-except
+                except Exception:
                     logger.exception(
                         'VAL: Video Image save failed to storage for course_id [%s] and video_id [%s]',
                         course_video.course_id,
@@ -365,8 +376,17 @@ class VideoImage(TimeStampedModel):
         storage = get_video_image_storage()
         return storage.url(self.image.name)
 
+    def __str__(self):
+        """
+        Returns unicode representation of object.
+        """
+        return u'{id} {course_video_id}'.format(id=self.id, course_video_id=self.course_video.id)
+
 
 class TranscriptProviderType(object):
+    """
+    class for providing tuple choices.
+    """
     CUSTOM = u'Custom'
     THREE_PLAY_MEDIA = u'3PlayMedia'
     CIELO24 = u'Cielo24'
@@ -407,12 +427,12 @@ class CustomizableFileField(models.FileField):
         return name, path, args, kwargs
 
 
+@python_2_unicode_compatible
 class VideoTranscript(TimeStampedModel):
     """
     Transcript for a video
     """
-    video = models.ForeignKey(Video, related_name=u'video_transcripts', null=True,
-                              on_delete = models.CASCADE)
+    video = models.ForeignKey(Video, related_name=u'video_transcripts', null=True, on_delete=models.CASCADE)
     transcript = CustomizableFileField()
     language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(
@@ -536,7 +556,7 @@ class VideoTranscript(TimeStampedModel):
         storage = get_video_transcript_storage()
         return storage.url(self.transcript.name)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video.edx_video_id)
 
 
@@ -572,9 +592,9 @@ class ThreePlayTurnaround(object):
     """
     EXTENDED = u'extended'
     STANDARD = u'standard'
-    EXPEDITED= u'expedited'
+    EXPEDITED = u'expedited'
     RUSH = u'rush'
-    SAME_DAY= u'same_day'
+    SAME_DAY = u'same_day'
     TWO_HOUR = u'two_hour'
 
     CHOICES = (
@@ -587,6 +607,7 @@ class ThreePlayTurnaround(object):
     )
 
 
+@python_2_unicode_compatible
 class TranscriptPreference(TimeStampedModel):
     """
     Third Party Transcript Preferences for a Course
@@ -627,10 +648,11 @@ class TranscriptPreference(TimeStampedModel):
         help_text=u'This specifies the speech language of a Video.'
     )
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
 
 
+@python_2_unicode_compatible
 class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
     """
     State of transcript credentials for a course organization
@@ -659,7 +681,7 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
 
         return instance, created
 
-    def __unicode__(self):
+    def __str__(self):
         """
         Returns unicode representation of provider credentials state for an organization.
 

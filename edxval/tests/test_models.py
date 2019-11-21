@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-
+""" Test for models """
 from __future__ import absolute_import
+
 from django.test import TestCase
 
 from edxval.models import Video, VideoTranscript
@@ -32,4 +33,5 @@ class VideoTranscriptTest(TestCase):
             provider=self.transcript_data['provider'],
         )
 
-        self.assertFalse('\n' in video_trancript.filename)
+        self.assertNotIn('\n', video_trancript.filename)
+        assert str(video_trancript) == "en Transcript for new-line-not-allowed"

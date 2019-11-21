@@ -3,13 +3,15 @@
 Tests for transcript utils.
 """
 from __future__ import absolute_import
-import ddt
+
 import json
 import textwrap
 import unittest
 
-from edxval.transcript_utils import Transcript
+import ddt
+
 from edxval.exceptions import TranscriptsGenerationException
+from edxval.transcript_utils import Transcript
 
 
 @ddt.ddt

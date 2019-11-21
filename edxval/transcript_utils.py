@@ -1,16 +1,19 @@
 """
 A module containing transcripts utils.
 """
-from __future__ import absolute_import
-import json
-from six import text_type
+# pylint: disable=inconsistent-return-statements
 
+from __future__ import absolute_import
+
+import json
+
+import six
 from pysrt import SubRipFile, SubRipItem, SubRipTime
 from pysrt.srtexc import Error
+from six import text_type
+from six.moves import range
 
 from edxval.exceptions import TranscriptsGenerationException
-import six
-from six.moves import range
 
 
 class Transcript(object):
@@ -49,7 +52,7 @@ class Transcript(object):
     @staticmethod
     def generate_srt_from_sjson(sjson_subs):
         """
-        Generate transcripts from sjson to SubRip (*.srt).
+        Generate transcripts from sjson to SubRip (*.srt)
 
         Arguments:
             sjson_subs (dict): `sjson` subs.
@@ -57,7 +60,6 @@ class Transcript(object):
         Returns:
             Subtitles in SRT format.
         """
-
         output = ''
 
         equal_len = len(sjson_subs['start']) == len(sjson_subs['end']) == len(sjson_subs['text'])

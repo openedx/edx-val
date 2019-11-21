@@ -1,14 +1,14 @@
-# pylint: disable=E1101
 # -*- coding: utf-8 -*-
 """
 Tests the serializers for the Video Abstraction Layer
 """
 
 from __future__ import absolute_import
+
 from django.test import TestCase
 
+from edxval.models import EncodedVideo, Profile, Video
 from edxval.serializers import EncodedVideoSerializer, VideoSerializer
-from edxval.models import Profile, Video, EncodedVideo
 from edxval.tests import constants
 
 
@@ -20,6 +20,7 @@ class SerializerTests(TestCase):
         """
         Creates Profile objects and a video object
         """
+        super(SerializerTests, self).setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         Video.objects.create(
@@ -122,7 +123,7 @@ class SerializerTests(TestCase):
             profile=Profile.objects.get(profile_name="hls"),
             **constants.ENCODED_VIDEO_DICT_HLS
         )
-        result = VideoSerializer(video).data  # pylint: disable=E1101
+        result = VideoSerializer(video).data
         # Check for 3 EncodedVideo entries
         self.assertEqual(len(result.get("encoded_videos")), 3)
         # Check for original Video data
