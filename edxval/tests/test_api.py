@@ -3,49 +3,60 @@
 Tests for the API for Video Abstraction Layer
 """
 from __future__ import absolute_import
+
 import json
 import os
 import shutil
-
 from io import open
+from tempfile import mkdtemp
 
 import mock
-from unittest import skip
+import six
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.files.images import ImageFile
-from django.urls import reverse
 from django.db import DatabaseError
 from django.test import TestCase
+from django.urls import reverse
 from fs.osfs import OSFS
 from fs.path import combine
-from tempfile import mkdtemp
 from lxml import etree
-from mock import patch
+from mock import patch  # pylint: disable=ungrouped-imports
 from rest_framework import status
+from six.moves import range, zip  # pylint: disable=ungrouped-imports
 
 from edxval import api as api
 from edxval import utils
-from edxval.api import (InvalidTranscriptFormat, InvalidTranscriptProvider,
-                        SortDirection, ValCannotCreateError,
-                        ValCannotUpdateError, ValVideoNotFoundError,
-                        VideoSortField)
-from edxval.models import (LIST_MAX_ITEMS, CourseVideo, EncodedVideo, Profile,
-                           ThirdPartyTranscriptCredentialsState, TranscriptPreference,
-                           TranscriptProviderType, Video, VideoImage,
-                           VideoTranscript)
+from edxval.api import (
+    InvalidTranscriptFormat,
+    InvalidTranscriptProvider,
+    SortDirection,
+    ValCannotCreateError,
+    ValCannotUpdateError,
+    ValVideoNotFoundError,
+    VideoSortField,
+)
+from edxval.models import (
+    LIST_MAX_ITEMS,
+    CourseVideo,
+    EncodedVideo,
+    Profile,
+    ThirdPartyTranscriptCredentialsState,
+    TranscriptPreference,
+    TranscriptProviderType,
+    Video,
+    VideoImage,
+    VideoTranscript,
+)
 from edxval.serializers import VideoSerializer
 from edxval.tests import APIAuthTestCase, constants
 from edxval.transcript_utils import Transcript
-import six
-from six.moves import range
-from six.moves import zip
 
 
-def omit_attrs(dict, attrs_to_omit=[]):
+def omit_attrs(dict, attrs_to_omit=[]):  # pylint: disable=redefined-builtin, dangerous-default-value
     """
     Omits provided attributes from the dict.
     """
@@ -140,7 +151,7 @@ class CreateVideoTest(TestCase):
         constants.VIDEO_DICT_NEGATIVE_DURATION,
         constants.VIDEO_DICT_INVALID_ID
     )
-    def test_create_invalid_video(self, data): # pylint: disable=W0621
+    def test_create_invalid_video(self, data):  # pylint: disable=W0621
         """
         Tests the creation of a video with invalid data
         """
@@ -187,7 +198,6 @@ class UpdateVideoTest(TestCase):
         )
         api.create_video(video_data)
 
-
     def test_update_video(self):
         """
         Tests the update of a video
@@ -199,29 +209,27 @@ class UpdateVideoTest(TestCase):
             ],
             **constants.VIDEO_DICT_FISH_UPDATE
         )
-        result = api.update_video(video_data)
+        api.update_video(video_data)
         videos = Video.objects.all()
         updated_video = videos[0]
         self.assertEqual(len(videos), 1)
         self.assertEqual(type(updated_video), Video)
         self.assertEqual(updated_video.client_video_id, "Full Swordfish")
 
-
     @data(
         constants.COMPLETE_SET_INVALID_ENCODED_VIDEO_FISH,
     )
-    def test_update_video_incorrect_data(self, data):
+    def test_update_video_incorrect_data(self, data):  # pylint: disable=redefined-outer-name
         """
         Tests the update of a video with invalid data
         """
         with self.assertRaises(ValCannotUpdateError):
             api.update_video(data)
 
-
     @data(
         constants.VIDEO_DICT_DIFFERENT_ID_FISH
     )
-    def test_update_video_not_found(self, data):
+    def test_update_video_not_found(self, data):  # pylint: disable=redefined-outer-name
         """
         Tests the update of a video with invalid id
         """
@@ -268,12 +276,12 @@ class CreateProfileTest(TestCase):
         with self.assertRaises(ValCannotCreateError):
             api.create_profile(constants.PROFILE_DESKTOP)
 
+
 @ddt
 class GetVideoInfoTest(TestCase):
     """
     Tests for our `get_video_info` and `is_video_available` methods in api.py
     """
-
     def setUp(self):
         """
         Creates EncodedVideo objects in database
@@ -281,6 +289,7 @@ class GetVideoInfoTest(TestCase):
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+
         EncodedVideo.objects.create(
             video=video,
             profile=Profile.objects.get(profile_name="mobile"),
@@ -696,30 +705,31 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
         Test retrieving paginated videos for a course id
         """
         pagination_conf = {
-            'page_number':1,
-            'videos_per_page':1
+            'page_number': 1,
+            'videos_per_page': 1
         }
         videos, pagination_context = api.get_videos_for_course(
             self.course_id,
             pagination_conf=pagination_conf
-            )
+        )
         videos = list(videos)
         self.assertEqual(len(videos), 1)
         self.assertNotEqual(pagination_context, {})
-
 
     def test_get_videos_for_course_sort(self):
         """
         Tests retrieving videos for a course id according to sort
         """
         def api_func(_expected_ids, sort_field, sort_direction):
+            """ retrieving videos for a course id according to sort """
             videos, __ = api.get_videos_for_course(
                 self.course_id,
                 sort_field,
                 sort_direction,
-                )
+            )
             return videos
         self.check_sort_params_of_api(api_func)
+
 
 @ddt
 class GetYouTubeProfileVideosTest(TestCase):
@@ -742,13 +752,13 @@ class GetYouTubeProfileVideosTest(TestCase):
         import copy
         for course_id in range(1, 3):
             self._setup_video_with_encodes_for_course(
-                course_id='test-course'+str(course_id),
+                course_id='test-course' + str(course_id),
                 video=self.video,
                 encodes_data=copy.deepcopy(encodes)
             )
 
     def _setup_video_with_encodes_for_course(self, course_id, video, encodes_data):
-
+        """ encoded videos for tests """
         for encode_data in encodes_data:
             profile, __ = Profile.objects.get_or_create(profile_name=encode_data.pop('profile'))
             EncodedVideo.objects.create(video=video, profile=profile, **encode_data)
@@ -852,7 +862,9 @@ class GetVideosForIdsTest(TestCase, SortedVideoTestMixin):
         self.assertEqual(len(videos), 1)
 
     def test_get_videos_for_ids_sort(self):
+        """ Tests for videos """
         def api_func(expected_ids, sort_field, sort_direction):
+            """ Tests for videos """
             return api.get_videos_for_ids(
                 expected_ids,
                 sort_field,
@@ -1063,6 +1075,7 @@ class ExportTest(TestCase):
         for left_child, right_child in zip(left, right):
             self.assert_xml_equal(left_child, right_child)
 
+    # pylint: disable=c-extension-no-member
     def parse_xml(self, xml_str):
         """
         Parse XML for comparison with export output.
@@ -1170,10 +1183,13 @@ class ExportTest(TestCase):
         self.assert_xml_equal(exported_metadata['xml'], expected_xml)
 
         # Verify transcript file is created.
-        self.assertEqual(sorted(transcript_files.values()), sorted(self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR)))
+        self.assertEqual(
+            sorted(transcript_files.values()),
+            sorted(self.file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
+        )
 
         # Also verify the content of created transcript file.
-        for language_code in transcript_files.keys():
+        for language_code in transcript_files.keys():  # pylint: disable=consider-iterating-dictionary
             expected_transcript_content = File(
                 open(combine(expected_transcript_path, transcript_files[language_code]), 'rb')
             ).read()
@@ -1186,7 +1202,6 @@ class ExportTest(TestCase):
             ).encode('utf-8')
             self.assertEqual(exported_transcript_content, expected_transcript_content)
 
-
     def test_unknown_video(self):
         """
         Test export with invalid video id.
@@ -1196,7 +1211,7 @@ class ExportTest(TestCase):
 
 
 @ddt
-class ImportTest(TestCase):
+class ImportTest(TestCase):  # pylint: disable=missing-docstring
     """
     Tests import_from_xml
     """
@@ -1227,7 +1242,9 @@ class ImportTest(TestCase):
 
         self.addCleanup(shutil.rmtree, self.temp_dir)
 
+    # pylint: disable=c-extension-no-member
     def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None, video_transcripts=None):
+        """ Importing xml"""
         import_xml = etree.Element(
             "video_asset",
             attrib={
@@ -1281,10 +1298,12 @@ class ImportTest(TestCase):
         return import_xml
 
     def assert_obj_matches_dict_for_keys(self, obj, dict_, keys):
+        """ asserting dicts """
         for key in keys:
             self.assertEqual(getattr(obj, key), dict_[key])
 
     def assert_video_matches_dict(self, video, video_dict):
+        """ asserting dicts """
         self.assert_obj_matches_dict_for_keys(
             video,
             video_dict,
@@ -1292,6 +1311,7 @@ class ImportTest(TestCase):
         )
 
     def assert_encoded_video_matches_dict(self, encoded_video, encoded_video_dict):
+        """ asserting dicts """
         self.assert_obj_matches_dict_for_keys(
             encoded_video,
             encoded_video_dict,
@@ -1299,6 +1319,7 @@ class ImportTest(TestCase):
         )
 
     def assert_invalid_import(self, xml, course_id=None):
+        """ asserting dicts """
         edx_video_id = "test_edx_video_id"
         with self.assertRaises(ValCannotCreateError):
             api.import_from_xml(
@@ -1329,7 +1350,9 @@ class ImportTest(TestCase):
             ).data
 
             # Assert transcript content
-            received_transcript['file_data'] = api.get_video_transcript_data(video_id, language_code)['content'].decode('utf8')
+            received_transcript['file_data'] = api.get_video_transcript_data(
+                video_id, language_code
+            )['content'].decode('utf8')
 
             # Omit not needed attrs.
             expected_transcript = omit_attrs(expected_transcript, ['transcript'])
@@ -1488,6 +1511,7 @@ class ImportTest(TestCase):
         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
         self.assertFalse(video.encoded_videos.filter(profile__profile_name=profile).exists())
 
+    # pylint: disable=c-extension-no-member
     def test_invalid_tag(self):
         xml = etree.Element(
             "invalid_tag",
@@ -1545,13 +1569,12 @@ class ImportTest(TestCase):
             encoded_video_dicts=[]
         )
 
-        #from nose.tools import set_trace; set_trace()
         api.import_from_xml(
             xml=xml,
             course_id=course_id,
             resource_fs=self.file_system,
             edx_video_id=video_data['edx_video_id'],
-            static_dir = constants.EXPORT_IMPORT_STATIC_DIR,
+            static_dir=constants.EXPORT_IMPORT_STATIC_DIR,
         )
 
         # Assert that the video has been created and its status is external.
@@ -1582,6 +1605,7 @@ class ImportTest(TestCase):
             video__edx_video_id=constants.EXTERNAL_VIDEO_DICT_FISH['edx_video_id']
         ).exists())
 
+    # pylint: disable=c-extension-no-member
     def test_external_no_video_transcript(self):
         """
         Verify that transcript import for external video working as expected when there is no transcript.
@@ -1683,7 +1707,7 @@ class ImportTest(TestCase):
         self.assertIsNotNone(edx_video_id)
 
         # Verify transcript records are created with correct data.
-        expected_transcripts =  [
+        expected_transcripts = [
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en'),
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='es')
         ]
@@ -1736,7 +1760,7 @@ class ImportTest(TestCase):
         self.assertIsNotNone(edx_video_id)
 
         # Verify transcript record is created with correct data i.e sub field transcript.
-        expected_transcripts =  [
+        expected_transcripts = [
             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en')
         ]
 
@@ -1856,7 +1880,7 @@ class ImportTest(TestCase):
             resource_fs=self.file_system,
             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
         )
-        mock_logger.warn.assert_called_with(
+        mock_logger.warning.assert_called_with(
             '[edx-val] "%s" transcript "%s" for video "%s" is not found.',
             language_code,
             file_name,
@@ -1892,7 +1916,7 @@ class ImportTest(TestCase):
             resource_fs=self.file_system,
             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
         )
-        mock_logger.warn.assert_called_with(
+        mock_logger.warning.assert_called_with(
             '[edx-val] Error while getting transcript format for video=%s -- language_code=%s --file_name=%s',
             edx_video_id,
             language_code,
@@ -1926,7 +1950,7 @@ class ImportTest(TestCase):
             resource_fs=self.file_system,
             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
         )
-        mock_logger.warn.assert_called_with(
+        mock_logger.warning.assert_called_with(
             '[edx-val] "%s" transcript "%s" for video "%s" contains a non-utf8 file content.',
             language_code,
             transcript_file_name,
@@ -1951,7 +1975,7 @@ class ImportTest(TestCase):
         # Create internal video transcripts
         transcript_data = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video=video)
         transcript_data = omit_attrs(transcript_data, ['video_id', 'file_data'])
-        transcript = VideoTranscript.objects.create(**transcript_data)
+        VideoTranscript.objects.create(**transcript_data)
 
         # Verify that video has expected transcripts before import.
         self.assert_transcripts(
@@ -2066,7 +2090,7 @@ class ImportTest(TestCase):
         )
         api.create_transcript_objects(xml, video_id, self.file_system, constants.EXPORT_IMPORT_STATIC_DIR, {})
 
-        mock_logger.warn.assert_called_with(
+        mock_logger.warning.assert_called_with(
             "VAL: Required attributes are missing from xml, xml=[%s]",
             transcript_xml.encode('utf8')
         )
@@ -2240,9 +2264,9 @@ class CourseVideoImageTest(TestCase):
         self.assertEqual(video_data['courses'][0]['test-course'], self.image_url)
 
     # attr_class is django magic: https://github.com/django/django/blob/master/django/db/models/fields/files.py#L214
-    @patch('edxval.models.CustomizableImageField.attr_class.save', side_effect = Exception("pretend save doesn't work"))
+    @patch('edxval.models.CustomizableImageField.attr_class.save', side_effect=Exception("pretend save doesn't work"))
     @patch('edxval.models.logger')
-    def test_create_or_update_logging(self, mock_logger, mock_image_save):
+    def test_create_or_update_logging(self, mock_logger, mock_image_save):  # pylint: disable=unused-argument
         """
         Tests correct message is logged when save to storge is failed in `create_or_update`.
         """
@@ -2315,7 +2339,7 @@ class CourseVideoImageTest(TestCase):
 
         # expect a validation error if we try to set non list data
         for item in ('a string', 555, {'a': 1}, (1,)):
-            with self.assertRaisesRegexp(ValidationError, 'is not a list') as set_exception:
+            with six.assertRaisesRegex(self, ValidationError, 'is not a list') as set_exception:
                 video_image.generated_images = item
                 video_image.save()
 
@@ -2335,7 +2359,7 @@ class CourseVideoImageTest(TestCase):
         with patch('edxval.models.ListField.get_prep_value', lambda _, value: json.dumps(value)):
             video_image.save()
 
-        with self.assertRaisesRegexp(ValidationError, 'Must be a valid list of strings'):
+        with six.assertRaisesRegex(self, ValidationError, 'Must be a valid list of strings'):
             video_image.refresh_from_db()
 
         # Tests that a ValueError is raised and turned into a ValidationError
@@ -2346,7 +2370,7 @@ class CourseVideoImageTest(TestCase):
         with patch('edxval.models.ListField.get_prep_value', lambda _, value: value):
             video_image.save()
 
-        with self.assertRaisesRegexp(ValidationError, 'Must be a valid list of strings'):
+        with six.assertRaisesRegex(self, ValidationError, 'Must be a valid list of strings'):
             video_image.refresh_from_db()
 
     def test_video_image_deletion_single(self):
@@ -2770,7 +2794,9 @@ class TranscriptTest(TestCase):
         Verify that `create_video_transcript` api function raise exceptions on invalid values.
         """
         with self.assertRaises(ValCannotCreateError) as transcript_exception:
-            api.create_video_transcript(video_id, language_code, file_format, ContentFile(constants.TRANSCRIPT_DATA['overwatch']), provider)
+            api.create_video_transcript(
+                video_id, language_code, file_format, ContentFile(constants.TRANSCRIPT_DATA['overwatch']), provider
+            )
 
         self.assertIn(exception_msg, six.text_type(transcript_exception.exception.args[0]))
 
@@ -2879,9 +2905,11 @@ class TranscriptPreferencesTest(TestCase):
         self.transcript_preferences = TranscriptPreference.objects.create(
             **constants.TRANSCRIPT_PREFERENCES_CIELO24
         )
-
         self.prefs = dict(constants.TRANSCRIPT_PREFERENCES_CIELO24)
         self.prefs.update(constants.TRANSCRIPT_PREFERENCES_3PLAY)
+
+        # casting an instance to a string returns a valid value.
+        assert str(self.transcript_preferences) == 'edX/DemoX/Demo_Course - Cielo24'
 
     def assert_prefs(self, received, expected):
         """
@@ -2971,12 +2999,16 @@ class TranscripCredentialsStateTest(TestCase):
         """
         Tests setup
         """
-        ThirdPartyTranscriptCredentialsState.objects.create(
+        third_party_trans_true = ThirdPartyTranscriptCredentialsState.objects.create(
             org='edX', provider='Cielo24', exists=True
         )
-        ThirdPartyTranscriptCredentialsState.objects.create(
+        third_party_trans_false = ThirdPartyTranscriptCredentialsState.objects.create(
             org='edX', provider='3PlayMedia', exists=False
         )
+
+        # casting an instance to a string returns a valid value.
+        assert str(third_party_trans_true) == 'edX has Cielo24 credentials'
+        assert str(third_party_trans_false) == "edX doesn't have 3PlayMedia credentials"
 
     @data(
         {'org': 'MAX', 'provider': 'Cielo24', 'exists': True},

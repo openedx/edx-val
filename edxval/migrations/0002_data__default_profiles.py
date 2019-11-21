@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-from __future__ import absolute_import
 from django.db import migrations, models
-
 
 DEFAULT_PROFILES = [
     "desktop_mp4",

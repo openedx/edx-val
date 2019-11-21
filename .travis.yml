@@ -1,21 +1,27 @@
 language: python
+
+python:
+  - 2.7
+  - 3.5
+
+env:
+- TOXENV=django111
+- TOXENV=django20
+- TOXENV=django21
+- TOXENV=django22
+
 matrix:
   include:
-    - python: '2.7'
-      env: 'TOXENV=django111'
-    - python: '3.5'
-      env: 'TOXENV=django111'
-    - python: '3.6'
-      env: 'TOXENV=django20'
-    - python: '3.6'
-      env: 'TOXENV=django21'
-    - python: '3.7'
-      env: 'TOXENV=django20'
-    - python: '3.7'
-      env: 'TOXENV=django21'
-  allow_failures:
-    - python: '3.6'
-    - python: '3.7'
+  - python: 3.5
+    env: TOXENV=quality
+  exclude:
+  - python: 2.7
+    env: TOXENV=django20
+  - python: 2.7
+    env: TOXENV=django21
+  - python: 2.7
+    env: TOXENV=django22
+
 install:
 - pip install -r requirements/travis.txt
 script:
@@ -30,5 +36,7 @@ deploy:
   skip_upload_docs: true
   on:
     tags: true
+    python: 3.5
+    condition: "$TOXENV = quality"
   password:
     secure: JGKw0H2Hl1i3OuJ+54hGX/YImhWe+MvkkeFZDynpBKir8XD+E/fbz2lvvmggIrMsawkE5qlOjK8f4d4LMzwL51Ln0EmuIkhUceXLDihrEymZu97uAWbT5qR55RrfwZk/qaYV8JHAszBD3yLA5VOyDLTiDt9s2ilZDQqQqecX514=

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, print_function
+
 import os
 import sys
 
@@ -44,7 +45,7 @@ def load_requirements(*requirements_paths):
     return list(requirements)
 
 
-VERSION = '1.1.30'
+VERSION = '1.1.31'
 
 if sys.argv[-1] == 'tag':
     print("Tagging the version on github:")
@@ -69,12 +70,11 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Framework :: Django',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
     ],
     packages=PACKAGES,
     install_requires=load_requirements('requirements/base.in'),

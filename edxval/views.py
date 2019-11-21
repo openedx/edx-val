@@ -2,31 +2,23 @@
 Views file for django app edxval.
 """
 from __future__ import absolute_import
+
 import logging
 
+import six
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from rest_framework import generics, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
-
 from edxval.api import create_or_update_video_transcript
-from edxval.models import (
-    CourseVideo,
-    EncodedVideo,
-    Profile,
-    TranscriptProviderType,
-    Video,
-    VideoImage,
-    VideoTranscript
-)
+from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptProviderType, Video, VideoImage, VideoTranscript
 from edxval.serializers import VideoSerializer
 from edxval.utils import TranscriptFormat
-import six
 
 LOGGER = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -125,7 +117,8 @@ class VideoTranscriptView(APIView):
         attrs = ('video_id', 'name', 'language_code', 'provider', 'file_format')
         missing = [attr for attr in attrs if attr not in request.data]
         if missing:
-            LOGGER.warn(
+            # pylint: disable=deprecated-method
+            LOGGER.warning(
                 '[VAL] Required transcript params are missing. %s', ' and '.join(missing)
             )
             return Response(
@@ -325,7 +318,7 @@ class HLSMissingVideoView(APIView):
 
             response = Response(
                 {
-                    'videos': videos[offset: offset+batch_size],
+                    'videos': videos[offset: offset + batch_size],
                     'total': videos.count(),
                     'offset': offset,
                     'batch_size': batch_size,

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 
-from __future__ import absolute_import
-from django.db import migrations, models
 import django.utils.timezone
-import model_utils.fields
 import edxval.models
+import model_utils.fields
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
