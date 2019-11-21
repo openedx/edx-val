@@ -3,16 +3,14 @@
 Tests for Video Abstraction Layer views
 """
 from __future__ import absolute_import
+
 import json
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
 from rest_framework import status
 
-from edxval.models import (
-    CourseVideo, Profile, TranscriptProviderType,
-    Video, VideoTranscript, EncodedVideo
-)
+from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptProviderType, Video, VideoTranscript
 from edxval.serializers import TranscriptSerializer
 from edxval.tests import APIAuthTestCase, constants
 from edxval.utils import TranscriptFormat
@@ -260,8 +258,7 @@ class VideoDetail(APIAuthTestCase):
         # Note: the current version of edx-val does NOT remove old course videos!
         course_keys = [c.course_id for c in CourseVideo.objects.filter(video=video)]
         expected_course_keys = (
-            constants.COMPLETE_SET_WITH_COURSE_KEY["courses"] +
-            constants.COMPLETE_SET_WITH_OTHER_COURSE_KEYS["courses"]
+            constants.COMPLETE_SET_WITH_COURSE_KEY["courses"] + constants.COMPLETE_SET_WITH_OTHER_COURSE_KEYS["courses"]
         )
 
         self.assertEqual(course_keys, expected_course_keys)
@@ -320,7 +317,7 @@ class VideoDetail(APIAuthTestCase):
         self.assertEqual(
             response.data.get("encoded_videos")[1].get("profile")[0],
             "Object with profile_name=bird does not exist."
-            )
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         videos = Video.objects.all()
         self.assertEqual(len(videos), 1)
@@ -371,7 +368,7 @@ class VideoDetail(APIAuthTestCase):
             constants.ENCODED_VIDEO_DICT_FISH_DESKTOP.get("url")
         )
 
-    def _create_videos(self, data):
+    def _create_videos(self, data):  # pylint: disable=redefined-outer-name
         """
         Create videos for use in tests.
         """
@@ -601,7 +598,7 @@ class VideoListTest(APIAuthTestCase):
                     'file_size': 4545,
                     'bitrate': 6767,
                 }
-                ],
+            ],
             'courses': ['youtube'],
             'client_video_id': "Funny Cats",
             'duration': 122
@@ -781,6 +778,12 @@ class VideoImagesViewTest(APIAuthTestCase):
             'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': [1, 2, 3]},
             'message': "list must only contain strings.']"
         },
+        {
+            'post_data': {
+                'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': [1, 2, 3, 4]
+            },
+            'message': "list must not contain more than 3 items.']"
+        },
     )
     @unpack
     def test_update_error_responses(self, post_data, message):
@@ -848,7 +851,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
             response.data['message'],
             u'Can not override existing transcript for video "{video_id}" and language code "{language}".'.format(
                 video_id=self.video.edx_video_id, language=post_transcript_data['language_code'])
-            )
+        )
 
     @data(
         {
@@ -1006,7 +1009,7 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         expected_video_ids = ['video-wo-hls1', 'video-wo-hls2']
         response = self.client.post(self.url, {'batch_size': batch_size, 'offset': offset}, format='json')
         response = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(response['videos'], expected_video_ids[offset: offset+batch_size])
+        self.assertEqual(response['videos'], expected_video_ids[offset: offset + batch_size])
 
     def test_videos_list_missing_hls_encodes_for_courses(self):
         """

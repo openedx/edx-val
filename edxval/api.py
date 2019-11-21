@@ -3,53 +3,48 @@
 """
 The internal API for VAL.
 """
+# pylint: disable=invalid-name
 from __future__ import absolute_import
+
 import logging
 from enum import Enum
 from uuid import uuid4
 
+import six
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.paginator import Paginator
 from django.core.files.base import ContentFile
+from django.core.paginator import Paginator
 from fs import open_fs
 from fs.errors import ResourceNotFound
 from fs.path import combine
 from lxml import etree
-from lxml.etree import Element, SubElement
+from lxml.etree import Element, SubElement  # pylint: disable=no-name-in-module
 from pysrt.srtexc import Error
 
 from edxval.exceptions import (
     InvalidTranscriptFormat,
-    TranscriptsGenerationException,
     InvalidTranscriptProvider,
+    TranscriptsGenerationException,
     ValCannotCreateError,
     ValCannotUpdateError,
     ValInternalError,
     ValVideoNotFoundError,
 )
 from edxval.models import (
+    EXTERNAL_VIDEO_STATUS,
     CourseVideo,
     EncodedVideo,
     Profile,
+    ThirdPartyTranscriptCredentialsState,
     TranscriptPreference,
     TranscriptProviderType,
     Video,
     VideoImage,
     VideoTranscript,
-    EXTERNAL_VIDEO_STATUS,
-    ThirdPartyTranscriptCredentialsState,
 )
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
-from edxval.utils import (
-    TranscriptFormat,
-    THIRD_PARTY_TRANSCRIPTION_PLANS,
-    create_file_in_fs,
-    get_transcript_format,
-)
-
 from edxval.transcript_utils import Transcript
-import six
-
+from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS, TranscriptFormat, create_file_in_fs, get_transcript_format
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -162,7 +157,9 @@ def update_video(video_data):
     try:
         video = _get_video(video_data.get("edx_video_id"))
     except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id"))
+        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(
+            video_data.get("edx_video_id")
+        )
         raise ValVideoNotFoundError(error_message)
 
     serializer = VideoSerializer(video, data=video_data)
@@ -300,6 +297,8 @@ def get_video_transcript_data(video_id, language_code):
             )
             raise
 
+    return None
+
 
 def get_available_transcript_languages(video_id):
     """
@@ -330,6 +329,8 @@ def get_video_transcript_url(video_id, language_code):
     video_transcript = VideoTranscript.get_or_none(video_id, language_code)
     if video_transcript:
         return video_transcript.url()
+
+    return None
 
 
 def create_video_transcript(video_id, language_code, file_format, content, provider=TranscriptProviderType.CUSTOM):
@@ -416,6 +417,7 @@ def get_3rd_party_transcription_plans():
     return THIRD_PARTY_TRANSCRIPTION_PLANS
 
 
+# pylint: disable=inconsistent-return-statements
 def get_transcript_preferences(course_id):
     """
     Retrieves course wide transcript preferences
@@ -653,9 +655,9 @@ def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection
         paginator = Paginator(videos, videos_per_page)
         videos = paginator.page(pagination_conf.get('page_number'))
         paginator_context = {
-            'current_page':   videos.number,
+            'current_page': videos.number,
             'total_pages': videos.paginator.num_pages,
-            'items_on_one_page':videos_per_page
+            'items_on_one_page': videos_per_page
         }
 
     return (VideoSerializer(video).data for video in videos), paginator_context
@@ -683,7 +685,7 @@ def get_course_video_ids_with_youtube_profile(course_ids=None, offset=None, limi
 
     course_videos = course_videos.values_list('course_id', 'video__edx_video_id')
     if limit is not None and offset is not None:
-        course_videos = course_videos[offset: offset+limit]
+        course_videos = course_videos[offset: offset + limit]
 
     course_videos_with_yt_profile = []
     for course_id, edx_video_id in course_videos:
@@ -754,7 +756,7 @@ def get_videos_for_ids(
         total order
     """
     videos, __ = _get_videos_for_filter(
-        {"edx_video_id__in":edx_video_ids},
+        {"edx_video_id__in": edx_video_ids},
         sort_field,
         sort_dir,
     )
@@ -998,6 +1000,7 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     return dict(xml=video_el, transcripts=transcript_files_map)
 
 
+# pylint: disable=dangerous-default-value
 def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=dict(), course_id=None):
     """
     Imports data from a video_asset element about the given video_id.
@@ -1124,9 +1127,10 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
         try:
             with resource_fs.open(combine(static_dir, file_name), 'r', encoding='utf-8-sig') as f:
                 file_content = f.read()
-        except ResourceNotFound as exc:
+        except ResourceNotFound as exc:  # pylint: disable=unused-variable
             # Don't raise exception in case transcript file is not found in course OLX.
-            logger.warn(
+            # pylint: disable=deprecated-method
+            logger.warning(
                 '[edx-val] "%s" transcript "%s" for video "%s" is not found.',
                 language_code,
                 file_name,
@@ -1135,7 +1139,8 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
             return
         except UnicodeDecodeError:
             # Don't raise exception in case transcript contains non-utf8 content.
-            logger.warn(
+            # pylint: disable=deprecated-method
+            logger.warning(
                 '[edx-val] "%s" transcript "%s" for video "%s" contains a non-utf8 file content.',
                 language_code,
                 file_name,
@@ -1146,9 +1151,10 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
         # Get file format from transcript content.
         try:
             file_format = get_transcript_format(file_content)
-        except Error as ex:
+        except Error as ex:  # pylint: disable=unused-variable
             # Don't raise exception, just don't create transcript record.
-            logger.warn(
+            # pylint: disable=deprecated-method
+            logger.warning(
                 '[edx-val] Error while getting transcript format for video=%s -- language_code=%s --file_name=%s',
                 edx_video_id,
                 language_code,
@@ -1166,6 +1172,7 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
         )
 
 
+# pylint: disable=c-extension-no-member
 def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, external_transcripts):
     """
     Create VideoTranscript objects.
@@ -1204,7 +1211,9 @@ def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, extern
                     static_dir=static_dir
                 )
             except KeyError:
-                logger.warn("VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip())
+                logger.warning(
+                    "VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip()
+                )
 
         # This won't overwrite transcript for a language which is already present for the video.
         for language_code, transcript_file_names in six.iteritems(external_transcripts):

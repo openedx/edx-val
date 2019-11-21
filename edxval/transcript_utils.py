@@ -1,16 +1,20 @@
 """
 A module containing transcripts utils.
 """
+# pylint: disable=inconsistent-return-statements
+
 from __future__ import absolute_import
+
 import json
-from six import text_type
 
-from pysrt import SubRipFile, SubRipItem, SubRipTime
-from pysrt.srtexc import Error
-
-from edxval.exceptions import TranscriptsGenerationException
 import six
-from six.moves import range
+from pysrt import SubRipFile  # pylint: disable=wrong-import-order
+from pysrt import SubRipItem, SubRipTime
+from pysrt.srtexc import Error
+from six import text_type  # pylint: disable=ungrouped-imports
+from six.moves import range  # pylint: disable=ungrouped-imports
+
+from edxval.exceptions import TranscriptsGenerationException  # pylint: disable=wrong-import-order
 
 
 class Transcript(object):
