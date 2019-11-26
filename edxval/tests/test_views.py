@@ -775,12 +775,12 @@ class VideoImagesViewTest(APIAuthTestCase):
             'message': u'CourseVideo not found for course_id: test_course_id'
         },
         {
-            'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': [1, 2, 3]},
+            'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': ['a', 2, 3]},
             'message': "list must only contain strings.']"
         },
         {
             'post_data': {
-                'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': [1, 2, 3, 4]
+                'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': ['a', 2, 3, 4]
             },
             'message': "list must not contain more than 3 items.']"
         },
