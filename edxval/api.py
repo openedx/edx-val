@@ -224,21 +224,22 @@ def get_transcript_credentials_state_for_org(org, provider=None):
         query_filter['provider'] = provider
 
     return {
+        # TODO: rename credential.exists to credential.has_creds in step 3 of renaming.
         credential.provider: credential.exists
         for credential in ThirdPartyTranscriptCredentialsState.objects.filter(**query_filter)
     }
 
 
-def update_transcript_credentials_state_for_org(org, provider, exists):
+def update_transcript_credentials_state_for_org(org, provider, has_creds):
     """
     Updates transcript credentials state for a course organization.
 
     Arguments:
         org (unicode): course organization
         provider (unicode): transcript provider
-        exists (bool): state of credentials
+        has_creds (bool): state of credentials
     """
-    ThirdPartyTranscriptCredentialsState.update_or_create(org, provider, exists)
+    ThirdPartyTranscriptCredentialsState.update_or_create(org, provider, has_creds)
 
 
 def is_transcript_available(video_id, language_code=None):
@@ -510,7 +511,7 @@ def create_profile(profile_name):
     """
     Used to create Profile objects in the database
 
-    A profile needs to exists before an EncodedVideo object can be created.
+    A profile needs to exist before an EncodedVideo object can be created.
 
     Args:
         profile_name (str): ID of the profile

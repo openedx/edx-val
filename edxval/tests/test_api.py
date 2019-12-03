@@ -3014,11 +3014,12 @@ class TranscripCredentialsStateTest(TestCase):
         Tests setup
         """
         super(TranscripCredentialsStateTest, self).setUp()
+        # TODO: remove exists in step 3 of renaming.
         third_party_trans_true = ThirdPartyTranscriptCredentialsState.objects.create(
-            org='edX', provider='Cielo24', exists=True
+            org='edX', provider='Cielo24', exists=True, has_creds=True
         )
         third_party_trans_false = ThirdPartyTranscriptCredentialsState.objects.create(
-            org='edX', provider='3PlayMedia', exists=False
+            org='edX', provider='3PlayMedia', exists=False, has_creds=False
         )
 
         # casting an instance to a string returns a valid value.
@@ -3026,9 +3027,9 @@ class TranscripCredentialsStateTest(TestCase):
         assert str(third_party_trans_false) == "edX doesn't have 3PlayMedia credentials"
 
     @data(
-        {'org': 'MAX', 'provider': 'Cielo24', 'exists': True},
-        {'org': 'MAX', 'provider': '3PlayMedia', 'exists': True},
-        {'org': 'edx', 'provider': '3PlayMedia', 'exists': True},
+        {'org': 'MAX', 'provider': 'Cielo24', 'has_creds': True},
+        {'org': 'MAX', 'provider': '3PlayMedia', 'has_creds': True},
+        {'org': 'edx', 'provider': '3PlayMedia', 'has_creds': True},
     )
     @unpack
     def test_credentials_state_update(self, **kwargs):
