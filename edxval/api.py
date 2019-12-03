@@ -1,16 +1,17 @@
-# pylint: disable=E1101
 # -*- coding: utf-8 -*-
 """
 The internal API for VAL.
 """
 from __future__ import absolute_import
+
 import logging
 from enum import Enum
 from uuid import uuid4
 
+import six
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.paginator import Paginator
 from django.core.files.base import ContentFile
+from django.core.paginator import Paginator
 from fs import open_fs
 from fs.errors import ResourceNotFound
 from fs.path import combine
@@ -20,36 +21,28 @@ from pysrt.srtexc import Error
 
 from edxval.exceptions import (
     InvalidTranscriptFormat,
-    TranscriptsGenerationException,
     InvalidTranscriptProvider,
+    TranscriptsGenerationException,
     ValCannotCreateError,
     ValCannotUpdateError,
     ValInternalError,
     ValVideoNotFoundError,
 )
 from edxval.models import (
+    EXTERNAL_VIDEO_STATUS,
     CourseVideo,
     EncodedVideo,
     Profile,
+    ThirdPartyTranscriptCredentialsState,
     TranscriptPreference,
     TranscriptProviderType,
     Video,
     VideoImage,
     VideoTranscript,
-    EXTERNAL_VIDEO_STATUS,
-    ThirdPartyTranscriptCredentialsState,
 )
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
-from edxval.utils import (
-    TranscriptFormat,
-    THIRD_PARTY_TRANSCRIPTION_PLANS,
-    create_file_in_fs,
-    get_transcript_format,
-)
-
 from edxval.transcript_utils import Transcript
-import six
-
+from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS, TranscriptFormat, create_file_in_fs, get_transcript_format
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
 
@@ -86,6 +79,7 @@ def create_video(video_data):
     deserialize this object. If there are duplicate profile_names, the entire
     creation will be rejected. If the profile is not found in the database, the
     video will not be created.
+
     Args:
         video_data (dict):
          {
@@ -106,13 +100,12 @@ def create_video(video_data):
 
     Returns the successfully created Video object
     """
-
     serializer = VideoSerializer(data=video_data)
     if serializer.is_valid():
         serializer.save()
         return video_data.get("edx_video_id")
-    else:
-        raise ValCannotCreateError(serializer.errors)
+
+    raise ValCannotCreateError(serializer.errors)
 
 
 def create_external_video(display_name):
@@ -158,19 +151,20 @@ def update_video(video_data):
 
     Returns the successfully updated Video object
     """
-
     try:
         video = _get_video(video_data.get("edx_video_id"))
     except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(video_data.get("edx_video_id"))
+        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(
+            video_data.get("edx_video_id")
+        )
         raise ValVideoNotFoundError(error_message)
 
     serializer = VideoSerializer(video, data=video_data)
     if serializer.is_valid():
         serializer.save()
         return video_data.get("edx_video_id")
-    else:
-        raise ValCannotUpdateError(serializer.errors)
+
+    raise ValCannotUpdateError(serializer.errors)
 
 
 def update_video_status(edx_video_id, status):
@@ -184,7 +178,6 @@ def update_video_status(edx_video_id, status):
     Raises:
         Raises ValVideoNotFoundError if the video cannot be retrieved.
     """
-
     try:
         video = _get_video(edx_video_id)
     except Video.DoesNotExist:
@@ -300,6 +293,8 @@ def get_video_transcript_data(video_id, language_code):
             )
             raise
 
+    return None
+
 
 def get_available_transcript_languages(video_id):
     """
@@ -331,6 +326,8 @@ def get_video_transcript_url(video_id, language_code):
     if video_transcript:
         return video_transcript.url()
 
+    return None
+
 
 def create_video_transcript(video_id, language_code, file_format, content, provider=TranscriptProviderType.CUSTOM):
     """
@@ -350,8 +347,8 @@ def create_video_transcript(video_id, language_code, file_format, content, provi
     if transcript_serializer.is_valid():
         transcript_serializer.save(content=content)
         return transcript_serializer.data
-    else:
-        raise ValCannotCreateError(transcript_serializer.errors)
+
+    raise ValCannotCreateError(transcript_serializer.errors)
 
 
 def create_or_update_video_transcript(video_id, language_code, metadata, file_data=None):
@@ -426,7 +423,7 @@ def get_transcript_preferences(course_id):
     try:
         transcript_preference = TranscriptPreference.objects.get(course_id=course_id)
     except TranscriptPreference.DoesNotExist:
-        return
+        return None
 
     return TranscriptPreferenceSerializer(transcript_preference).data
 
@@ -484,6 +481,9 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
 
     Arguments:
         image_data (InMemoryUploadedFile): Image data to be saved for a course video.
+        course_id : valid course id
+        file_name : file name
+        edx_video_id: edx video id
 
     Returns:
         course video image url
@@ -653,9 +653,9 @@ def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection
         paginator = Paginator(videos, videos_per_page)
         videos = paginator.page(pagination_conf.get('page_number'))
         paginator_context = {
-            'current_page':   videos.number,
+            'current_page': videos.number,
             'total_pages': videos.paginator.num_pages,
-            'items_on_one_page':videos_per_page
+            'items_on_one_page': videos_per_page
         }
 
     return (VideoSerializer(video).data for video in videos), paginator_context
@@ -683,7 +683,7 @@ def get_course_video_ids_with_youtube_profile(course_ids=None, offset=None, limi
 
     course_videos = course_videos.values_list('course_id', 'video__edx_video_id')
     if limit is not None and offset is not None:
-        course_videos = course_videos[offset: offset+limit]
+        course_videos = course_videos[offset: offset + limit]
 
     course_videos_with_yt_profile = []
     for course_id, edx_video_id in course_videos:
@@ -708,6 +708,7 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
         course_id (String)
         sort_field (VideoSortField)
         sort_dir (SortDirection)
+        pagination_conf (Pagination)
 
     Returns:
         A generator expression that contains the videos found, sorted by the
@@ -754,7 +755,7 @@ def get_videos_for_ids(
         total order
     """
     videos, __ = _get_videos_for_filter(
-        {"edx_video_id__in":edx_video_ids},
+        {"edx_video_id__in": edx_video_ids},
         sort_field,
         sort_dir,
     )
@@ -782,6 +783,7 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
                 }
             },
         }
+
     Example:
         Given two videos with two profiles each in course_id 'test_course':
         {
@@ -998,10 +1000,9 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     return dict(xml=video_el, transcripts=transcript_files_map)
 
 
-def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=dict(), course_id=None):
+def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=None, course_id=None):
     """
     Imports data from a video_asset element about the given video_id.
-
     If the edx_video_id already exists, then no changes are made. If an unknown
     profile is referenced by an encoded video, that encoding will be ignored.
 
@@ -1010,7 +1011,8 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
         edx_video_id (str): val video id
         resource_fs (OSFS): Import file system.
         static_dir (str): The Directory to retrieve transcript file.
-        external_transcripts (dict): A dict containing the list of names of the external transcripts.
+        external_transcripts : A dict containing the list of names of the external transcripts.
+        course_id: course id
             Example:
             {
                 'en': ['The_Flash.srt', 'Harry_Potter.srt'],
@@ -1024,6 +1026,9 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
     Returns:
         edx_video_id (str): val video id.
     """
+    if external_transcripts is None:
+        external_transcripts = {}
+
     if xml.tag != 'video_asset':
         raise ValCannotCreateError('Invalid XML')
 
@@ -1124,9 +1129,9 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
         try:
             with resource_fs.open(combine(static_dir, file_name), 'r', encoding='utf-8-sig') as f:
                 file_content = f.read()
-        except ResourceNotFound as exc:
+        except ResourceNotFound:
             # Don't raise exception in case transcript file is not found in course OLX.
-            logger.warn(
+            logger.warning(
                 '[edx-val] "%s" transcript "%s" for video "%s" is not found.',
                 language_code,
                 file_name,
@@ -1135,7 +1140,7 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
             return
         except UnicodeDecodeError:
             # Don't raise exception in case transcript contains non-utf8 content.
-            logger.warn(
+            logger.warning(
                 '[edx-val] "%s" transcript "%s" for video "%s" contains a non-utf8 file content.',
                 language_code,
                 file_name,
@@ -1146,9 +1151,9 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
         # Get file format from transcript content.
         try:
             file_format = get_transcript_format(file_content)
-        except Error as ex:
+        except Error:
             # Don't raise exception, just don't create transcript record.
-            logger.warn(
+            logger.warning(
                 '[edx-val] Error while getting transcript format for video=%s -- language_code=%s --file_name=%s',
                 edx_video_id,
                 language_code,
@@ -1176,11 +1181,12 @@ def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, extern
         resource_fs (OSFS): Import file system.
         static_dir (str): The Directory to retrieve transcript file.
         external_transcripts (dict): A dict containing the list of names of the external transcripts.
-            Example:
-            {
-                'en': ['The_Flash.srt', 'Harry_Potter.srt'],
-                'es': ['Green_Arrow.srt']
-            }
+
+        Example:
+        {
+            'en': ['The_Flash.srt', 'Harry_Potter.srt'],
+            'es': ['Green_Arrow.srt']
+        }
     """
     # File system should not start from /draft directory.
     with open_fs(resource_fs.root_path.split('/drafts')[0]) as file_system:
@@ -1204,7 +1210,9 @@ def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, extern
                     static_dir=static_dir
                 )
             except KeyError:
-                logger.warn("VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip())
+                logger.warning(
+                    "VAL: Required attributes are missing from xml, xml=[%s]", etree.tostring(transcript).strip()
+                )
 
         # This won't overwrite transcript for a language which is already present for the video.
         for language_code, transcript_file_names in six.iteritems(external_transcripts):

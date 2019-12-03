@@ -5,11 +5,11 @@ Serialization is usually sent through the VideoSerializer which uses the
 EncodedVideoSerializer which uses the profile_name as it's profile field.
 """
 from __future__ import absolute_import
+
 from rest_framework import serializers
 from rest_framework.fields import DateTimeField, IntegerField
 
-from edxval.models import (CourseVideo, EncodedVideo, Profile, TranscriptPreference, Video,
-                           VideoImage, VideoTranscript)
+from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptPreference, Video, VideoImage, VideoTranscript
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class EncodedVideoSerializer(serializers.ModelSerializer):
     created = DateTimeField(required=False, format=None)
     modified = DateTimeField(required=False, format=None)
 
-    class Meta:  # pylint: disable=C1001, C0111
+    class Meta:
         model = EncodedVideo
         fields = (
             "created",
@@ -56,7 +56,7 @@ class TranscriptSerializer(serializers.ModelSerializer):
     """
     Serializer for VideoTranscript objects
     """
-    class Meta:  # pylint: disable=C1001, C0111
+    class Meta:
         model = VideoTranscript
         fields = ('video_id', 'url', 'language_code', 'provider', 'file_format')
 
@@ -75,7 +75,7 @@ class TranscriptSerializer(serializers.ModelSerializer):
         """
         return transcript.url()
 
-    def validate(self, data):
+    def validate(self, data):  # pylint: disable=arguments-differ
         """
         Validates the transcript data.
         """
@@ -98,7 +98,7 @@ class CourseSerializer(serializers.RelatedField):
     """
     Field for CourseVideo
     """
-    def to_representation(self, course_video):
+    def to_representation(self, course_video):  # pylint: disable=arguments-differ
         """
         Returns a serializable representation of a CourseVideo instance.
         """
@@ -141,7 +141,7 @@ class VideoSerializer(serializers.ModelSerializer):
     # Specify format=None to leave them as datetimes.
     created = DateTimeField(required=False, format=None)
 
-    class Meta:  # pylint: disable=C1001, C0111
+    class Meta:
         model = Video
         lookup_field = "edx_video_id"
         exclude = ('id',)
@@ -152,7 +152,7 @@ class VideoSerializer(serializers.ModelSerializer):
         """
         return obj.get_absolute_url()
 
-    def validate(self, data):
+    def validate(self, data):  # pylint: disable=arguments-differ
         """
         Check that the video data is valid.
         """
@@ -233,7 +233,7 @@ class TranscriptPreferenceSerializer(serializers.ModelSerializer):
     Serializer for TranscriptPreference
     """
 
-    class Meta:  # pylint: disable=C1001, C0111
+    class Meta:
         model = TranscriptPreference
         fields = (
             'course_id',

@@ -1,7 +1,9 @@
 # Core requirements for using this application
 
+-c constraints.txt
+
 boto
-Django>=1.11,<2
+Django>=1.11
 django-model-utils
 edx-django-oauth2-provider
 djangorestframework==3.7.7

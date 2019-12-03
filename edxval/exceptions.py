@@ -2,6 +2,7 @@
 VAL Exceptions.
 """
 
+
 class ValError(Exception):
     """
     An error that occurs during VAL actions.

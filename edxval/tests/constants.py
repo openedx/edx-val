@@ -1,17 +1,16 @@
- # pylint: disable=E1103, W0105
 # -*- coding: utf-8 -*-
 """
 Constants used for tests.
 """
 from __future__ import absolute_import, unicode_literals
+
 from edxval.models import (
-    TranscriptProviderType,
+    EXTERNAL_VIDEO_STATUS,
     Cielo24Fidelity,
     Cielo24Turnaround,
     ThreePlayTurnaround,
-    EXTERNAL_VIDEO_STATUS
+    TranscriptProviderType,
 )
-
 from edxval.utils import TranscriptFormat
 
 EDX_VIDEO_ID = "itchyjacket"

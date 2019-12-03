@@ -1,0 +1,11 @@
+# pylintrc tweaks for use with edx_lint.
+[MASTER]
+ignore = migrations
+
+[FORMAT]
+max-line-length = 120
+
+
+[MESSAGES CONTROL]
+# Disable unicode-format-string
+disable+ = ,unicode-format-string

@@ -3,15 +3,13 @@ Url file for django app edxval.
 """
 
 from __future__ import absolute_import
+
 from django.conf.urls import url
 
 from edxval import views
 
 urlpatterns = [
-    url(r'^videos/$',
-        views.VideoList.as_view(),
-        name='video-list'
-    ),
+    url(r'^videos/$', views.VideoList.as_view(), name='video-list'),
     url(
         r'^videos/(?P<edx_video_id>[-\w]+)$',
         views.VideoDetail.as_view(),
