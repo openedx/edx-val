@@ -12,6 +12,7 @@ import six
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
+from django.db.models import Prefetch
 from fs import open_fs
 from fs.errors import ResourceNotFound
 from fs.path import combine
@@ -534,7 +535,11 @@ def _get_video(edx_video_id):
     Raises ValVideoNotFoundError if the video cannot be retrieved.
     """
     try:
-        return Video.objects.prefetch_related("encoded_videos", "courses").get(edx_video_id=edx_video_id)
+        encoded_videos = EncodedVideo.objects.select_related("profile")
+        return Video.objects \
+                    .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
+                    .prefetch_related("courses") \
+                    .get(edx_video_id=edx_video_id)
     except Video.DoesNotExist:
         error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
         raise ValVideoNotFoundError(error_message)
