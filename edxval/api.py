@@ -230,16 +230,16 @@ def get_transcript_credentials_state_for_org(org, provider=None):
     }
 
 
-def update_transcript_credentials_state_for_org(org, provider, has_creds):
+def update_transcript_credentials_state_for_org(org, provider, exists):
     """
     Updates transcript credentials state for a course organization.
 
     Arguments:
         org (unicode): course organization
         provider (unicode): transcript provider
-        has_creds (bool): state of credentials
+        exists (bool): state of credentials
     """
-    ThirdPartyTranscriptCredentialsState.update_or_create(org, provider, has_creds)
+    ThirdPartyTranscriptCredentialsState.update_or_create(org, provider, exists)
 
 
 def is_transcript_available(video_id, language_code=None):

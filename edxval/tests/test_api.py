@@ -3027,9 +3027,9 @@ class TranscripCredentialsStateTest(TestCase):
         assert str(third_party_trans_false) == "edX doesn't have 3PlayMedia credentials"
 
     @data(
-        {'org': 'MAX', 'provider': 'Cielo24', 'has_creds': True},
-        {'org': 'MAX', 'provider': '3PlayMedia', 'has_creds': True},
-        {'org': 'edx', 'provider': '3PlayMedia', 'has_creds': True},
+        {'org': 'MAX', 'provider': 'Cielo24', 'exists': True},
+        {'org': 'MAX', 'provider': '3PlayMedia', 'exists': True},
+        {'org': 'edx', 'provider': '3PlayMedia', 'exists': True},
     )
     @unpack
     def test_credentials_state_update(self, **kwargs):
