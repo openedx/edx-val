@@ -6,14 +6,17 @@
 #
 -e git+https://github.com/edx/django-rest-framework-oauth.git@0a43e8525f1e3048efe4bc70c03de308a277197c#egg=djangorestframework-oauth==1.1.1
 appdirs==1.4.3            # via fs
+atomicwrites==1.3.0       # via pytest
+attrs==19.3.0             # via pytest
 backports.os==0.1.1       # via fs
 boto==2.49.0
 certifi==2019.11.28       # via requests
 chardet==3.0.4            # via pysrt, requests
+configparser==4.0.2       # via importlib-metadata
+contextlib2==0.6.0.post1  # via importlib-metadata
 coverage==4.5.4
 ddt==1.2.2
 django-model-utils==3.2.0
-django-nose==1.4.6
 django-storages==1.8
 django-waffle==0.18.0     # via edx-django-utils, edx-drf-extensions
 djangorestframework-jwt==1.11.0  # via edx-drf-extensions
@@ -24,31 +27,43 @@ edx-drf-extensions==2.4.5
 edx-opaque-keys==2.0.1    # via edx-drf-extensions
 enum34==1.1.6
 fs==2.4.11
-funcsigs==1.0.2           # via mock
+funcsigs==1.0.2           # via mock, pytest
 future==0.18.2            # via backports.os, pyjwkest
 idna==2.8                 # via requests
+importlib-metadata==1.2.0  # via pluggy, pytest
 lxml==4.4.2
 mock==3.0.5
+more-itertools==5.0.0     # via pytest, zipp
 newrelic==5.4.0.132       # via edx-django-utils
-nose==1.3.7               # via django-nose
+packaging==19.2           # via pytest
+pathlib2==2.3.5           # via importlib-metadata, pytest, pytest-django
 pbr==5.4.4                # via stevedore
 pillow==6.2.1
+pluggy==0.13.1            # via pytest
 psutil==1.2.1             # via edx-django-utils, edx-drf-extensions
+py==1.8.0                 # via pytest
 pycryptodomex==3.9.4      # via pyjwkest
 pyjwkest==1.3.2           # via edx-drf-extensions
 pyjwt==1.7.1              # via djangorestframework-jwt
 pymongo==3.9.0            # via edx-opaque-keys
+pyparsing==2.4.5          # via packaging
 pysrt==1.1.1
+pytest-cov==2.8.1
+pytest-django==3.7.0
+pytest==4.6.6             # via pytest-cov, pytest-django
 python-dateutil==2.8.1    # via edx-drf-extensions
 pytz==2019.3              # via django, fs
 requests==2.22.0          # via edx-drf-extensions, pyjwkest
 rest-condition==1.0.3     # via edx-drf-extensions
+scandir==1.10.0           # via pathlib2
 semantic-version==2.8.3   # via edx-drf-extensions
 shortuuid==0.5.0          # via edx-django-oauth2-provider
-six==1.13.0               # via edx-drf-extensions, edx-opaque-keys, fs, mock, pyjwkest, python-dateutil, stevedore
+six==1.13.0               # via edx-drf-extensions, edx-opaque-keys, fs, mock, packaging, pathlib2, pyjwkest, pytest, python-dateutil, stevedore
 stevedore==1.31.0         # via edx-opaque-keys
 typing==3.7.4.1           # via fs
 urllib3==1.25.7           # via requests
+wcwidth==0.1.7            # via pytest
+zipp==0.6.0               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

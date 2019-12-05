@@ -174,7 +174,7 @@ class CreateVideoTest(TestCase):
         }
         edx_video_id = api.create_external_video(display_name=expected_video['client_video_id'])
         video = VideoSerializer(Video.objects.get(edx_video_id=edx_video_id)).data
-        self.assertDictContainsSubset(expected_video, video)
+        assert expected_video == {k: v for k, v in video.items() if k in expected_video}
 
 
 @ddt

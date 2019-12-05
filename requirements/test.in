@@ -4,6 +4,7 @@
 
 coverage
 ddt
-django-nose
 fs
 mock
+pytest-cov
+pytest-django

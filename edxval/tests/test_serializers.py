@@ -127,7 +127,8 @@ class SerializerTests(TestCase):
         # Check for 3 EncodedVideo entries
         self.assertEqual(len(result.get("encoded_videos")), 3)
         # Check for original Video data
-        self.assertDictContainsSubset(constants.VIDEO_DICT_FISH, result)
+        matching_dict = {k: v for k, v in result.items() if k in constants.VIDEO_DICT_FISH}
+        assert constants.VIDEO_DICT_FISH == matching_dict
 
     def test_no_profile_validation(self):
         """

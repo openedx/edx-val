@@ -115,7 +115,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 
     # Third Party
-    'django_nose',
     'rest_framework',
     'storages',
 
@@ -123,16 +122,6 @@ INSTALLED_APPS = (
     'edxval',
 
 )
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
-TEST_APPS = ('edxval',)
-
-NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-package=' + ",".join(TEST_APPS),
-    '--cover-branches',
-    '--cover-erase',
-]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
