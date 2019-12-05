@@ -660,7 +660,7 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
         choices=TranscriptProviderType.CHOICES,
     )
     # TODO remove exists in step 3 of renaming.
-    exists = models.BooleanField(default=False, help_text=u'Transcript credentials state')
+    exists = models.NullBooleanField(default=False, help_text=u'Transcript credentials state')
     has_creds = models.BooleanField(default=False, help_text=u'Transcript credentials state')
 
     @classmethod
