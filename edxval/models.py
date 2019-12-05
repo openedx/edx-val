@@ -32,6 +32,7 @@ from edxval.utils import (
     TranscriptFormat,
     get_video_image_storage,
     get_video_transcript_storage,
+    validate_generated_images,
     video_image_path,
     video_transcript_path,
 )
@@ -291,15 +292,7 @@ class ListField(models.TextField):
         Raises:
             ValidationError
         """
-        if len(value) > self.max_items:
-            raise ValidationError(
-                u'list must not contain more than {max_items} items.'.format(max_items=self.max_items)
-            )
-
-        if all(isinstance(item, six.string_types) for item in value) is False:
-            raise ValidationError(u'list must only contain strings.')
-
-        return value
+        return validate_generated_images(value, self.max_items)
 
     def deconstruct(self):
         name, path, args, kwargs = super(ListField, self).deconstruct()

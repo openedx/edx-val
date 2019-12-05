@@ -16,9 +16,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from edxval.api import create_or_update_video_transcript
-from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptProviderType, Video, VideoImage, VideoTranscript
+from edxval.models import (
+    LIST_MAX_ITEMS,
+    CourseVideo,
+    EncodedVideo,
+    Profile,
+    TranscriptProviderType,
+    Video,
+    VideoImage,
+    VideoTranscript,
+)
 from edxval.serializers import VideoSerializer
-from edxval.utils import TranscriptFormat
+from edxval.utils import TranscriptFormat, validate_generated_images
 
 LOGGER = logging.getLogger(__name__)
 
@@ -235,6 +244,14 @@ class VideoImagesView(APIView):
         course_id = request.data['course_id']
         edx_video_id = request.data['edx_video_id']
         generated_images = request.data['generated_images']
+
+        try:
+            validate_generated_images(generated_images, LIST_MAX_ITEMS)
+        except Exception as e:  # pylint: disable=broad-except
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': str(e)}
+            )
 
         try:
             course_video = CourseVideo.objects.select_related('video_image').get(
