@@ -3014,11 +3014,12 @@ class TranscripCredentialsStateTest(TestCase):
         Tests setup
         """
         super(TranscripCredentialsStateTest, self).setUp()
+        # TODO: remove exists in step 3 of renaming.
         third_party_trans_true = ThirdPartyTranscriptCredentialsState.objects.create(
-            org='edX', provider='Cielo24', exists=True
+            org='edX', provider='Cielo24', exists=True, has_creds=True
         )
         third_party_trans_false = ThirdPartyTranscriptCredentialsState.objects.create(
-            org='edX', provider='3PlayMedia', exists=False
+            org='edX', provider='3PlayMedia', exists=False, has_creds=False
         )
 
         # casting an instance to a string returns a valid value.

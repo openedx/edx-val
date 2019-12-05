@@ -659,17 +659,20 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
         max_length=20,
         choices=TranscriptProviderType.CHOICES,
     )
+    # TODO remove exists in step 3 of renaming.
     exists = models.BooleanField(default=False, help_text=u'Transcript credentials state')
+    has_creds = models.BooleanField(default=False, help_text=u'Transcript credentials state')
 
     @classmethod
-    def update_or_create(cls, org, provider, exists):
+    def update_or_create(cls, org, provider, has_creds):
         """
         Update or create credentials state.
         """
+        # TODO: remove 'exists' in step 3 of renaming.
         instance, created = cls.objects.update_or_create(
             org=org,
             provider=provider,
-            defaults={'exists': exists},
+            defaults={'exists': has_creds, 'has_creds': has_creds},
         )
 
         return instance, created
@@ -682,6 +685,7 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
             edX has Cielo24 credentials
             edX doesn't have 3PlayMedia credentials
         """
+        # TODO: rename exists to has_creds in set 3 of renaming.
         return u'{org} {state} {provider} credentials'.format(
             org=self.org, provider=self.provider, state='has' if self.exists else "doesn't have"
         )
