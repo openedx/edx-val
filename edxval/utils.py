@@ -6,7 +6,9 @@ from __future__ import absolute_import
 
 import json
 
+import six
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files.storage import get_storage_class
 from fs.path import combine
 from pysrt import SubRipFile
@@ -220,3 +222,28 @@ def get_transcript_format(transcript_content):
         if srt_subs:
             return TranscriptFormat.SRT
     return TranscriptFormat.SJSON
+
+
+def validate_generated_images(value, max_items):
+    """
+    Validate data before saving to database.
+
+    Arguments:
+        value(list): list to be validated
+        max_items (int): maximum number of items in a list
+
+    Returns:
+        list if validation is successful
+
+    Raises:
+        ValidationError
+    """
+    if len(value) > max_items:
+        raise ValidationError(
+            u'list must not contain more than {max_items} items.'.format(max_items=max_items)
+        )
+
+    if all(isinstance(item, six.string_types) for item in value) is False:
+        raise ValidationError(u'list must only contain strings.')
+
+    return value

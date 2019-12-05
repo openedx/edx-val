@@ -4,19 +4,19 @@
 #
 #    make upgrade
 #
-certifi==2019.9.11        # via requests, urllib3
+certifi==2019.11.28       # via requests, urllib3
 cffi==1.13.2              # via cryptography
 chardet==3.0.4            # via requests
 configparser==4.0.2       # via importlib-metadata
 contextlib2==0.6.0.post1  # via importlib-metadata
 coverage==4.5.4           # via coveralls
-coveralls==1.8.2
+coveralls==1.9.2
 cryptography==2.8         # via pyopenssl, urllib3
 docopt==0.6.2             # via coveralls
 enum34==1.1.6             # via cryptography
 filelock==3.0.12          # via tox
 idna==2.8                 # via requests, urllib3
-importlib-metadata==0.23  # via pluggy, tox
+importlib-metadata==1.1.0  # via pluggy, tox
 ipaddress==1.0.23         # via cryptography, urllib3
 more-itertools==5.0.0     # via zipp
 packaging==19.2           # via tox
@@ -31,7 +31,7 @@ scandir==1.10.0           # via pathlib2
 six==1.13.0               # via cryptography, packaging, pathlib2, pyopenssl, tox
 toml==0.10.0              # via tox
 tox-battery==0.5.1
-tox==3.14.1
+tox==3.14.2
 urllib3[secure]==1.25.7   # via coveralls, requests
 virtualenv==16.7.8        # via tox
 zipp==0.6.0               # via importlib-metadata

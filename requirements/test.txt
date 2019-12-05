@@ -8,10 +8,10 @@
 appdirs==1.4.3            # via fs
 backports.os==0.1.1       # via fs
 boto==2.49.0
-certifi==2019.9.11        # via requests
+certifi==2019.11.28       # via requests
 chardet==3.0.4            # via pysrt, requests
 coverage==4.5.4
-ddt==1.2.1
+ddt==1.2.2
 django-model-utils==3.2.0
 django-nose==1.4.6
 django-storages==1.8
@@ -51,4 +51,4 @@ typing==3.7.4.1           # via fs
 urllib3==1.25.7           # via requests
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools==42.0.1        # via fs
+# setuptools

@@ -13,13 +13,13 @@ backports.os==0.1.1       # via fs
 bleach==3.1.0             # via readme-renderer
 boto==2.49.0
 caniusepython3==7.2.0
-certifi==2019.9.11        # via requests
+certifi==2019.11.28       # via requests
 chardet==3.0.4            # via pysrt, requests
 click-log==0.3.2          # via edx-lint
 click==7.0                # via click-log, edx-lint
 configparser==4.0.2       # via pydocstyle, pylint
 coverage==4.5.4
-ddt==1.2.1
+ddt==1.2.2
 distlib==0.3.0            # via caniusepython3
 django-model-utils==3.2.0
 django-nose==1.4.6
@@ -55,7 +55,7 @@ psutil==1.2.1             # via edx-django-utils, edx-drf-extensions
 pycodestyle==2.5.0
 pycryptodomex==3.9.4      # via pyjwkest
 pydocstyle==3.0.0
-pygments==2.5.1           # via readme-renderer
+pygments==2.5.2           # via readme-renderer
 pyjwkest==1.3.2           # via edx-drf-extensions
 pyjwt==1.7.1              # via djangorestframework-jwt
 pylint-celery==0.3        # via edx-lint
@@ -77,7 +77,7 @@ singledispatch==3.4.0.3   # via astroid, pylint
 six==1.13.0               # via astroid, bleach, edx-drf-extensions, edx-lint, edx-opaque-keys, fs, mock, packaging, pydocstyle, pyjwkest, pylint, python-dateutil, readme-renderer, singledispatch, stevedore
 snowballstemmer==2.0.0    # via pydocstyle
 stevedore==1.31.0         # via edx-opaque-keys
-tqdm==4.39.0              # via twine
+tqdm==4.40.0              # via twine
 twine==1.15.0
 typing==3.7.4.1           # via fs
 urllib3==1.25.7           # via requests
@@ -85,4 +85,4 @@ webencodings==0.5.1       # via bleach
 wrapt==1.11.2             # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools==42.0.1        # via caniusepython3, fs, twine
+# setuptools
