@@ -1,5 +1,4 @@
 include requirements/base.in
 include requirements/test.in
 include LICENSE
-include AUTHORS
 include README.rst

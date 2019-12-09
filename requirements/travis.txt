@@ -16,7 +16,7 @@ docopt==0.6.2             # via coveralls
 enum34==1.1.6             # via cryptography
 filelock==3.0.12          # via tox
 idna==2.8                 # via requests, urllib3
-importlib-metadata==1.1.0  # via pluggy, tox
+importlib-metadata==1.2.0  # via pluggy, tox
 ipaddress==1.0.23         # via cryptography, urllib3
 more-itertools==5.0.0     # via zipp
 packaging==19.2           # via tox
