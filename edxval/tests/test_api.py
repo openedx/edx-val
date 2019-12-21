@@ -1479,9 +1479,10 @@ class ImportTest(TestCase):
         course_video = video.courses.get(course_id=course_id)
         self.assertTrue(course_video.video_image.image.name, self.image_name)
 
+        # Transcript is correctly imported when video already exists
         self.assert_transcripts(
             constants.VIDEO_DICT_FISH['edx_video_id'],
-            []
+            [transcript_data],
         )
 
     def test_existing_video_with_invalid_course_id(self):
@@ -1964,7 +1965,7 @@ class ImportTest(TestCase):
             edx_video_id
         )
 
-    def test_import_transcript_attached_existing_video(self):
+    def test_import_existing_video_transcript(self):
         """
         Verify that transcript import for existing video with transcript attached is working as expected.
         """
@@ -2005,11 +2006,14 @@ class ImportTest(TestCase):
             expected_video_transcripts
         )
 
-    def test_import_no_transcript_attached_existing_video(self):
+    def test_import_transcript_attached_existing_video(self):
         """
         Verify that transcript import for existing video with no transcript attached is working as expected.
         """
-        exported_video_transcripts = [self.transcript_data1, self.transcript_data2]
+        exported_video_transcripts = [
+            dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id=constants.VIDEO_DICT_FISH['edx_video_id']),
+            dict(constants.VIDEO_TRANSCRIPT_3PLAY, video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
+        ]
 
         # Verify video is present before.
         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
@@ -2032,8 +2036,11 @@ class ImportTest(TestCase):
             'test_course_id'
         )
 
-        # Verify that no transcript record is created.
-        self.assert_transcripts(constants.VIDEO_DICT_FISH['edx_video_id'], [])
+        # Verify that transcripts record are created correctly.
+        self.assert_transcripts(
+            constants.VIDEO_DICT_FISH['edx_video_id'],
+            exported_video_transcripts,
+        )
 
     def test_import_transcript_new_video(self):
         """

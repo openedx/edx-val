@@ -1058,6 +1058,15 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
             if image_file_name:
                 VideoImage.create_or_update(course_video, image_file_name)
 
+        # Make sure transcripts are imported when video exists
+        create_transcript_objects(
+            xml,
+            edx_video_id,
+            resource_fs,
+            static_dir,
+            external_transcripts
+        )
+
         return edx_video_id
     except ValidationError as err:
         logger.exception(xml)
