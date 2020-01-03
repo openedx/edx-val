@@ -14,3 +14,6 @@ futures ; python_version == "2.7"
 # Constraining this since the newer versions require Python 3
 more-itertools==5.0.0
 
+# Constraining this since we haven't handled newer versions of Django Rest Framework
+# and we want to allow edx-platform to update this separately.
+djangorestframework==3.9.4
