@@ -3014,12 +3014,11 @@ class TranscripCredentialsStateTest(TestCase):
         Tests setup
         """
         super(TranscripCredentialsStateTest, self).setUp()
-        # TODO: remove exists in step 3 of renaming.
         third_party_trans_true = ThirdPartyTranscriptCredentialsState.objects.create(
-            org='edX', provider='Cielo24', exists=True, has_creds=True
+            org='edX', provider='Cielo24', has_creds=True
         )
         third_party_trans_false = ThirdPartyTranscriptCredentialsState.objects.create(
-            org='edX', provider='3PlayMedia', exists=False, has_creds=False
+            org='edX', provider='3PlayMedia', has_creds=False
         )
 
         # casting an instance to a string returns a valid value.
@@ -3040,7 +3039,10 @@ class TranscripCredentialsStateTest(TestCase):
 
         credentials_state = ThirdPartyTranscriptCredentialsState.objects.get(org=kwargs['org'])
         for key in kwargs:
-            self.assertEqual(getattr(credentials_state, key), kwargs[key])
+            # The API continues to use 'exists' but the database uses 'has_creds' because
+            # 'exists' is a SQL keyword.
+            credentials_state_key = 'has_creds' if key == 'exists' else key
+            self.assertEqual(getattr(credentials_state, credentials_state_key), kwargs[key])
 
     @data(
         {

@@ -115,9 +115,7 @@ class TranscriptPreferenceAdmin(admin.ModelAdmin):
 
 class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
     """ Admin for ThirdPartyTranscriptCredentialsState  """
-    # TODO: change "exists" to "has_creds" once the new column exists, in step 3
-    # of the renaming process.
-    list_display = ('org', 'provider', 'exists', 'created', 'modified')
+    list_display = ('org', 'provider', 'has_creds', 'created', 'modified')
 
     model = ThirdPartyTranscriptCredentialsState
     verbose_name = 'Organization Transcript Credential State'

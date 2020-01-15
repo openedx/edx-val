@@ -225,8 +225,7 @@ def get_transcript_credentials_state_for_org(org, provider=None):
         query_filter['provider'] = provider
 
     return {
-        # TODO: rename credential.exists to credential.has_creds in step 3 of renaming.
-        credential.provider: credential.exists
+        credential.provider: credential.has_creds
         for credential in ThirdPartyTranscriptCredentialsState.objects.filter(**query_filter)
     }
 
