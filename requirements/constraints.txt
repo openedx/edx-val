@@ -17,3 +17,6 @@ more-itertools==5.0.0
 # Constraining this since we haven't handled newer versions of Django Rest Framework
 # and we want to allow edx-platform to update this separately.
 djangorestframework==3.9.4
+
+# Constraining to older version that supports django 1.11.
+django-model-utils<4.0
