@@ -4,6 +4,7 @@ Tests for the API for Video Abstraction Layer
 """
 from __future__ import absolute_import
 
+import copy
 import json
 import os
 import shutil
@@ -65,7 +66,7 @@ def omit_attrs(dict, attrs_to_omit=None):  # pylint: disable=redefined-builtin
     return {attr: value for attr, value in six.iteritems(dict) if attr not in attrs_to_omit}
 
 
-class SortedVideoTestMixin(object):
+class SortedVideoTestMixin:
     """
     Test Mixin for testing api functions that sort the returned videos.
     """
@@ -758,7 +759,6 @@ class GetYouTubeProfileVideosTest(TestCase):
             dict(constants.ENCODED_VIDEO_DICT_DESKTOP, profile=constants.PROFILE_DESKTOP)
         ]
         self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
-        import copy
         for course_id in range(1, 3):
             self._setup_video_with_encodes_for_course(
                 course_id='test-course' + str(course_id),

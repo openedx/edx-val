@@ -16,7 +16,7 @@ from six.moves import range
 from edxval.exceptions import TranscriptsGenerationException
 
 
-class Transcript(object):
+class Transcript:
     """
     Container for transcript methods.
     """

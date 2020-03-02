@@ -4,34 +4,27 @@
 #
 #    make upgrade
 #
-certifi==2019.11.28       # via requests, urllib3
-cffi==1.13.2              # via cryptography
+appdirs==1.4.3            # via virtualenv
+certifi==2019.11.28       # via requests
 chardet==3.0.4            # via requests
-configparser==4.0.2       # via importlib-metadata
-contextlib2==0.6.0.post1  # via importlib-metadata
 coverage==5.0.3           # via coveralls
-coveralls==1.10.0
-cryptography==2.8         # via pyopenssl, urllib3
+coveralls==1.11.1         # via -r requirements/travis.in
+distlib==0.3.0            # via virtualenv
 docopt==0.6.2             # via coveralls
-enum34==1.1.6             # via cryptography
-filelock==3.0.12          # via tox
-idna==2.8                 # via requests, urllib3
-importlib-metadata==1.4.0  # via pluggy, tox
-ipaddress==1.0.23         # via cryptography, urllib3
-more-itertools==5.0.0     # via zipp
-packaging==20.0           # via tox
-pathlib2==2.3.5           # via importlib-metadata
+filelock==3.0.12          # via tox, virtualenv
+idna==2.9                 # via requests
+importlib-metadata==1.5.0  # via pluggy, tox, virtualenv
+importlib-resources==1.1.0  # via virtualenv
+more-itertools==5.0.0     # via -c requirements/constraints.txt, zipp
+packaging==20.1           # via tox
 pluggy==0.13.1            # via tox
 py==1.8.1                 # via tox
-pycparser==2.19           # via cffi
-pyopenssl==19.1.0         # via urllib3
 pyparsing==2.4.6          # via packaging
-requests==2.22.0          # via coveralls
-scandir==1.10.0           # via pathlib2
-six==1.14.0               # via cryptography, packaging, pathlib2, pyopenssl, tox
+requests==2.23.0          # via coveralls
+six==1.14.0               # via more-itertools, packaging, tox, virtualenv
 toml==0.10.0              # via tox
-tox-battery==0.5.1
-tox==3.14.3
-urllib3[secure]==1.25.8   # via coveralls, requests
-virtualenv==16.7.9        # via tox
-zipp==1.0.0               # via importlib-metadata
+tox-battery==0.5.2        # via -r requirements/travis.in
+tox==3.14.5               # via -r requirements/travis.in, tox-battery
+urllib3==1.25.8           # via requests
+virtualenv==20.0.7        # via tox
+zipp==1.0.0               # via -c requirements/constraints.txt, importlib-metadata, importlib-resources

@@ -56,7 +56,7 @@ class ReadRestrictedDjangoModelPermissions(DjangoModelPermissions):
     }
 
 
-class MultipleFieldLookupMixin(object):
+class MultipleFieldLookupMixin:
     """
     Apply this mixin to any view or viewset to get multiple field filtering
     based on a `lookup_fields` attribute, instead of the default single field filtering.
