@@ -10,5 +10,4 @@ edx-drf-extensions
 django-storages
 enum34
 lxml
-pillow
 pysrt
