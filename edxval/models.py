@@ -44,7 +44,7 @@ LIST_MAX_ITEMS = 3
 EXTERNAL_VIDEO_STATUS = 'external'
 
 
-class ModelFactoryWithValidation(object):
+class ModelFactoryWithValidation:
     """
     A Model mixin that provides validation-based factory methods.
     """
@@ -179,7 +179,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
         Return image url for a course video image or None if no image.
         """
         if hasattr(self, 'video_image'):
-            return self.video_image.image_url()
+            return self.video_image.image_url()  # pylint: disable=no-member
 
         return None
 
@@ -376,7 +376,7 @@ class VideoImage(TimeStampedModel):
         return u'{id} {course_video_id}'.format(id=self.id, course_video_id=self.course_video.id)
 
 
-class TranscriptProviderType(object):
+class TranscriptProviderType:
     """
     class for providing tuple choices.
     """
@@ -553,7 +553,7 @@ class VideoTranscript(TimeStampedModel):
         return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video.edx_video_id)
 
 
-class Cielo24Turnaround(object):
+class Cielo24Turnaround:
     """
     Cielo24 turnarounds.
     """
@@ -565,7 +565,7 @@ class Cielo24Turnaround(object):
     )
 
 
-class Cielo24Fidelity(object):
+class Cielo24Fidelity:
     """
     Cielo24 fidelity.
     """
@@ -579,7 +579,7 @@ class Cielo24Fidelity(object):
     )
 
 
-class ThreePlayTurnaround(object):
+class ThreePlayTurnaround:
     """
     3PlayMedia turnarounds.
     """

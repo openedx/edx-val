@@ -11,7 +11,6 @@ class ValError(Exception):
     action.
 
     """
-    pass
 
 
 class ValInternalError(ValError):
@@ -23,7 +22,6 @@ class ValInternalError(ValError):
     services.
 
     """
-    pass
 
 
 class ValVideoNotFoundError(ValError):
@@ -34,39 +32,33 @@ class ValVideoNotFoundError(ValError):
     entry in database, this error may be raised.
 
     """
-    pass
 
 
 class ValCannotCreateError(ValError):
     """
     This error is raised when an object cannot be created
     """
-    pass
 
 
 class ValCannotUpdateError(ValError):
     """
     This error is raised when an object cannot be updated
     """
-    pass
 
 
 class InvalidTranscriptFormat(ValError):
     """
     This error is raised when an transcript format is not supported
     """
-    pass
 
 
 class InvalidTranscriptProvider(ValError):
     """
     This error is raised when an transcript provider is not supported
     """
-    pass
 
 
 class TranscriptsGenerationException(ValError):
     """
     This error is raised when a transcript content is not parse-able in specified format.
     """
-    pass

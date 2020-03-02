@@ -14,7 +14,7 @@ from fs.path import combine
 from pysrt import SubRipFile
 
 
-class TranscriptFormat(object):
+class TranscriptFormat:
     """Tuple representing transcriptformat choices."""
     SRT = 'srt'
     SJSON = 'sjson'
