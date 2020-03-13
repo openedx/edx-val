@@ -34,6 +34,7 @@ LOGGER = logging.getLogger(__name__)
 VALID_VIDEO_STATUSES = [
     'transcription_in_progress',
     'transcript_ready',
+    'transcode_active',
 ]
 
 
