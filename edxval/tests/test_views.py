@@ -926,11 +926,16 @@ class VideoStatusViewTest(APIAuthTestCase):
             'message': None,
             'status_code': status.HTTP_200_OK,
         },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'transcode_active'},
+            'message': None,
+            'status_code': status.HTTP_200_OK,
+        },
     )
     @unpack
-    def test_transcript_status(self, patch_data, message, status_code):
+    def test_video_status(self, patch_data, message, status_code):
         """
-        Tests PATCHing video transcript status.
+        Tests PATCHing video status.
         """
         response = self.client.patch(self.url, patch_data, format='json')
         self.assertEqual(response.status_code, status_code)
