@@ -176,3 +176,6 @@ VIDEO_TRANSCRIPTS_SETTINGS = dict(
     VIDEO_TRANSCRIPTS_MAX_BYTES=3145728,  # 3 MB
     DIRECTORY_PREFIX='video-transcripts/',
 )
+
+# Set this value in the environment-specific files (e.g. local.py, production.py, test.py)
+FERNET_KEYS = ['insecure-ferent-key']

@@ -26,6 +26,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.six import python_2_unicode_compatible
+from fernet_fields import EncryptedTextField
 from model_utils.models import TimeStampedModel
 
 from edxval.utils import (
@@ -685,6 +686,27 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
         return u'{org} {state} {provider} credentials'.format(
             org=self.org, provider=self.provider, state='has' if self.has_creds else "doesn't have"
         )
+
+
+class TranscriptCredentials(TimeStampedModel):
+    """
+    Model to contain third party transcription service provider preferences.
+    """
+    org = models.CharField(
+        'Organization',
+        max_length=50,
+        help_text='This value must match the value of organization in studio/edx-platform.'
+    )
+    provider = models.CharField('Transcript provider', max_length=50, choices=TranscriptProviderType.CHOICES)
+    api_key = EncryptedTextField('API key', max_length=255)
+    api_secret = EncryptedTextField('API secret', max_length=255)
+
+    class Meta:
+        unique_together = ('org', 'provider')
+        verbose_name_plural = 'Transcript Credentials'
+
+    def __str__(self):
+        return '{org} - {provider}'.format(org=self.org, provider=self.provider)
 
 
 @receiver(models.signals.post_save, sender=Video)
