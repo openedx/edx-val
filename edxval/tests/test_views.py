@@ -5,14 +5,27 @@ from __future__ import absolute_import
 
 import json
 
+import responses
 from ddt import data, ddt, unpack
 from django.urls import reverse
+from mock import patch
 from rest_framework import status
 
-from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptProviderType, Video, VideoTranscript
+from edxval.enum import TranscriptionProviderErrorType
+from edxval.models import (
+    CourseVideo,
+    EncodedVideo,
+    Profile,
+    TranscriptCredentials,
+    TranscriptProviderType,
+    Video,
+    VideoTranscript,
+)
 from edxval.serializers import TranscriptSerializer
 from edxval.tests import APIAuthTestCase, constants
 from edxval.utils import TranscriptFormat
+
+CIELO24_LOGIN_URL = "https://sandbox.cielo24.com/api/account/login"
 
 
 class VideoDetail(APIAuthTestCase):
@@ -1054,3 +1067,258 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         self.assertEqual(actual_encoded_video.url, expected_data['encode_data']['url'])
         self.assertEqual(actual_encoded_video.file_size, expected_data['encode_data']['file_size'])
         self.assertEqual(actual_encoded_video.bitrate, expected_data['encode_data']['bitrate'])
+
+
+@ddt
+class TranscriptCredentialsTest(APIAuthTestCase):
+    """
+    Transcript credentials tests
+    """
+    def setUp(self):
+        """
+        Tests setup.
+        """
+        super(TranscriptCredentialsTest, self).setUp()
+        self.url = reverse('transcript-credentials')
+
+    def test_transcript_credentials_unauthorized(self):
+        """
+        Tests that if user is not logged in we get Unauthorized response.
+        """
+        # Logout client if previously logged in.
+        self.client.logout()
+
+        # Try to send post without being authorized / logged in.
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'org': 'test'}),
+            content_type='application/json'
+        )
+
+        response_status_code = response.status_code
+        self.assertEqual(response_status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @data(
+        {},
+        {
+            'provider': 'unsupported-provider'
+        },
+        {
+            'org': 'test',
+            'api_key': 'test-api-key'
+        }
+    )
+    def test_transcript_credentials_invalid_provider(self, post_data):
+        """
+        Test that post credentials gives proper error in case of invalid provider.
+        """
+        # Verify that transcript credentials are not present for this org and provider.
+        provider = post_data.get('provider')
+        response = self.client.post(
+            self.url,
+            data=json.dumps(post_data),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, {
+            'message': 'Invalid provider {provider}.'.format(provider=provider),
+            'error_type': TranscriptionProviderErrorType.INVALID_PROVIDER
+        })
+
+    @data(
+        ({}, 'org and provider must be specified.'),
+        ({'org': 'test-org'}, 'provider must be specified.'),
+        ({'provider': 'test-provider'}, 'org must be specified.')
+    )
+    @unpack
+    def test_fetch_credentials_missing_parameters(self, query_params, error_message):
+        """
+        Verify that if query parameters are missing, then request fails with missing params error.
+        """
+        response = self.client.get(self.url, query_params)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, {
+            'message': error_message,
+        })
+
+    def test_get_non_existent_credentials(self):
+        """
+        Test that fetching a non-existing set of credentials results in failure.
+        """
+        provider, org = "test-provider", "org"
+        query_params = {'provider': provider, 'org': org}
+        response = self.client.get(self.url, query_params)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, {
+            'message': "Credentials not found for provider {provider} & organization {org}".format(
+                provider=provider,
+                org=org
+            ),
+        })
+
+    def test_successful_fetch(self):
+        """
+        Verify that persistent credentials are returned for correct query params.
+        """
+        provider, org = "test-provider", "org"
+        credentials_dict = dict(
+            provider=provider,
+            org=org,
+            api_key='key',
+            api_secret='secret'
+        )
+        TranscriptCredentials(**credentials_dict).save()
+        query_params = {'provider': provider, 'org': org}
+        response = self.client.get(self.url, query_params)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response['api_key'], credentials_dict['api_key'])
+        self.assertEqual(response['api_secret_key'], credentials_dict['api_secret'])
+
+    @data(
+        (
+            {
+                'provider': TranscriptProviderType.CIELO24
+            },
+            'org and api_key and username'
+        ),
+        (
+            {
+                'provider': TranscriptProviderType.THREE_PLAY_MEDIA
+            },
+            'org and api_key and api_secret_key'
+        ),
+        (
+            {
+                'provider': TranscriptProviderType.CIELO24,
+                'org': 'test-org'
+            },
+            'api_key and username'
+        ),
+        (
+            {
+                'provider': TranscriptProviderType.CIELO24,
+                'org': 'test-org',
+                'api_key': 'test-api-key'
+            },
+            'username'
+        ),
+        (
+            {
+                'org': 'test',
+                'provider': TranscriptProviderType.THREE_PLAY_MEDIA,
+                'api_key': 'test-api-key'
+            },
+            'api_secret_key'
+        )
+    )
+    @unpack
+    def test_transcript_credentials_error(self, post_data, missing_keys):
+        """
+        Test that post credentials gives proper error in case of invalid input.
+        """
+        provider = post_data.get('provider')
+        error_message = '{missing} must be specified for {provider}.'.format(
+            provider=provider,
+            missing=missing_keys
+        )
+        response = self.client.post(
+            self.url,
+            data=json.dumps(post_data),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, {
+            'message': error_message,
+            'error_type': TranscriptionProviderErrorType.MISSING_REQUIRED_ATTRIBUTES
+        })
+
+    @data(
+        {
+            'org': 'test',
+            'provider': TranscriptProviderType.CIELO24,
+            'api_key': 'test-api-key',
+            'username': 'test-cielo-user'
+        },
+        {
+            'org': 'test',
+            'provider': TranscriptProviderType.THREE_PLAY_MEDIA,
+            'api_key': 'test-api-key',
+            'api_secret_key': 'test-secret-key'
+        }
+    )
+    @responses.activate
+    def test_transcript_credentials_success(self, post_data):
+        """
+        Test that post credentials works as expected.
+        """
+        # Mock get_cielo_token_mock to return token
+        responses.add(
+            responses.GET,
+            CIELO24_LOGIN_URL,
+            body='{"ApiToken": "cielo-api-token"}',
+            status=status.HTTP_200_OK
+        )
+
+        # Verify that transcript credentials are not present for this org and provider.
+        transcript_credentials = TranscriptCredentials.objects.filter(
+            org=post_data.get('org'),
+            provider=post_data.get('provider')
+        )
+        self.assertFalse(transcript_credentials.exists())
+
+        response = self.client.post(self.url, data=json.dumps(post_data), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        transcript_credentials = TranscriptCredentials.objects.filter(
+            org=post_data.get('org'),
+            provider=post_data.get('provider')
+        )
+        self.assertTrue(transcript_credentials.exists())
+
+    @patch('edxval.views.LOGGER')
+    @responses.activate
+    def test_cielo24_error(self, mock_logger):
+        """
+        Test that when invalid cielo credentials are supplied, we get correct response.
+        """
+        # Mock get_cielo_token_response.
+        error_message = 'Invalid credentials supplied.'
+        responses.add(
+            responses.GET,
+            CIELO24_LOGIN_URL,
+            body=json.dumps({'error': error_message}),
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+        post_data = {
+            'org': 'test',
+            'provider': TranscriptProviderType.CIELO24,
+            'api_key': 'test-api-key',
+            'username': 'test-cielo-user',
+            'api_secret_key': ''
+        }
+        response = self.client.post(
+            self.url,
+            data=json.dumps(post_data),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, {
+            'message': error_message,
+            'error_type': TranscriptionProviderErrorType.INVALID_CREDENTIALS
+        })
+        mock_logger.warning.assert_called_with(
+            '[Transcript Credentials] Unable to get api token --  response %s --  status %s.',
+            json.dumps({'error': error_message}),
+            status.HTTP_400_BAD_REQUEST
+        )

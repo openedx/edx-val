@@ -35,4 +35,9 @@ urlpatterns = [
         views.VideoImagesView.as_view(),
         name='update-video-images'
     ),
+    url(
+        r'^videos/transcript-credentials/$',
+        views.TranscriptCredentialsView.as_view(),
+        name='transcript-credentials'
+    )
 ]

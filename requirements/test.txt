@@ -23,12 +23,12 @@ djangorestframework==3.9.4  # via -c requirements/constraints.txt, drf-jwt, edx-
 drf-jwt==1.14.0           # via edx-drf-extensions
 edx-django-utils==3.1     # via edx-drf-extensions
 edx-drf-extensions==5.0.2  # via -r requirements/base.in
-edx-opaque-keys==2.0.1    # via edx-drf-extensions
+edx-opaque-keys==2.0.2    # via edx-drf-extensions
 enum34==1.1.10            # via -r requirements/base.in
 fs==2.4.11                # via -r requirements/test.in
 future==0.18.2            # via pyjwkest
 idna==2.9                 # via requests
-importlib-metadata==1.5.0  # via pluggy, pytest
+importlib-metadata==1.6.0  # via pluggy, pytest
 lxml==4.5.0               # via -r requirements/base.in
 mock==3.0.5               # via -r requirements/test.in
 more-itertools==5.0.0     # via -c requirements/constraints.txt, pytest
@@ -51,10 +51,11 @@ pytest-django==3.8.0      # via -r requirements/test.in
 pytest==4.6.9             # via -c requirements/constraints.txt, pytest-cov, pytest-django
 python-dateutil==2.8.1    # via edx-drf-extensions
 pytz==2019.3              # via django, fs
-requests==2.23.0          # via edx-drf-extensions, pyjwkest
+requests==2.23.0          # via edx-drf-extensions, pyjwkest, responses
+responses==0.10.12        # via -r requirements/test.in
 rest-condition==1.0.3     # via edx-drf-extensions
 semantic-version==2.8.4   # via edx-drf-extensions
-six==1.14.0               # via cryptography, django-waffle, edx-drf-extensions, edx-opaque-keys, fs, mock, more-itertools, packaging, pathlib2, pyjwkest, pytest, python-dateutil, stevedore
+six==1.14.0               # via cryptography, django-waffle, edx-drf-extensions, edx-opaque-keys, fs, mock, more-itertools, packaging, pathlib2, pyjwkest, pytest, python-dateutil, responses, stevedore
 sqlparse==0.3.1           # via django
 stevedore==1.32.0         # via edx-opaque-keys
 typing==3.7.4.1           # via fs

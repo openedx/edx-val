@@ -265,3 +265,16 @@ def invalidate_fernet_cached_properties(model, fields):
             del field.fernet
         except AttributeError:
             pass
+
+
+def get_missing_request_attributes(data, attributes):
+    """
+    Checks if the given set of attributes are missing from request.
+
+    Arguments:
+        request(object)
+        attributes(list): list of required attributes
+    Returns:
+        list: list of missing attributes
+    """
+    return [attr for attr in attributes if attr not in data]
