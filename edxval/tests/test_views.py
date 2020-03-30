@@ -1085,10 +1085,7 @@ class TranscriptCredentialsTest(APIAuthTestCase):
         """
         Tests that if user is not logged in we get Unauthorized response.
         """
-        # Logout client if previously logged in.
         self.client.logout()
-
-        # Try to send post without being authorized / logged in.
         response = self.client.post(
             self.url,
             data=json.dumps({'org': 'test'}),
@@ -1112,7 +1109,6 @@ class TranscriptCredentialsTest(APIAuthTestCase):
         """
         Test that post credentials gives proper error in case of invalid provider.
         """
-        # Verify that transcript credentials are not present for this org and provider.
         provider = post_data.get('provider')
         response = self.client.post(
             self.url,
@@ -1184,39 +1180,24 @@ class TranscriptCredentialsTest(APIAuthTestCase):
 
     @data(
         (
-            {
-                'provider': TranscriptProviderType.CIELO24
-            },
-            'org and api_key and username'
+                {'provider': TranscriptProviderType.CIELO24},
+                'org and api_key and username'
         ),
         (
-            {
-                'provider': TranscriptProviderType.THREE_PLAY_MEDIA
-            },
-            'org and api_key and api_secret_key'
+                {'provider': TranscriptProviderType.THREE_PLAY_MEDIA},
+                'org and api_key and api_secret_key'
         ),
         (
-            {
-                'provider': TranscriptProviderType.CIELO24,
-                'org': 'test-org'
-            },
-            'api_key and username'
+                {'provider': TranscriptProviderType.CIELO24, 'org': 'test-org'},
+                'api_key and username'
         ),
         (
-            {
-                'provider': TranscriptProviderType.CIELO24,
-                'org': 'test-org',
-                'api_key': 'test-api-key'
-            },
-            'username'
+                {'provider': TranscriptProviderType.CIELO24, 'org': 'test-org', 'api_key': 'test-api-key'},
+                'username'
         ),
         (
-            {
-                'org': 'test',
-                'provider': TranscriptProviderType.THREE_PLAY_MEDIA,
-                'api_key': 'test-api-key'
-            },
-            'api_secret_key'
+                {'org': 'test', 'provider': TranscriptProviderType.THREE_PLAY_MEDIA, 'api_key': 'test-api-key'},
+                'api_secret_key'
         )
     )
     @unpack

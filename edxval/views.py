@@ -32,7 +32,7 @@ from edxval.models import (
     VideoTranscript,
 )
 from edxval.serializers import VideoSerializer
-from edxval.utils import TranscriptFormat, get_missing_request_attributes, validate_generated_images
+from edxval.utils import TranscriptFormat, validate_generated_images, validate_request_params
 
 LOGGER = logging.getLogger(__name__)
 
@@ -422,13 +422,9 @@ class TranscriptCredentialsView(APIView):
 
                 * message(str): error message
         """
-        missing = get_missing_request_attributes(request.query_params, ['org', 'provider'])
-        if missing:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={'message': '{missing} must be specified.'.format(missing=' and '.join(missing))}
-
-            )
+        response = validate_request_params(request.query_params, ['org', 'provider'])
+        if response:
+            return response
 
         org = request.query_params['org']
         provider = request.query_params['provider']
@@ -450,10 +446,7 @@ class TranscriptCredentialsView(APIView):
                 org=org
             )}
 
-        return Response(
-            status=status_code,
-            data=data
-        )
+        return Response(status=status_code, data=data)
 
     def get_cielo_token_response(self, username, api_secure_key):
         """

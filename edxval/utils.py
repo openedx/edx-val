@@ -12,6 +12,8 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import get_storage_class
 from fs.path import combine
 from pysrt import SubRipFile
+from rest_framework import status
+from rest_framework.response import Response
 
 
 class TranscriptFormat:
@@ -267,14 +269,21 @@ def invalidate_fernet_cached_properties(model, fields):
             pass
 
 
-def get_missing_request_attributes(data, attributes):
+def validate_request_params(data, attributes):
     """
-    Checks if the given set of attributes are missing from request.
+    Checks if the given set of attributes are missing from request and returns a response if true.
 
     Arguments:
-        request(object)
+        data(dict): params dict
         attributes(list): list of required attributes
     Returns:
-        list: list of missing attributes
+        HTTP Response if params are missing,else None
     """
-    return [attr for attr in attributes if attr not in data]
+    missing = [attr for attr in attributes if attr not in data]
+    if missing:
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={'message': '{missing} must be specified.'.format(missing=' and '.join(missing))}
+
+        )
+    return None
