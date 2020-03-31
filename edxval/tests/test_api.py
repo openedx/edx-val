@@ -12,6 +12,7 @@ from io import open
 from tempfile import mkdtemp
 
 import mock
+import responses
 import six
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -45,6 +46,7 @@ from edxval.models import (
     EncodedVideo,
     Profile,
     ThirdPartyTranscriptCredentialsState,
+    TranscriptCredentials,
     TranscriptPreference,
     TranscriptProviderType,
     Video,
@@ -3073,3 +3075,50 @@ class TranscripCredentialsStateTest(TestCase):
         """
         credentials_state = api.get_transcript_credentials_state_for_org(org=org, provider=provider)
         self.assertEqual(credentials_state, result)
+
+
+@ddt
+class CreateUpdateTranscriptCredentialsTest(TestCase):
+    """
+    Test Suite for transcript credentials create or update internal API.
+    """
+    CIELO24_LOGIN_URL = "https://sandbox.cielo24.com/api/account/login"
+
+    @data(
+        {
+            'org': 'test',
+            'provider': TranscriptProviderType.CIELO24,
+            'api_key': 'test-api-key',
+            'username': 'test-cielo-user'
+        },
+        {
+            'org': 'test',
+            'provider': TranscriptProviderType.THREE_PLAY_MEDIA,
+            'api_key': 'test-api-key',
+            'api_secret_key': 'test-secret-key'
+        }
+    )
+    @responses.activate
+    def test_transcript_credentials_success(self, credentials):
+        """
+        Test that creating credentials works as expected with correct set of data.
+        """
+        responses.add(
+            responses.GET,
+            self.CIELO24_LOGIN_URL,
+            body='{"ApiToken": "cielo-api-token"}',
+            status=status.HTTP_200_OK
+        )
+
+        transcript_credentials = TranscriptCredentials.objects.filter(
+            org=credentials.get('org'),
+            provider=credentials.get('provider')
+        )
+        self.assertFalse(transcript_credentials.exists())
+
+        _ = api.create_or_update_transcript_credentials(**credentials)
+        transcript_credentials = TranscriptCredentials.objects.filter(
+            org=credentials.get('org'),
+            provider=credentials.get('provider')
+        )
+        self.assertTrue(transcript_credentials.exists())

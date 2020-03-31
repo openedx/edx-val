@@ -16,7 +16,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from edxval.api import create_or_update_video_transcript
-from edxval.enum import TranscriptionProviderErrorType
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -29,7 +28,6 @@ from edxval.models import (
     VideoTranscript,
 )
 from edxval.serializers import VideoSerializer
-from edxval.transcript_utils import get_api_token
 from edxval.utils import TranscriptFormat, validate_generated_images, validate_request_params
 
 LOGGER = logging.getLogger(__name__)
@@ -380,25 +378,23 @@ class HLSMissingVideoView(APIView):
 
 class TranscriptCredentialsView(APIView):
     """
-    API View to fetch and create Transcript provider credentials.
+    API View to fetch Transcript provider credentials.
     """
     authentication_classes = (JwtAuthentication, SessionAuthentication)
     permission_classes = (ReadRestrictedDjangoModelPermissions,)
     queryset = TranscriptCredentials.objects.all()
 
-    def get(self, request):
+    def get(self, request, provider, org):
         """
         Retrieves the transcript credentials for a given organization and provider.
 
         **Example requests**:
 
-            GET api/val/v0/videos/transcript-credentials/?
-            provider=3play
-            &org=org
+            GET api/val/v0/videos/transcript-credentials/{provider}/{org}
 
         **GET Parameters**:
 
-            The following query parameters are required to get the credentials:
+            The following parameters are required to get the credentials:
 
                 * provider(str): transcript provider, which is either 3PlayMedia or Cielo24.
 
@@ -420,12 +416,10 @@ class TranscriptCredentialsView(APIView):
 
                 * message(str): error message
         """
-        response = validate_request_params(request.query_params, ['org', 'provider'])
+        response = validate_request_params(dict(org=org, provider=provider), ['org', 'provider'])
         if response:
             return response
 
-        org = request.query_params['org']
-        provider = request.query_params['provider']
         try:
             credentials = TranscriptCredentials.objects.get(
                 provider=provider, org=org
@@ -445,118 +439,3 @@ class TranscriptCredentialsView(APIView):
             )}
 
         return Response(status=status_code, data=data)
-
-    def validate_missing_attributes(self, provider, attributes, credentials):
-        """
-        Returns error message if provided attributes are not presents in credentials.
-        """
-        error_message = None
-        missing = [attr for attr in attributes if attr not in credentials]
-        if missing:
-            error_message = '{missing} must be specified for {provider}.'.format(
-                provider=provider,
-                missing=' and '.join(missing)
-            )
-
-        return TranscriptionProviderErrorType.MISSING_REQUIRED_ATTRIBUTES, error_message
-
-    def validate_transcript_credentials(self, provider, **credentials):
-        """
-        Validates transcript credentials.
-
-        Validations:
-            Providers must be either 3PlayMedia or Cielo24.
-            In case of:
-                3PlayMedia - 'api_key' and 'api_secret_key' are required.
-                Cielo24 - Valid 'api_key' and 'username' are required.
-        """
-        error_type, error_message, validated_credentials = None, '', {}
-        if provider in [TranscriptProviderType.CIELO24, TranscriptProviderType.THREE_PLAY_MEDIA]:
-            if provider == TranscriptProviderType.CIELO24:
-                must_have_props = ('org', 'api_key', 'username')
-                error_type, error_message = self.validate_missing_attributes(provider, must_have_props, credentials)
-
-                if not error_message:
-                    # Get cielo api token and store it in api_key.
-                    api_token = get_api_token(credentials['username'], credentials['api_key'])
-                    if api_token:
-                        validated_credentials.update({
-                            'org': credentials['org'],
-                            'api_key': api_token
-                        })
-                    else:
-                        error_message = 'Invalid credentials supplied.'
-                        error_type = TranscriptionProviderErrorType.INVALID_CREDENTIALS
-            else:
-                must_have_props = ('org', 'api_key', 'api_secret_key')
-                error_type, error_message = self.validate_missing_attributes(provider, must_have_props, credentials)
-                if not error_message:
-                    validated_credentials.update({
-                        'org': credentials['org'],
-                        'api_key': credentials['api_key'],
-                        'api_secret': credentials['api_secret_key']
-                    })
-        else:
-            error_message = 'Invalid provider {provider}.'.format(provider=provider)
-            error_type = TranscriptionProviderErrorType.INVALID_PROVIDER
-
-        return error_type, error_message, validated_credentials
-
-    def post(self, request):
-        """
-        Creates or updates the org-specific transcript credentials with the given information.
-
-        Arguments:
-            request: A WSGI request.
-
-        **Example Request**
-
-            POST api/val/v0/videos/transcript-credentials/ {
-                "provider": "3PlayMedia",
-                "org": "test.x",
-                "api_key": "test-api-key",
-                "api_secret_key": "test-api-secret-key"
-            }
-
-        **POST Parameters**
-
-            A POST request can include the following parameters.
-
-            * provider: A string representation of provider.
-
-            * org: A string representing the organizaton code.
-
-            * api_key: A string representing the provider api key.
-
-            * api_secret_key: (Required for 3Play only). A string representing the api secret key.
-
-            * username: (Required for Cielo only). A string representing the cielo username.
-
-            **Example POST Response**
-
-            In case of success:
-                Returns an empty response with 201 status code (HTTP 201 Created).
-
-            In case of error:
-                Return response with error message and 400 status code (HTTP 400 Bad Request).
-                {
-                    "error_type": INVALID_CREDENTIALS
-                    "message": "Error message."
-                }
-        """
-        # Validate credentials
-        provider = request.data.pop('provider', None)
-        error_type, error_message, validated_credentials = self.validate_transcript_credentials(
-            provider=provider, **request.data
-        )
-        if error_message:
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data=dict(error_type=error_type, message=error_message)
-            )
-
-        TranscriptCredentials.objects.update_or_create(
-            org=validated_credentials.pop('org'), provider=provider, defaults=validated_credentials
-        )
-
-        return Response(status=status.HTTP_201_CREATED)

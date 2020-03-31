@@ -279,7 +279,7 @@ def validate_request_params(data, attributes):
     Returns:
         HTTP Response if params are missing,else None
     """
-    missing = [attr for attr in attributes if attr not in data]
+    missing = [attr for attr in attributes if not data[attr]]
     if missing:
         return Response(
             status=status.HTTP_400_BAD_REQUEST,
