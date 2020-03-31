@@ -1265,7 +1265,7 @@ class TranscriptCredentialsTest(APIAuthTestCase):
         )
         self.assertTrue(transcript_credentials.exists())
 
-    @patch('edxval.views.LOGGER')
+    @patch('edxval.transcript_utils.LOGGER')
     @responses.activate
     def test_cielo24_error(self, mock_logger):
         """

@@ -3,12 +3,9 @@ Views file for django app edxval.
 """
 from __future__ import absolute_import
 
-import json
 import logging
 
-import requests
 import six
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
@@ -32,6 +29,7 @@ from edxval.models import (
     VideoTranscript,
 )
 from edxval.serializers import VideoSerializer
+from edxval.transcript_utils import get_api_token
 from edxval.utils import TranscriptFormat, validate_generated_images, validate_request_params
 
 LOGGER = logging.getLogger(__name__)
@@ -448,40 +446,6 @@ class TranscriptCredentialsView(APIView):
 
         return Response(status=status_code, data=data)
 
-    def get_cielo_token_response(self, username, api_secure_key):
-        """
-        Returns Cielo24 api token.
-
-        Arguments:
-            username(str): Cielo24 username
-            api_securekey(str): Cielo24 api key
-
-        Returns:
-            Response : Http response object
-        """
-        return requests.get(settings.CIELO24_SETTINGS.get('CIELO24_LOGIN_URL'), params={
-            'v': settings.CIELO24_SETTINGS.get('CIELO24_API_VERSION'),
-            'username': username,
-            'securekey': api_secure_key
-        })
-
-    def get_api_token(self, username, api_key):
-        """
-        Returns api token if valid credentials are provided.
-        """
-        response = self.get_cielo_token_response(username=username, api_secure_key=api_key)
-        if not response.ok:
-            api_token = None
-            LOGGER.warning(
-                '[Transcript Credentials] Unable to get api token --  response %s --  status %s.',
-                response.text,
-                response.status_code,
-            )
-        else:
-            api_token = json.loads(response.content.decode('utf-8'))['ApiToken']
-
-        return api_token
-
     def validate_missing_attributes(self, provider, attributes, credentials):
         """
         Returns error message if provided attributes are not presents in credentials.
@@ -514,7 +478,7 @@ class TranscriptCredentialsView(APIView):
 
                 if not error_message:
                     # Get cielo api token and store it in api_key.
-                    api_token = self.get_api_token(credentials['username'], credentials['api_key'])
+                    api_token = get_api_token(credentials['username'], credentials['api_key'])
                     if api_token:
                         validated_credentials.update({
                             'org': credentials['org'],

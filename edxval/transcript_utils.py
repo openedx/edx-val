@@ -6,14 +6,19 @@ A module containing transcripts utils.
 from __future__ import absolute_import
 
 import json
+import logging
 
+import requests
 import six
+from django.conf import settings
 from pysrt import SubRipFile, SubRipItem, SubRipTime
 from pysrt.srtexc import Error
 from six import text_type
 from six.moves import range
 
 from edxval.exceptions import TranscriptsGenerationException
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Transcript:
@@ -120,3 +125,40 @@ class Transcript:
 
             if output_format == 'srt':
                 return cls.generate_srt_from_sjson(json.loads(content))
+
+
+def get_cielo_token_response(username, api_secure_key):
+    """
+    Returns Cielo24 api token.
+
+    Arguments:
+        username(str): Cielo24 username
+        api_securekey(str): Cielo24 api key
+
+    Returns:
+        Response : Http response object
+    """
+    cielo_api_url = settings.CIELO24_SETTINGS.get('CIELO24_LOGIN_URL', "https://sandbox.cielo24.com/api/account/login")
+    return requests.get(cielo_api_url, params={
+            'v': settings.CIELO24_SETTINGS.get('CIELO24_API_VERSION', 1),
+            'username': username,
+            'securekey': api_secure_key
+        })
+
+
+def get_api_token(username, api_key):
+    """
+    Returns api token if valid credentials are provided.
+    """
+    response = get_cielo_token_response(username=username, api_secure_key=api_key)
+    if not response.ok:
+        api_token = None
+        LOGGER.warning(
+            '[Transcript Credentials] Unable to get api token --  response %s --  status %s.',
+            response.text,
+            response.status_code,
+        )
+    else:
+        api_token = json.loads(response.content.decode('utf-8'))['ApiToken']
+
+    return api_token
