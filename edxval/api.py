@@ -1245,6 +1245,5 @@ def create_or_update_transcript_credentials(**credentials):
         TranscriptCredentials.objects.update_or_create(
             org=validated_credentials.pop('org'), provider=provider, defaults=validated_credentials
         )
-        error_type = None
 
     return dict(error_type=error_type, message=error_message)

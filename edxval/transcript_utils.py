@@ -170,15 +170,17 @@ def validate_missing_attributes(provider, attributes, credentials):
     """
     Returns error message if provided attributes are not presents in credentials.
     """
-    error_message = None
+    error_message, error_type = None, None
+
     missing = [attr for attr in attributes if attr not in credentials]
     if missing:
         error_message = '{missing} must be specified for {provider}.'.format(
             provider=provider,
             missing=' and '.join(missing)
         )
+        error_type = TranscriptionProviderErrorType.MISSING_REQUIRED_ATTRIBUTES
 
-    return TranscriptionProviderErrorType.MISSING_REQUIRED_ATTRIBUTES, error_message
+    return error_type, error_message
 
 
 def validate_transcript_credentials(provider, **credentials):
