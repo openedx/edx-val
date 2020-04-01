@@ -179,3 +179,11 @@ VIDEO_TRANSCRIPTS_SETTINGS = dict(
 
 # Set this value in the environment-specific files (e.g. local.py, production.py, test.py)
 FERNET_KEYS = ['insecure-ferent-key']
+
+# Transcript provider settings variables, which will be overridden at deployment if needed
+# NOTE: These settings must be added in edx-platform settings to allow deployment override and val integration
+CIELO24_SETTINGS = dict(
+    CIELO24_API_VERSION=1,
+    CIELO24_BASE_API_URL="https://sandbox.cielo24.com/api",
+    CIELO24_LOGIN_URL="https://sandbox.cielo24.com/api/account/login"
+)

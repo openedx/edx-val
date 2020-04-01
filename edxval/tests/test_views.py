@@ -9,7 +9,15 @@ from ddt import data, ddt, unpack
 from django.urls import reverse
 from rest_framework import status
 
-from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptProviderType, Video, VideoTranscript
+from edxval.models import (
+    CourseVideo,
+    EncodedVideo,
+    Profile,
+    TranscriptCredentials,
+    TranscriptProviderType,
+    Video,
+    VideoTranscript,
+)
 from edxval.serializers import TranscriptSerializer
 from edxval.tests import APIAuthTestCase, constants
 from edxval.utils import TranscriptFormat
@@ -1054,3 +1062,81 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         self.assertEqual(actual_encoded_video.url, expected_data['encode_data']['url'])
         self.assertEqual(actual_encoded_video.file_size, expected_data['encode_data']['file_size'])
         self.assertEqual(actual_encoded_video.bitrate, expected_data['encode_data']['bitrate'])
+
+
+@ddt
+class TranscriptCredentialsTest(APIAuthTestCase):
+    """
+    Transcript credentials tests.
+    """
+
+    def test_transcript_credentials_unauthorized(self):
+        """
+        Tests that if user is not logged in we get Unauthorized response.
+        """
+        self.client.logout()
+        url = reverse('transcript-credentials', kwargs={'org': 'test', 'provider': 'provider'})
+        response = self.client.get(
+            url,
+            content_type='application/json'
+        )
+        response_status_code = response.status_code
+        self.assertEqual(response_status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @data(
+        ({'org': '', 'provider': ''}, 'org and provider must be specified.'),
+        ({'org': 'org', 'provider': ''}, 'provider must be specified.'),
+        ({'org': '', 'provider': 'provider'}, 'org must be specified.')
+    )
+    @unpack
+    def test_fetch_credentials_missing_parameters(self, query_params, error_message):
+        """
+        Verify that if query parameters are missing, then request fails with missing params error.
+        """
+        url = reverse('transcript-credentials', kwargs=query_params)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, {
+            'message': error_message,
+        })
+
+    def test_get_non_existent_credentials(self):
+        """
+        Test that fetching a non-existing set of credentials results in failure.
+        """
+        provider, org = "provider", "org"
+        query_params = {'provider': provider, 'org': org}
+        url = reverse('transcript-credentials', kwargs=query_params)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, {
+            'message': "Credentials not found for provider {provider} & organization {org}".format(
+                provider=provider,
+                org=org
+            ),
+        })
+
+    def test_successful_fetch(self):
+        """
+        Verify that persistent credentials are returned for correct query params.
+        """
+        provider, org = "provider", "org"
+        credentials_dict = dict(
+            provider=provider,
+            org=org,
+            api_key='key',
+            api_secret='secret'
+        )
+        TranscriptCredentials(**credentials_dict).save()
+        query_params = {'provider': provider, 'org': org}
+        url = reverse('transcript-credentials', kwargs=query_params)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(response['api_key'], credentials_dict['api_key'])
+        self.assertEqual(response['api_secret_key'], credentials_dict['api_secret'])

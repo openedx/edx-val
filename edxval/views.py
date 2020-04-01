@@ -21,13 +21,14 @@ from edxval.models import (
     CourseVideo,
     EncodedVideo,
     Profile,
+    TranscriptCredentials,
     TranscriptProviderType,
     Video,
     VideoImage,
     VideoTranscript,
 )
 from edxval.serializers import VideoSerializer
-from edxval.utils import TranscriptFormat, validate_generated_images
+from edxval.utils import TranscriptFormat, validate_generated_images, validate_request_params
 
 LOGGER = logging.getLogger(__name__)
 
@@ -373,3 +374,68 @@ class HLSMissingVideoView(APIView):
         EncodedVideo.objects.create(video=video, profile=profile, **encode_data)
 
         return Response(status=status.HTTP_200_OK)
+
+
+class TranscriptCredentialsView(APIView):
+    """
+    API View to fetch Transcript provider credentials.
+    """
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
+    permission_classes = (ReadRestrictedDjangoModelPermissions,)
+    queryset = TranscriptCredentials.objects.all()
+
+    def get(self, request, provider, org):
+        """
+        Retrieves the transcript credentials for a given organization and provider.
+
+        **Example requests**:
+
+            GET api/val/v0/videos/transcript-credentials/{provider}/{org}
+
+        **GET Parameters**:
+
+            The following parameters are required to get the credentials:
+
+                * provider(str): transcript provider, which is either 3PlayMedia or Cielo24.
+
+                * org(str): organization whose credentials are to be fetch.
+
+        **Response Values**
+
+            For a successful request, the following values are returned along with 200 status:
+
+                * api_key(str): provider key
+
+                * api_secret_key(str): provider api secret key(only for 3PlayMedia)
+
+                * provider(str): transcript provider
+
+                * org(str): organization whose credentials are fetched.
+
+            For the error, 400 response code is returned with:
+
+                * message(str): error message
+        """
+        response = validate_request_params(dict(org=org, provider=provider), ['org', 'provider'])
+        if response:
+            return response
+
+        try:
+            credentials = TranscriptCredentials.objects.get(
+                provider=provider, org=org
+            )
+            status_code = status.HTTP_200_OK
+            data = dict(
+                api_key=credentials.api_key,
+                api_secret_key=credentials.api_secret,
+                org=credentials.org,
+                provider=credentials.provider
+            )
+        except TranscriptCredentials.DoesNotExist:
+            status_code = status.HTTP_400_BAD_REQUEST
+            data = {'message': "Credentials not found for provider {provider} & organization {org}".format(
+                provider=provider,
+                org=org
+            )}
+
+        return Response(status=status_code, data=data)

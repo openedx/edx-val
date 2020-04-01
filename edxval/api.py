@@ -35,6 +35,7 @@ from edxval.models import (
     EncodedVideo,
     Profile,
     ThirdPartyTranscriptCredentialsState,
+    TranscriptCredentials,
     TranscriptPreference,
     TranscriptProviderType,
     Video,
@@ -42,7 +43,7 @@ from edxval.models import (
     VideoTranscript,
 )
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
-from edxval.transcript_utils import Transcript
+from edxval.transcript_utils import Transcript, validate_transcript_credentials
 from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS, TranscriptFormat, create_file_in_fs, get_transcript_format
 
 logger = logging.getLogger(__name__)  # pylint: disable=C0103
@@ -1230,3 +1231,19 @@ def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, extern
                     resource_fs=file_system,
                     static_dir=static_dir
                 )
+
+
+def create_or_update_transcript_credentials(**credentials):
+    """
+    Internal API method to create or update transcript credentials.
+    """
+    provider = credentials.pop('provider', None)
+    error_type, error_message, validated_credentials = validate_transcript_credentials(
+        provider=provider, **credentials
+    )
+    if not error_message:
+        TranscriptCredentials.objects.update_or_create(
+            org=validated_credentials.pop('org'), provider=provider, defaults=validated_credentials
+        )
+
+    return dict(error_type=error_type, message=error_message)
