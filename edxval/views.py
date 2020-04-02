@@ -22,12 +22,13 @@ from edxval.models import (
     EncodedVideo,
     Profile,
     TranscriptCredentials,
+    TranscriptPreference,
     TranscriptProviderType,
     Video,
     VideoImage,
     VideoTranscript,
 )
-from edxval.serializers import VideoSerializer
+from edxval.serializers import TranscriptPreferenceSerializer, VideoSerializer
 from edxval.utils import TranscriptFormat, validate_generated_images, validate_request_params
 
 LOGGER = logging.getLogger(__name__)
@@ -439,3 +440,40 @@ class TranscriptCredentialsView(APIView):
             )}
 
         return Response(status=status_code, data=data)
+
+
+class TranscriptPreferenceView(generics.RetrieveAPIView):
+    """
+    Retrieves the transcript preferences for a given course.
+
+    **Example requests**
+
+        GET api/val/v0/videos/transcript-preferences/{course_id}
+
+    **Parameters**
+
+        * course_id(str): course whose preferences are to be fetched
+
+    **Response Values**
+
+        * course_id(str): course id whose preferences are fetched
+
+        * provider(str): transcript provider name
+
+        * cielo24_fidelity(str/None): Cielo24 fidelity choice
+
+        * cielo24_turnaround(str/None): Cielo24 turnaround time choice
+
+        * three_play_turnaround(str/None): 3playMedia turnaround
+
+        * preferred_languages(list): list of languages(str values)
+
+        * video_source_language(str): video language
+
+        * modified(datetime): last modified date
+    """
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
+    permission_classes = (ReadRestrictedDjangoModelPermissions,)
+    lookup_field = "course_id"
+    queryset = TranscriptPreference.objects.all()
+    serializer_class = TranscriptPreferenceSerializer

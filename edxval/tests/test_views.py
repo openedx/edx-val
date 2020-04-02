@@ -14,6 +14,7 @@ from edxval.models import (
     EncodedVideo,
     Profile,
     TranscriptCredentials,
+    TranscriptPreference,
     TranscriptProviderType,
     Video,
     VideoTranscript,
@@ -1140,3 +1141,62 @@ class TranscriptCredentialsTest(APIAuthTestCase):
         response = json.loads(response.content.decode('utf-8'))
         self.assertEqual(response['api_key'], credentials_dict['api_key'])
         self.assertEqual(response['api_secret_key'], credentials_dict['api_secret'])
+
+
+class TranscriptPreferencesViewTest(APIAuthTestCase):
+    """
+    Test Suite for TranscriptPreference API view.
+    """
+    COURSE_ID = 'edX/DemoX/Demo_Course'
+    URL_NAME = 'transcript-preferences'
+
+    def setUp(self):
+        super(TranscriptPreferencesViewTest, self).setUp()
+        TranscriptPreference.objects.create(
+            **constants.TRANSCRIPT_PREFERENCES_CIELO24
+        )
+
+    def test_unauthorized_access(self):
+        """
+        Test that if the user is not logged in, the data access is not authorized.
+        """
+        self._logout()
+        url = reverse(self.URL_NAME, kwargs={'course_id': self.COURSE_ID})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_forbidden_user_access(self):
+        """
+        Test that if the user is not authorized to get the data, the data access is not allowed.
+        """
+        self._login(unauthorized=True)
+        url = reverse(self.URL_NAME, kwargs={'course_id': self.COURSE_ID})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_successful_fetch(self):
+        """
+        Test the preferences are fetched successfully for an existing course.
+        """
+        expected_preferences = constants.TRANSCRIPT_PREFERENCES_CIELO24
+        expected_preferences['three_play_turnaround'] = None
+
+        url = reverse(self.URL_NAME, kwargs={'course_id': self.COURSE_ID})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = json.loads(response.content.decode('utf-8'))
+        # modified is added by serializer and doesn't affect the actual data
+        response.pop('modified')
+
+        self.assertDictEqual(response, constants.TRANSCRIPT_PREFERENCES_CIELO24)
+
+    def test_non_existant_pref_fetch(self):
+        """
+        Verify that preferences aren't fetched against a non-existant course id.
+        """
+        expected_response = {"detail": "Not found."}
+        url = reverse(self.URL_NAME, kwargs={'course_id': self.COURSE_ID+'abc'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = json.loads(response.content.decode('utf-8'))
+        self.assertDictEqual(response, expected_response)
