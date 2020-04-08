@@ -940,6 +940,16 @@ class VideoStatusViewTest(APIAuthTestCase):
             'message': None,
             'status_code': status.HTTP_200_OK,
         },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'file_complete'},
+            'message': None,
+            'status_code': status.HTTP_200_OK,
+        },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'pipeline_error'},
+            'message': None,
+            'status_code': status.HTTP_200_OK,
+        },
     )
     @unpack
     def test_video_status(self, patch_data, message, status_code):

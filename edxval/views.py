@@ -34,6 +34,8 @@ from edxval.utils import TranscriptFormat, validate_generated_images, validate_r
 LOGGER = logging.getLogger(__name__)
 
 VALID_VIDEO_STATUSES = [
+    'file_complete',
+    'pipeline_error',
     'transcription_in_progress',
     'transcript_ready',
     'transcode_active',
