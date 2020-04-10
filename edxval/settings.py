@@ -187,3 +187,17 @@ CIELO24_SETTINGS = dict(
     CIELO24_BASE_API_URL="https://sandbox.cielo24.com/api",
     CIELO24_LOGIN_URL="https://sandbox.cielo24.com/api/account/login"
 )
+
+# Required by Django 2.2 to run management commands.
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": {
+                "django.contrib.auth.context_processors.auth",  # this is required for admin
+                "django.contrib.messages.context_processors.messages",
+            }
+        }
+    },
+]
