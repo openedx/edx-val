@@ -8,11 +8,6 @@
 # pin when possible.  Writing an issue against the offending project and
 # linking to it here is good.
 
-# futures is part of the builtin python in python3
-futures ; python_version == "2.7"
-
-# Constraining this since the newer versions require Python 3
-more-itertools==5.0.0
 
 # Constraining this since we haven't handled newer versions of Django Rest Framework
 # and we want to allow edx-platform to update this separately.
@@ -23,6 +18,3 @@ django-model-utils<4.0
 
 # zipp 2.0.0 requires Python >= 3.6
 zipp==1.0.0
-
-# be able to run pytest on Python 2.7 and 3.x
-pytest<5.0.0
