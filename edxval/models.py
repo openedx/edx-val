@@ -203,7 +203,7 @@ class EncodedVideo(models.Model):
     video = models.ForeignKey(Video, related_name="encoded_videos", on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 class CustomizableImageField(models.ImageField):
