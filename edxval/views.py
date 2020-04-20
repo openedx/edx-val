@@ -35,6 +35,7 @@ LOGGER = logging.getLogger(__name__)
 
 VALID_VIDEO_STATUSES = [
     'file_complete',
+    'partial_failure',
     'pipeline_error',
     'transcription_in_progress',
     'transcript_ready',
