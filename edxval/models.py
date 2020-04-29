@@ -123,6 +123,7 @@ class Video(models.Model):
     client_video_id = models.CharField(max_length=255, db_index=True, blank=True)
     duration = models.FloatField(validators=[MinValueValidator(0)])
     status = models.CharField(max_length=255, db_index=True)
+    error_description = models.TextField('Error Description', blank=True, null=True)
 
     def get_absolute_url(self):
         """

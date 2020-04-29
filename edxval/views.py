@@ -38,6 +38,7 @@ VALID_VIDEO_STATUSES = [
     'partial_failure',
     'pipeline_error',
     'transcription_in_progress',
+    'transcript_failed',
     'transcript_ready',
     'transcode_active',
 ]
@@ -211,6 +212,7 @@ class VideoStatusView(APIView):
         try:
             video = Video.objects.get(edx_video_id=edx_video_id)
             video.status = video_status
+            video.error_description = request.data.get('error_description')
             video.save()
             response_status = status.HTTP_200_OK
             response_payload = {}
