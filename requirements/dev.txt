@@ -34,9 +34,9 @@ docopt==0.6.2             # via coveralls
 docutils==0.16            # via readme-renderer
 drf-jwt==1.14.0           # via edx-drf-extensions
 edx-django-utils==3.2.1   # via edx-drf-extensions
-edx-drf-extensions==5.0.2  # via -r requirements/base.in
+edx-drf-extensions==5.1.0  # via -r requirements/base.in
 edx-lint==1.4.1           # via -r requirements/quality.in
-edx-opaque-keys==2.0.2    # via edx-drf-extensions
+edx-opaque-keys==2.1.0    # via edx-drf-extensions
 enum34==1.1.10            # via -r requirements/base.in
 filelock==3.0.12          # via tox, virtualenv
 fs==2.4.11                # via -r requirements/test.in
@@ -58,7 +58,7 @@ newrelic==5.12.0.140      # via edx-django-utils
 packaging==20.3           # via bleach, caniusepython3, pytest, tox
 pathlib2==2.3.5           # via pytest
 pbr==5.4.5                # via stevedore
-pip-tools==5.1.0          # via -r requirements/dev.in
+pip-tools==5.1.1          # via -r requirements/dev.in
 pkginfo==1.5.0.1          # via twine
 pluggy==0.13.1            # via diff-cover, pytest, tox
 psutil==1.2.1             # via edx-django-utils
@@ -94,13 +94,13 @@ sqlparse==0.3.1           # via django
 stevedore==1.32.0         # via edx-opaque-keys
 toml==0.10.0              # via tox
 tox-battery==0.5.2        # via -r requirements/travis.in
-tox==3.14.6               # via -r requirements/travis.in, tox-battery
-tqdm==4.45.0              # via twine
+tox==3.15.0               # via -r requirements/travis.in, tox-battery
+tqdm==4.46.0              # via twine
 twine==1.15.0             # via -r requirements/quality.in
 typed-ast==1.4.1          # via astroid
 typing==3.7.4.1           # via fs
 urllib3==1.25.9           # via requests
-virtualenv==20.0.18       # via tox
+virtualenv==20.0.20       # via tox
 wcwidth==0.1.9            # via pytest
 webencodings==0.5.1       # via bleach
 wrapt==1.11.2             # via astroid

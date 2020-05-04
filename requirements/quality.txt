@@ -31,9 +31,9 @@ djangorestframework==3.9.4  # via -c requirements/constraints.txt, drf-jwt, edx-
 docutils==0.16            # via readme-renderer
 drf-jwt==1.14.0           # via edx-drf-extensions
 edx-django-utils==3.2.1   # via edx-drf-extensions
-edx-drf-extensions==5.0.2  # via -r requirements/base.in
+edx-drf-extensions==5.1.0  # via -r requirements/base.in
 edx-lint==1.4.1           # via -r requirements/quality.in
-edx-opaque-keys==2.0.2    # via edx-drf-extensions
+edx-opaque-keys==2.1.0    # via edx-drf-extensions
 enum34==1.1.10            # via -r requirements/base.in
 fs==2.4.11                # via -r requirements/test.in
 future==0.18.2            # via pyjwkest
@@ -82,7 +82,7 @@ six==1.14.0               # via astroid, bleach, cryptography, django-waffle, ed
 snowballstemmer==2.0.0    # via pydocstyle
 sqlparse==0.3.1           # via django
 stevedore==1.32.0         # via edx-opaque-keys
-tqdm==4.45.0              # via twine
+tqdm==4.46.0              # via twine
 twine==1.15.0             # via -r requirements/quality.in
 typed-ast==1.4.1          # via astroid
 typing==3.7.4.1           # via fs
