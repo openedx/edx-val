@@ -954,6 +954,11 @@ class VideoStatusViewTest(APIAuthTestCase):
             'patch_data': {'edx_video_id': 'super-soaker', 'status': 'partial_failure'},
             'message': None,
             'status_code': status.HTTP_200_OK,
+        },
+        {
+            'patch_data': {'edx_video_id': 'super-soaker', 'status': 'transcript_failed'},
+            'message': None,
+            'status_code': status.HTTP_200_OK,
         }
     )
     @unpack
@@ -964,6 +969,32 @@ class VideoStatusViewTest(APIAuthTestCase):
         response = self.client.patch(self.url, patch_data, format='json')
         self.assertEqual(response.status_code, status_code)
         self.assertEqual(response.data.get('message'), message)
+
+    def test_error_description(self):
+        """
+        Test that if error description is present in request, it is updated for
+        the video instance.
+        """
+        request_data = {
+            'edx_video_id': 'super-soaker', 'status': 'pipeline_error', 'error_description': 'test-error-desc'
+        }
+        response = self.client.patch(self.url, request_data, format='json')
+
+        self.video.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.video.error_description, 'test-error-desc')
+
+    def test_no_error_description(self):
+        """
+        Test that error description is an optional parameter for status update request.
+        """
+        response = self.client.patch(
+            self.url, {'edx_video_id': 'super-soaker', 'status': 'pipeline_error'}, format='json'
+        )
+
+        self.video.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(self.video.error_description)
 
 
 @ddt
