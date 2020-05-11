@@ -5,7 +5,7 @@
 #    make upgrade
 #
 -e git+https://github.com/edx/django-rest-framework-oauth.git@0a43e8525f1e3048efe4bc70c03de308a277197c#egg=djangorestframework-oauth==1.1.1  # via -r requirements/base.in
-appdirs==1.4.3            # via fs, virtualenv
+appdirs==1.4.4            # via fs, virtualenv
 argparse==1.4.0           # via caniusepython3
 astroid==2.3.3            # via pylint, pylint-celery
 attrs==19.3.0             # via pytest
@@ -21,7 +21,7 @@ click==7.1.2              # via click-log, edx-lint, pip-tools
 coverage==5.1             # via -r requirements/test.in, coveralls, pytest-cov
 coveralls==2.0.0          # via -r requirements/travis.in
 cryptography==2.9.2       # via django-fernet-fields
-ddt==1.3.1                # via -r requirements/test.in
+ddt==1.4.0                # via -r requirements/test.in
 diff-cover==2.6.1         # via -r requirements/dev.in
 distlib==0.3.0            # via caniusepython3, virtualenv
 django-fernet-fields==0.6  # via -r requirements/base.in
@@ -33,8 +33,8 @@ djangorestframework==3.9.4  # via -c requirements/constraints.txt, drf-jwt, edx-
 docopt==0.6.2             # via coveralls
 docutils==0.16            # via readme-renderer
 drf-jwt==1.14.0           # via edx-drf-extensions
-edx-django-utils==3.2.1   # via edx-drf-extensions
-edx-drf-extensions==5.1.0  # via -r requirements/base.in
+edx-django-utils==3.2.2   # via edx-drf-extensions
+edx-drf-extensions==6.0.0  # via -r requirements/base.in
 edx-lint==1.4.1           # via -r requirements/quality.in
 edx-opaque-keys==2.1.0    # via edx-drf-extensions
 enum34==1.1.10            # via -r requirements/base.in
@@ -54,11 +54,11 @@ markupsafe==1.1.1         # via jinja2
 mccabe==0.6.1             # via pylint
 mock==3.0.5               # via -r requirements/test.in
 more-itertools==8.2.0     # via pytest, zipp
-newrelic==5.12.0.140      # via edx-django-utils
+newrelic==5.12.1.141      # via edx-django-utils
 packaging==20.3           # via bleach, caniusepython3, pytest, tox
 pathlib2==2.3.5           # via pytest
 pbr==5.4.5                # via stevedore
-pip-tools==5.1.1          # via -r requirements/dev.in
+pip-tools==5.1.2          # via -r requirements/dev.in
 pkginfo==1.5.0.1          # via twine
 pluggy==0.13.1            # via diff-cover, pytest, tox
 psutil==1.2.1             # via edx-django-utils
@@ -79,7 +79,7 @@ pyparsing==2.4.7          # via packaging
 pysrt==1.1.2              # via -r requirements/base.in
 pytest-cov==2.8.1         # via -r requirements/test.in
 pytest-django==3.9.0      # via -r requirements/test.in
-pytest==5.4.1             # via pytest-cov, pytest-django
+pytest==5.4.2             # via pytest-cov, pytest-django
 python-dateutil==2.8.1    # via edx-drf-extensions
 pytz==2020.1              # via django, fs
 readme-renderer==26.0     # via twine
