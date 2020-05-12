@@ -357,6 +357,7 @@ class HLSMissingVideoView(APIView):
         Update a single profile for a given video.
 
         Example request data:
+            ```
             {
                 'edx_video_id': '1234'
                 'profile': 'hls',
@@ -366,6 +367,7 @@ class HLSMissingVideoView(APIView):
                     'bitrate': 12
                 }
             }
+            ```
         """
         edx_video_id = request.data['edx_video_id']
         profile = request.data['profile']
