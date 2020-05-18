@@ -4,7 +4,6 @@ Url file for django app edxval.
 
 from __future__ import absolute_import
 
-from django.conf import settings
 from django.conf.urls import url
 
 from edxval import views
@@ -36,14 +35,4 @@ urlpatterns = [
         views.VideoImagesView.as_view(),
         name='update-video-images'
     ),
-    url(
-        r'^videos/transcript-credentials/(?P<provider>[\w]*)/(?P<org>[\w]*)$',
-        views.TranscriptCredentialsView.as_view(),
-        name='transcript-credentials'
-    ),
-    url(
-        r'^videos/transcript-preferences/{}$'.format(settings.COURSE_ID_PATTERN),
-        views.TranscriptPreferenceView.as_view(),
-        name='transcript-preferences'
-    )
 ]

@@ -12,8 +12,6 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import get_storage_class
 from fs.path import combine
 from pysrt import SubRipFile
-from rest_framework import status
-from rest_framework.response import Response
 
 
 class TranscriptFormat:
@@ -249,41 +247,3 @@ def validate_generated_images(value, max_items):
         raise ValidationError(u'list must only contain strings.')
 
     return value
-
-
-def invalidate_fernet_cached_properties(model, fields):
-    """
-    Invalidates transcript credential fernet field's cached properties.
-
-    Arguments:
-        model (class): Model class containing fernet fields.
-        fields (list):  A list of fernet fields whose cache is to be invalidated.
-    """
-    for field_name in fields:
-        try:
-            field = model._meta.get_field(field_name)
-            del field.keys
-            del field.fernet_keys
-            del field.fernet
-        except AttributeError:
-            pass
-
-
-def validate_request_params(data, attributes):
-    """
-    Checks if the given set of attributes are missing from request and returns a response if true.
-
-    Arguments:
-        data(dict): params dict
-        attributes(list): list of required attributes
-    Returns:
-        HTTP Response if params are missing,else None
-    """
-    missing = [attr for attr in attributes if not data[attr]]
-    if missing:
-        return Response(
-            status=status.HTTP_400_BAD_REQUEST,
-            data={'message': '{missing} must be specified.'.format(missing=' and '.join(missing))}
-
-        )
-    return None

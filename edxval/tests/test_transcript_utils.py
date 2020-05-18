@@ -7,16 +7,11 @@ from __future__ import absolute_import
 import json
 import textwrap
 
-import responses
 from ddt import data, ddt, unpack
 from django.test import TestCase
-from mock import patch
-from rest_framework import status
 
-from edxval.enum import TranscriptionProviderErrorType
 from edxval.exceptions import TranscriptsGenerationException
-from edxval.models import TranscriptProviderType
-from edxval.transcript_utils import Transcript, validate_transcript_credentials
+from edxval.transcript_utils import Transcript
 
 
 @ddt
@@ -100,97 +95,3 @@ class TestTranscriptUtils(TestCase):
         invalid_srt_transcript = b'invalid SubRip file content'
         with self.assertRaises(TranscriptsGenerationException):
             Transcript.convert(invalid_srt_transcript, 'srt', 'sjson')
-
-
-@ddt
-class TestCredentialsUtils(TestCase):
-    """
-    Test Suite for various transcript credential utilities.
-    """
-
-    CIELO24_LOGIN_URL = "https://sandbox.cielo24.com/api/account/login"
-
-    @patch('edxval.transcript_utils.LOGGER')
-    @responses.activate
-    def test_cielo24_error(self, mock_logger):
-        """
-        Test that when invalid cielo credentials are supplied, we get correct error response.
-        """
-        expected_error_message = 'Invalid credentials supplied.'
-        responses.add(
-            responses.GET,
-            self.CIELO24_LOGIN_URL,
-            body=json.dumps({'error': expected_error_message}),
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-        credentials = {
-            'org': 'test',
-            'provider': TranscriptProviderType.CIELO24,
-            'api_key': 'test-api-key',
-            'username': 'test-cielo-user',
-            'api_secret_key': ''
-        }
-        error_type, error_message, _ = validate_transcript_credentials(**credentials)
-        self.assertEqual(error_type, TranscriptionProviderErrorType.INVALID_CREDENTIALS)
-        self.assertEqual(error_message, expected_error_message)
-
-        mock_logger.warning.assert_called_with(
-            '[Transcript Credentials] Unable to get api token --  response %s --  status %s.',
-            json.dumps({'error': error_message}),
-            status.HTTP_400_BAD_REQUEST
-        )
-
-    @data(
-        {
-            'provider': 'unsupported-provider'
-        },
-        {
-            'org': 'test',
-            'api_key': 'test-api-key'
-        }
-    )
-    def test_transcript_credentials_invalid_provider(self, credentials):
-        """
-        Test that validating credentials gives proper error in case of invalid provider.
-        """
-        provider = credentials.pop('provider', '')
-        error_type, error_message, _ = validate_transcript_credentials(provider, **credentials)
-        self.assertEqual(error_type, TranscriptionProviderErrorType.INVALID_PROVIDER)
-        self.assertEqual(error_message, 'Invalid provider {provider}.'.format(provider=provider))
-
-    @data(
-        (
-                {'provider': TranscriptProviderType.CIELO24},
-                'org and api_key and username'
-        ),
-        (
-                {'provider': TranscriptProviderType.THREE_PLAY_MEDIA},
-                'org and api_key and api_secret_key'
-        ),
-        (
-                {'provider': TranscriptProviderType.CIELO24, 'org': 'test-org'},
-                'api_key and username'
-        ),
-        (
-                {'provider': TranscriptProviderType.CIELO24, 'org': 'test-org', 'api_key': 'test-api-key'},
-                'username'
-        ),
-        (
-                {'org': 'test', 'provider': TranscriptProviderType.THREE_PLAY_MEDIA, 'api_key': 'test-api-key'},
-                'api_secret_key'
-        )
-    )
-    @unpack
-    def test_transcript_credentials_error(self, credentials, missing_keys):
-        """
-        Test that validating credentials gives proper error in case of invalid input.
-        """
-        provider = credentials.pop('provider')
-        expected_error_message = '{missing} must be specified for {provider}.'.format(
-            provider=provider,
-            missing=missing_keys
-        )
-        error_type, error_message, _ = validate_transcript_credentials(provider, **credentials)
-        self.assertEqual(error_type, TranscriptionProviderErrorType.MISSING_REQUIRED_ATTRIBUTES)
-        self.assertEqual(error_message, expected_error_message)
