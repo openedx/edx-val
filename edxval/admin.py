@@ -10,7 +10,6 @@ from .models import (
     EncodedVideo,
     Profile,
     ThirdPartyTranscriptCredentialsState,
-    TranscriptCredentials,
     TranscriptPreference,
     Video,
     VideoImage,
@@ -114,14 +113,6 @@ class TranscriptPreferenceAdmin(admin.ModelAdmin):
     model = TranscriptPreference
 
 
-class TranscriptCredentialsAdmin(admin.ModelAdmin):
-    """
-    Admin for TranscriptCredentials model.
-    """
-    model = TranscriptCredentials
-    exclude = ('api_key', 'api_secret')
-
-
 class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
     """ Admin for ThirdPartyTranscriptCredentialsState  """
     list_display = ('org', 'provider', 'has_creds', 'created', 'modified')
@@ -134,7 +125,6 @@ class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Video, VideoAdmin)
 admin.site.register(VideoTranscript, VideoTranscriptAdmin)
-admin.site.register(TranscriptCredentials, TranscriptCredentialsAdmin)
 admin.site.register(TranscriptPreference, TranscriptPreferenceAdmin)
 admin.site.register(VideoImage, VideoImageAdmin)
 admin.site.register(CourseVideo, CourseVideoAdmin)

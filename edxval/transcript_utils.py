@@ -6,21 +6,14 @@ A module containing transcripts utils.
 from __future__ import absolute_import
 
 import json
-import logging
 
-import requests
 import six
-from django.conf import settings
 from pysrt import SubRipFile, SubRipItem, SubRipTime
 from pysrt.srtexc import Error
 from six import text_type
 from six.moves import range
 
-from edxval.enum import TranscriptionProviderErrorType
 from edxval.exceptions import TranscriptsGenerationException
-from edxval.models import TranscriptProviderType
-
-LOGGER = logging.getLogger(__name__)
 
 
 class Transcript:
@@ -127,100 +120,3 @@ class Transcript:
 
             if output_format == 'srt':
                 return cls.generate_srt_from_sjson(json.loads(content))
-
-
-def get_cielo_token_response(username, api_secure_key):
-    """
-    Returns Cielo24 api token.
-
-    Arguments:
-        username(str): Cielo24 username
-        api_securekey(str): Cielo24 api key
-
-    Returns:
-        Response : Http response object
-    """
-    cielo_api_url = settings.CIELO24_SETTINGS.get('CIELO24_LOGIN_URL', "https://sandbox.cielo24.com/api/account/login")
-    return requests.get(cielo_api_url, params={
-            'v': settings.CIELO24_SETTINGS.get('CIELO24_API_VERSION', 1),
-            'username': username,
-            'securekey': api_secure_key
-        })
-
-
-def get_api_token(username, api_key):
-    """
-    Returns api token if valid credentials are provided.
-    """
-    response = get_cielo_token_response(username=username, api_secure_key=api_key)
-    if not response.ok:
-        api_token = None
-        LOGGER.warning(
-            '[Transcript Credentials] Unable to get api token --  response %s --  status %s.',
-            response.text,
-            response.status_code,
-        )
-    else:
-        api_token = json.loads(response.content.decode('utf-8'))['ApiToken']
-
-    return api_token
-
-
-def validate_missing_attributes(provider, attributes, credentials):
-    """
-    Returns error message if provided attributes are not presents in credentials.
-    """
-    error_message, error_type = None, None
-
-    missing = [attr for attr in attributes if attr not in credentials]
-    if missing:
-        error_message = '{missing} must be specified for {provider}.'.format(
-            provider=provider,
-            missing=' and '.join(missing)
-        )
-        error_type = TranscriptionProviderErrorType.MISSING_REQUIRED_ATTRIBUTES
-
-    return error_type, error_message
-
-
-def validate_transcript_credentials(provider, **credentials):
-    """
-    Validates transcript credentials.
-
-     Validations:
-     Providers must be either 3PlayMedia or Cielo24.
-     In case of:
-            3PlayMedia - 'api_key' and 'api_secret_key' are required.
-            Cielo24 - Valid 'api_key' and 'username' are required.
-    """
-    error_type, error_message, validated_credentials = None, '', {}
-    if provider in [TranscriptProviderType.CIELO24, TranscriptProviderType.THREE_PLAY_MEDIA]:
-        if provider == TranscriptProviderType.CIELO24:
-            must_have_props = ('org', 'api_key', 'username')
-            error_type, error_message = validate_missing_attributes(provider, must_have_props, credentials)
-
-            if not error_message:
-                # Get cielo api token and store it in api_key.
-                api_token = get_api_token(credentials['username'], credentials['api_key'])
-                if api_token:
-                    validated_credentials.update({
-                        'org': credentials['org'],
-                        'api_key': api_token
-                    })
-                else:
-                    error_message = 'Invalid credentials supplied.'
-                    error_type = TranscriptionProviderErrorType.INVALID_CREDENTIALS
-        else:
-            must_have_props = ('org', 'api_key', 'api_secret_key')
-            error_type, error_message = validate_missing_attributes(provider, must_have_props, credentials)
-            if not error_message:
-                validated_credentials.update({
-                    'org': credentials['org'],
-                    'api_key': credentials['api_key'],
-                    'api_secret': credentials['api_secret_key']
-                })
-    else:
-        error_message = 'Invalid provider {provider}.'.format(provider=provider)
-        error_type = TranscriptionProviderErrorType.INVALID_PROVIDER
-
-    return error_type, error_message, validated_credentials
