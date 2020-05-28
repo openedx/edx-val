@@ -4,7 +4,6 @@
 #
 #    make upgrade
 #
--e git+https://github.com/edx/django-rest-framework-oauth.git@0a43e8525f1e3048efe4bc70c03de308a277197c#egg=djangorestframework-oauth==1.1.1  # via -r requirements/base.in
 appdirs==1.4.4            # via fs
 attrs==19.3.0             # via pytest
 boto==2.49.0              # via -r requirements/base.in
