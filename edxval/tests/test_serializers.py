@@ -2,9 +2,6 @@
 """
 Tests the serializers for the Video Abstraction Layer
 """
-
-from __future__ import absolute_import
-
 from django.test import TestCase
 
 from edxval.models import EncodedVideo, Profile, Video
@@ -16,6 +13,7 @@ class SerializerTests(TestCase):
     """
     Tests the Serializers
     """
+
     def setUp(self):
         """
         Creates Profile objects and a video object

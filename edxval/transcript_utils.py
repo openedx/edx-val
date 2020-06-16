@@ -3,8 +3,6 @@ A module containing transcripts utils.
 """
 # pylint: disable=inconsistent-return-statements
 
-from __future__ import absolute_import
-
 import json
 
 import six

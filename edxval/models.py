@@ -10,9 +10,6 @@ nested serialization errors, or any similar errors will be returned by
 themselves. After these are resolved, errors such as a negative file_size or
 invalid profile_name will be returned.
 """
-
-from __future__ import absolute_import
-
 import json
 import logging
 import os
@@ -48,6 +45,7 @@ class ModelFactoryWithValidation:
     """
     A Model mixin that provides validation-based factory methods.
     """
+
     @classmethod
     def create_with_validation(cls, *args, **kwargs):
         """
@@ -214,6 +212,7 @@ class CustomizableImageField(models.ImageField):
     the storage class and bucket name); we don't want to
     create new migration files for each configuration change.
     """
+
     def __init__(self, *args, **kwargs):
         kwargs.update(dict(
             upload_to=video_image_path,
@@ -239,6 +238,7 @@ class ListField(models.TextField):
     """
     ListField use to store and retrieve list data.
     """
+
     def __init__(self, max_items=LIST_MAX_ITEMS, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
         self.max_items = max_items
         super(ListField, self).__init__(*args, **kwargs)
@@ -400,6 +400,7 @@ class CustomizableFileField(models.FileField):
     the storage class and bucket name); we don't want to
     create new migration files for each configuration change.
     """
+
     def __init__(self, *args, **kwargs):
         kwargs.update(dict(
             upload_to=video_transcript_path,
@@ -651,6 +652,7 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
     """
     State of transcript credentials for a course organization
     """
+
     class Meta:
         unique_together = ('org', 'provider')
 

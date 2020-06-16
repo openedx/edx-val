@@ -2,7 +2,7 @@
 """
 Constants used for tests.
 """
-from __future__ import absolute_import, unicode_literals
+
 
 from edxval.models import (
     EXTERNAL_VIDEO_STATUS,

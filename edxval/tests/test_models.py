@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ Test for models """
-from __future__ import absolute_import
+
 
 from django.test import TestCase
 
