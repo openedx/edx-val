@@ -5,7 +5,6 @@ Views file for django app edxval.
 
 import logging
 
-import six
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
@@ -261,7 +260,7 @@ class VideoImagesView(APIView):
 
         try:
             course_video = CourseVideo.objects.select_related('video_image').get(
-                course_id=six.text_type(course_id), video__edx_video_id=edx_video_id
+                course_id=str(course_id), video__edx_video_id=edx_video_id
             )
         except CourseVideo.DoesNotExist:
             return Response(

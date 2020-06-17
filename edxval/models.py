@@ -16,13 +16,11 @@ import os
 from contextlib import closing
 from uuid import uuid4
 
-import six
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils.six import python_2_unicode_compatible
 from model_utils.models import TimeStampedModel
 
 from edxval.utils import (
@@ -69,7 +67,6 @@ class ModelFactoryWithValidation:
             return cls.create_with_validation(*args, **kwargs), True
 
 
-@python_2_unicode_compatible
 class Profile(models.Model):
     """
     Details for pre-defined encoding format
@@ -93,7 +90,6 @@ class Profile(models.Model):
         return self.profile_name
 
 
-@python_2_unicode_compatible
 class Video(models.Model):
     """
     Model for a Video group with the same content.
@@ -155,7 +151,6 @@ class Video(models.Model):
         return qset
 
 
-@python_2_unicode_compatible
 class CourseVideo(models.Model, ModelFactoryWithValidation):
     """
     Model for the course_id associated with the video content.
@@ -186,7 +181,6 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
         return self.course_id
 
 
-@python_2_unicode_compatible
 class EncodedVideo(models.Model):
     """
     Video/encoding pair
@@ -303,7 +297,6 @@ class ListField(models.TextField):
         return name, path, args, kwargs
 
 
-@python_2_unicode_compatible
 class VideoImage(TimeStampedModel):
     """
     Image model for course video.
@@ -423,7 +416,6 @@ class CustomizableFileField(models.FileField):
         return name, path, args, kwargs
 
 
-@python_2_unicode_compatible
 class VideoTranscript(TimeStampedModel):
     """
     Transcript for a video
@@ -520,7 +512,7 @@ class VideoTranscript(TimeStampedModel):
             video_transcript = cls(video=video, language_code=language_code)
             retrieved = False
 
-        for prop, value in six.iteritems(metadata):
+        for prop, value in metadata.items():
             if prop in ['language_code', 'file_format', 'provider']:
                 setattr(video_transcript, prop, value)
 
@@ -603,7 +595,6 @@ class ThreePlayTurnaround:
     )
 
 
-@python_2_unicode_compatible
 class TranscriptPreference(TimeStampedModel):
     """
     Third Party Transcript Preferences for a Course
@@ -648,7 +639,6 @@ class TranscriptPreference(TimeStampedModel):
         return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
 
 
-@python_2_unicode_compatible
 class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
     """
     State of transcript credentials for a course organization

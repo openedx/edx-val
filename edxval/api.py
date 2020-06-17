@@ -8,7 +8,6 @@ import logging
 from enum import Enum
 from uuid import uuid4
 
-import six
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
@@ -67,7 +66,7 @@ def generate_video_id():
     """
     Generates a video ID.
     """
-    return six.text_type(uuid4())
+    return str(uuid4())
 
 
 def create_video(video_data):
@@ -368,7 +367,7 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
     # Filter wanted properties
     metadata = {
         prop: value
-        for prop, value in six.iteritems(metadata)
+        for prop, value in metadata.items()
         if prop in ['provider', 'language_code', 'file_name', 'file_format'] and value
     }
 
@@ -721,7 +720,7 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
         total order.
     """
     return _get_videos_for_filter(
-        {'courses__course_id': six.text_type(course_id), 'courses__is_hidden': False},
+        {'courses__course_id': str(course_id), 'courses__is_hidden': False},
         sort_field,
         sort_dir,
         pagination_conf,
@@ -821,7 +820,7 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
         }
     """
     # In case someone passes in a key (VAL doesn't really understand opaque keys)
-    course_id = six.text_type(course_id)
+    course_id = str(course_id)
     try:
         encoded_videos = EncodedVideo.objects.filter(
             profile__profile_name__in=profiles,
@@ -863,7 +862,7 @@ def copy_course_videos(source_course_id, destination_course_id):
         return
 
     course_videos = CourseVideo.objects.select_related('video', 'video_image').filter(
-        course_id=six.text_type(source_course_id)
+        course_id=str(source_course_id)
     )
 
     for course_video in course_videos:
@@ -910,7 +909,7 @@ def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
         'video_asset',
         attrib={
             'client_video_id': video.client_video_id,
-            'duration': six.text_type(video.duration),
+            'duration': str(video.duration),
             'image': video_image_name
         }
     )
@@ -919,7 +918,7 @@ def export_to_xml(video_id, resource_fs, static_dir, course_id=None):
             video_el,
             'encoded_video',
             {
-                name: six.text_type(getattr(encoded_video, name))
+                name: str(getattr(encoded_video, name))
                 for name in ['profile', 'url', 'file_size', 'bitrate']
             }
         )
@@ -1220,7 +1219,7 @@ def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, extern
                 )
 
         # This won't overwrite transcript for a language which is already present for the video.
-        for language_code, transcript_file_names in six.iteritems(external_transcripts):
+        for language_code, transcript_file_names in external_transcripts.items():
             for transcript_file_name in transcript_file_names:
                 import_transcript_from_fs(
                     edx_video_id=edx_video_id,
