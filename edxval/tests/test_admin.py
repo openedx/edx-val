@@ -1,7 +1,7 @@
 """
 Admin Module Test Cases
 """
-from __future__ import absolute_import
+
 
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage

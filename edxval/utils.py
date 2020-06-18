@@ -1,9 +1,6 @@
 """
 Util methods to be used in api and models.
 """
-
-from __future__ import absolute_import
-
 import json
 
 import six
