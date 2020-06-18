@@ -358,7 +358,8 @@ class VideoImage(TimeStampedModel):
                 if not video_image.image.name:
                     file_name = generated_images[0]
 
-            video_image.image.name = file_name
+            if file_name:
+                video_image.image.name = file_name
 
         video_image.save()
         return video_image, created
