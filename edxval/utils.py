@@ -3,7 +3,6 @@ Util methods to be used in api and models.
 """
 import json
 
-import six
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import get_storage_class
@@ -240,7 +239,7 @@ def validate_generated_images(value, max_items):
             u'list must not contain more than {max_items} items.'.format(max_items=max_items)
         )
 
-    if all(isinstance(item, six.string_types) for item in value) is False:
+    if all(isinstance(item, str) for item in value) is False:
         raise ValidationError(u'list must only contain strings.')
 
     return value

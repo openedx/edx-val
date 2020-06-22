@@ -5,11 +5,8 @@ A module containing transcripts utils.
 
 import json
 
-import six
 from pysrt import SubRipFile, SubRipItem, SubRipTime
 from pysrt.srtexc import Error
-from six import text_type
-from six.moves import range
 
 from edxval.exceptions import TranscriptsGenerationException
 
@@ -71,7 +68,7 @@ class Transcript:
                 end=SubRipTime(milliseconds=sjson_subs['end'][i]),
                 text=sjson_subs['text'][i]
             )
-            output += (six.text_type(item))
+            output += (str(item))
             output += '\n'
         return output
 
@@ -110,7 +107,7 @@ class Transcript:
                     # the exception if something went wrong in parsing the transcript.
                     srt_subs = SubRipFile.from_string(content, error_handling=SubRipFile.ERROR_RAISE)
                 except Error as ex:  # Base exception from pysrt
-                    raise TranscriptsGenerationException(text_type(ex))
+                    raise TranscriptsGenerationException(str(ex))
 
                 return json.dumps(cls.generate_sjson_from_srt(srt_subs))
 

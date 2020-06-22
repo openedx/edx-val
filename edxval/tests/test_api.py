@@ -12,7 +12,6 @@ from io import open
 from tempfile import mkdtemp
 
 import mock
-import six
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -27,7 +26,6 @@ from fs.path import combine
 from lxml import etree
 from mock import patch
 from rest_framework import status
-from six.moves import range, zip
 
 from edxval import api, utils
 from edxval.api import (
@@ -63,7 +61,7 @@ def omit_attrs(dict, attrs_to_omit=None):  # pylint: disable=redefined-builtin
     if attrs_to_omit is None:
         attrs_to_omit = []
 
-    return {attr: value for attr, value in six.iteritems(dict) if attr not in attrs_to_omit}
+    return {attr: value for attr, value in dict.items() if attr not in attrs_to_omit}
 
 
 class SortedVideoTestMixin:
@@ -253,7 +251,7 @@ class CreateProfileTest(TestCase):
         """
         api.create_profile(constants.PROFILE_DESKTOP)
         profiles = list(Profile.objects.all())
-        profile_names = [six.text_type(profile) for profile in profiles]
+        profile_names = [str(profile) for profile in profiles]
         self.assertEqual(len(profiles), 8)
         self.assertIn(
             constants.PROFILE_DESKTOP,
@@ -520,7 +518,7 @@ class GetVideoForCourseProfiles(TestCase):
                         "url": encoding["url"],
                         "file_size": encoding["file_size"],
                     }
-                    for (profile_name, encoding) in six.iteritems(encoding_dict)
+                    for (profile_name, encoding) in encoding_dict.items()
                 }
             }
         }
@@ -1259,7 +1257,7 @@ class ImportTest(TestCase):
         import_xml = etree.Element(
             "video_asset",
             attrib={
-                key: six.text_type(video_dict[key])
+                key: str(video_dict[key])
                 for key in ["client_video_id", "duration"]
             }
         )
@@ -1272,7 +1270,7 @@ class ImportTest(TestCase):
                 import_xml,
                 "encoded_video",
                 attrib={
-                    key: six.text_type(val)
+                    key: str(val)
                     for key, val in encoding_dict.items()
                 }
             )
@@ -2350,7 +2348,7 @@ class CourseVideoImageTest(TestCase):
 
         # expect a validation error if we try to set non list data
         for item in ('a string', 555, {'a': 1}, (1,)):
-            with six.assertRaisesRegex(self, ValidationError, 'is not a list') as set_exception:
+            with self.assertRaisesRegex(ValidationError, 'is not a list') as set_exception:
                 video_image.generated_images = item
                 video_image.save()
 
@@ -2370,7 +2368,7 @@ class CourseVideoImageTest(TestCase):
         with patch('edxval.models.ListField.get_prep_value', lambda _, value: json.dumps(value)):
             video_image.save()
 
-        with six.assertRaisesRegex(self, ValidationError, 'Must be a valid list of strings'):
+        with self.assertRaisesRegex(ValidationError, 'Must be a valid list of strings'):
             video_image.refresh_from_db()
 
         # Tests that a ValueError is raised and turned into a ValidationError
@@ -2381,7 +2379,7 @@ class CourseVideoImageTest(TestCase):
         with patch('edxval.models.ListField.get_prep_value', lambda _, value: value):
             video_image.save()
 
-        with six.assertRaisesRegex(self, ValidationError, 'Must be a valid list of strings'):
+        with self.assertRaisesRegex(ValidationError, 'Must be a valid list of strings'):
             video_image.refresh_from_db()
 
     def test_video_image_deletion_single(self):
@@ -2811,7 +2809,7 @@ class TranscriptTest(TestCase):
                 video_id, language_code, file_format, ContentFile(constants.TRANSCRIPT_DATA['overwatch']), provider
             )
 
-        self.assertIn(exception_msg, six.text_type(transcript_exception.exception.args[0]))
+        self.assertIn(exception_msg, str(transcript_exception.exception.args[0]))
 
     def test_get_available_transcript_languages(self):
         """
