@@ -6,8 +6,8 @@ boto
 Django>=1.11
 django-fernet-fields
 django-model-utils
-edx-drf-extensions
 django-storages
-enum34
+edx-drf-extensions
+enum34; python_version<'3.6'
 lxml
 pysrt
