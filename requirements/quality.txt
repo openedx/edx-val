@@ -29,7 +29,6 @@ edx-django-utils==3.2.3   # via edx-drf-extensions
 edx-drf-extensions==6.0.0  # via -r requirements/base.in
 edx-lint==1.4.1           # via -r requirements/quality.in
 edx-opaque-keys==2.1.0    # via edx-drf-extensions
-enum34==1.1.10 ; python_version < "3.6"  # via -r requirements/base.in
 fs==2.4.11                # via -r requirements/test.in
 future==0.18.2            # via pyjwkest
 idna==2.9                 # via requests

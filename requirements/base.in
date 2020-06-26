@@ -8,6 +8,5 @@ django-fernet-fields
 django-model-utils
 django-storages
 edx-drf-extensions
-enum34; python_version<'3.6'
 lxml
 pysrt
