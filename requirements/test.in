@@ -6,7 +6,6 @@ coverage
 ddt
 fs
 mock
-nose
 pytest-cov
 pytest-django
 responses
