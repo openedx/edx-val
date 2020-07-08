@@ -15,3 +15,8 @@ djangorestframework==3.9.4
 
 # zipp 2.0.0 requires Python >= 3.6
 zipp==1.0.0
+
+
+# latest version drf-jwt==1.16.2 is causing failures in ecom, platform and discovery.
+# So avoiding that until fix that issue.
+drf-jwt<1.15.0
