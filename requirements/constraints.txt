@@ -13,6 +13,10 @@
 # and we want to allow edx-platform to update this separately.
 djangorestframework==3.9.4
 
+
+-c https://gist.githubusercontent.com/awais786/0f1db0388d4434c791e1342c86134117/raw/a565ccd32111deb612b7c2971042995660951a60/common_constraints.txt
+
+
 # zipp 2.0.0 requires Python >= 3.6
 zipp==1.0.0
 
