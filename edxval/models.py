@@ -245,7 +245,7 @@ class ListField(models.TextField):
             raise ValidationError(u'ListField value {} is not a list.'.format(value))
         return json.dumps(self.validate_list(value) or [])
 
-    def from_db_value(self, value, expression, connection, context):  # pylint: disable=unused-argument
+    def from_db_value(self, value, expression, connection):  # pylint: disable=unused-argument
         """
         Converts a json list representation in a database to a python object.
         """
