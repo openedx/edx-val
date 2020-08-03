@@ -26,7 +26,7 @@ fs==2.4.11                # via -r requirements/test.in
 future==0.18.2            # via pyjwkest
 idna==2.10                # via requests
 importlib-metadata==1.7.0  # via pluggy, pytest
-iniconfig==1.0.0          # via pytest
+iniconfig==1.0.1          # via pytest
 lxml==4.5.2               # via -r requirements/base.in
 mock==3.0.5               # via -r requirements/test.in
 more-itertools==8.4.0     # via pytest
@@ -41,7 +41,7 @@ pycparser==2.20           # via cffi
 pycryptodomex==3.9.8      # via pyjwkest
 pyjwkest==1.4.2           # via edx-drf-extensions
 pyjwt[crypto]==1.7.1      # via drf-jwt
-pymongo==3.10.1           # via edx-opaque-keys
+pymongo==3.11.0           # via edx-opaque-keys
 pyparsing==2.4.7          # via packaging
 pysrt==1.1.2              # via -r requirements/base.in
 pytest-cov==2.10.0        # via -r requirements/test.in
