@@ -948,6 +948,8 @@ def create_transcript_file(video_id, language_code, file_format, resource_fs, st
             input_format=file_format,
             output_format=Transcript.SRT
         )
+        if not resource_fs.exists(static_dir):
+            resource_fs.makedir(static_dir)
         create_file_in_fs(transcript_content, transcript_filename, resource_fs, static_dir)
 
     return transcript_filename

@@ -2885,6 +2885,40 @@ class TranscriptTest(TestCase):
         transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
         self.assertEqual(transcript['content'], expected_transcript_content)
 
+    def test_unpublished_create_transcript_file(self):
+        """
+        Tests that an unpublished transcript file is created correctly.
+
+        Scenario:
+        In a course with unpublished transcript, static_dir directory isn't made
+        so we don't explicitly make static_dir in this test
+        exporting the transcript will make static_dir inside file_system if not present
+        """
+        language_code = 'en'
+        video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+        transcript_file_name = 'super-soaker-en.srt'
+        expected_transcript_path = combine(
+            combine(self.temp_dir, constants.EXPORT_IMPORT_COURSE_DIR),
+            combine(constants.EXPORT_IMPORT_STATIC_DIR, transcript_file_name)
+        )
+
+        delegate_fs = OSFS(self.temp_dir)
+        file_system = delegate_fs.makedir(constants.EXPORT_IMPORT_COURSE_DIR, recreate=True)
+
+        api.create_transcript_file(
+            video_id=video_id,
+            language_code=language_code,
+            file_format=utils.TranscriptFormat.SRT,
+            static_dir=constants.EXPORT_IMPORT_STATIC_DIR,
+            resource_fs=file_system
+        )
+
+        self.assertIn(transcript_file_name, file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR))
+
+        expected_transcript_content = File(open(expected_transcript_path, 'rb')).read()
+        transcript = api.get_video_transcript_data(video_id=video_id, language_code=language_code)
+        self.assertEqual(transcript['content'], expected_transcript_content)
+
     @data(
         ('invalid-video-id', 'invalid-language-code'),
         ('super-soaker', 'invalid-language-code')
