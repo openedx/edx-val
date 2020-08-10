@@ -25,7 +25,7 @@ django==2.2.15            # via -r requirements/base.in, django-fernet-fields, d
 djangorestframework==3.9.4  # via -c requirements/constraints.txt, drf-jwt, edx-drf-extensions, rest-condition
 docutils==0.16            # via readme-renderer
 drf-jwt==1.16.2           # via edx-drf-extensions
-edx-django-utils==3.5.0   # via edx-drf-extensions
+edx-django-utils==3.6.0   # via edx-drf-extensions
 edx-drf-extensions==6.1.1  # via -r requirements/base.in
 edx-lint==1.5.0           # via -r requirements/quality.in
 edx-opaque-keys==2.1.1    # via edx-drf-extensions
@@ -78,7 +78,7 @@ snowballstemmer==2.0.0    # via pydocstyle
 sqlparse==0.3.1           # via django
 stevedore==1.32.0         # via edx-opaque-keys
 toml==0.10.1              # via pytest
-tqdm==4.48.1              # via twine
+tqdm==4.48.2              # via twine
 twine==1.15.0             # via -r requirements/quality.in
 typed-ast==1.4.1          # via astroid
 typing==3.7.4.3           # via fs
