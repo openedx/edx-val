@@ -974,6 +974,19 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     if video_transcripts.exists():
         transcripts_el = SubElement(video_el, 'transcripts')
 
+    # Create static directory based on the file system's subdirectory,
+    # falling back to default path in case of an error
+    try:
+        # File system should not start from /draft directory.
+        static_file_dir = combine(resource_fs._sub_dir.split('/')[1], static_dir)  # pylint: disable=protected-access
+    except KeyError:
+        logger.exception(
+            "VAL Transcript Export: Error creating static directory path for video {} in file system {}".format(
+                video_id, resource_fs
+            )
+        )
+        static_file_dir = combine('course', static_dir)
+
     transcript_files_map = {}
     for video_transcript in video_transcripts:
         language_code = video_transcript.language_code
@@ -985,7 +998,7 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
                 language_code=language_code,
                 file_format=file_format,
                 resource_fs=resource_fs.delegate_fs(),
-                static_dir=combine(u'course', static_dir)  # File system should not start from /draft directory.
+                static_dir=static_file_dir
             )
             transcript_files_map[language_code] = transcript_filename
         except TranscriptsGenerationException:
