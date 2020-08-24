@@ -5,7 +5,7 @@
 #    make upgrade
 #
 appdirs==1.4.4            # via fs
-attrs==19.3.0             # via pytest
+attrs==20.1.0             # via pytest
 boto==2.49.0              # via -r requirements/base.in
 certifi==2020.6.20        # via requests
 cffi==1.14.2              # via cryptography
@@ -30,7 +30,7 @@ iniconfig==1.0.1          # via pytest
 lxml==4.5.2               # via -r requirements/base.in
 mock==3.0.5               # via -r requirements/test.in
 more-itertools==8.4.0     # via pytest
-newrelic==5.16.0.145      # via edx-django-utils
+newrelic==5.16.1.146      # via edx-django-utils
 packaging==20.4           # via pytest
 pathlib2==2.3.5           # via pytest
 pbr==5.4.5                # via stevedore
@@ -50,7 +50,7 @@ pytest==6.0.1             # via pytest-cov, pytest-django
 python-dateutil==2.8.1    # via edx-drf-extensions
 pytz==2020.1              # via django, fs
 requests==2.24.0          # via edx-drf-extensions, pyjwkest, responses
-responses==0.10.16        # via -r requirements/test.in
+responses==0.11.0         # via -r requirements/test.in
 rest-condition==1.0.3     # via edx-drf-extensions
 semantic-version==2.8.5   # via edx-drf-extensions
 six==1.15.0               # via cryptography, edx-drf-extensions, edx-opaque-keys, fs, mock, packaging, pathlib2, pyjwkest, python-dateutil, responses, stevedore
