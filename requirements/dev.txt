@@ -6,7 +6,7 @@
 #
 appdirs==1.4.4            # via fs, virtualenv
 astroid==2.3.3            # via pylint, pylint-celery
-attrs==20.1.0             # via pytest
+attrs==20.2.0             # via pytest
 bleach==3.1.5             # via readme-renderer
 boto==2.49.0              # via -r requirements/base.in
 certifi==2020.6.20        # via requests
@@ -18,19 +18,19 @@ coverage==5.2.1           # via -r requirements/test.in, coveralls, pytest-cov
 coveralls==2.1.2          # via -r requirements/travis.in
 cryptography==3.1         # via django-fernet-fields, pyjwt
 ddt==1.4.1                # via -r requirements/test.in
-diff-cover==3.0.1         # via -r requirements/dev.in
+diff-cover==4.0.0         # via -r requirements/dev.in
 distlib==0.3.1            # via virtualenv
 django-fernet-fields==0.6  # via -r requirements/base.in
 django-model-utils==4.0.0  # via -r requirements/base.in
 django-storages==1.10     # via -r requirements/base.in
-django-waffle==1.0.0      # via edx-django-utils, edx-drf-extensions
-django==2.2.15            # via -r requirements/base.in, django-fernet-fields, django-model-utils, django-storages, drf-jwt, edx-django-utils, edx-drf-extensions, rest-condition
+django-waffle==2.0.0      # via edx-django-utils, edx-drf-extensions
+django==2.2.16            # via -r requirements/base.in, django-fernet-fields, django-model-utils, django-storages, drf-jwt, edx-django-utils, edx-drf-extensions, rest-condition
 djangorestframework==3.9.4  # via -c requirements/constraints.txt, drf-jwt, edx-drf-extensions, rest-condition
 docopt==0.6.2             # via coveralls
 docutils==0.16            # via readme-renderer
 drf-jwt==1.17.1           # via edx-drf-extensions
-edx-django-utils==3.7.3   # via edx-drf-extensions
-edx-drf-extensions==6.1.1  # via -r requirements/base.in
+edx-django-utils==3.8.0   # via edx-drf-extensions
+edx-drf-extensions==6.1.2  # via -r requirements/base.in
 edx-lint==1.5.2           # via -r requirements/quality.in
 edx-opaque-keys==2.1.1    # via edx-drf-extensions
 filelock==3.0.12          # via tox, virtualenv
@@ -50,10 +50,10 @@ markupsafe==1.1.1         # via jinja2
 mccabe==0.6.1             # via pylint
 mock==3.0.5               # via -r requirements/test.in
 more-itertools==8.5.0     # via pytest, zipp
-newrelic==5.16.2.147      # via edx-django-utils
+newrelic==5.18.0.148      # via edx-django-utils
 packaging==20.4           # via bleach, pytest, tox
 pathlib2==2.3.5           # via pytest
-pbr==5.4.5                # via stevedore
+pbr==5.5.0                # via stevedore
 pip-tools==5.3.1          # via -r requirements/dev.in
 pkginfo==1.5.0.1          # via twine
 pluggy==0.13.1            # via diff-cover, pytest, tox
@@ -84,13 +84,13 @@ requests==2.24.0          # via coveralls, edx-drf-extensions, pyjwkest, request
 responses==0.12.0         # via -r requirements/test.in
 rest-condition==1.0.3     # via edx-drf-extensions
 semantic-version==2.8.5   # via edx-drf-extensions
-six==1.15.0               # via astroid, bleach, cryptography, diff-cover, edx-drf-extensions, edx-lint, edx-opaque-keys, fs, mock, packaging, pathlib2, pip-tools, pyjwkest, python-dateutil, readme-renderer, responses, stevedore, tox, virtualenv
+six==1.15.0               # via astroid, bleach, cryptography, edx-drf-extensions, edx-lint, edx-opaque-keys, fs, mock, packaging, pathlib2, pip-tools, pyjwkest, python-dateutil, readme-renderer, responses, stevedore, tox, virtualenv
 snowballstemmer==2.0.0    # via pydocstyle
 sqlparse==0.3.1           # via django
 stevedore==1.32.0         # via edx-django-utils, edx-opaque-keys
 toml==0.10.1              # via pytest, tox
 tox-battery==0.6.1        # via -r requirements/travis.in
-tox==3.19.0               # via -r requirements/travis.in, tox-battery
+tox==3.20.0               # via -r requirements/travis.in, tox-battery
 tqdm==4.48.2              # via twine
 twine==1.15.0             # via -r requirements/quality.in
 typed-ast==1.4.1          # via astroid
