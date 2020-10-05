@@ -64,7 +64,7 @@ pyparsing==2.4.7          # via packaging
 pysrt==1.1.2              # via -r requirements/base.in
 pytest-cov==2.10.1        # via -r requirements/test.in
 pytest-django==3.10.0     # via -r requirements/test.in
-pytest==6.1.0             # via pytest-cov, pytest-django
+pytest==6.1.1             # via pytest-cov, pytest-django
 python-dateutil==2.8.1    # via edx-drf-extensions
 pytz==2020.1              # via django, fs
 readme-renderer==26.0     # via twine
