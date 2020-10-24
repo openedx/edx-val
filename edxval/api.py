@@ -1194,7 +1194,7 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
             video_id=edx_video_id,
             language_code=language_code,
             file_format=file_format,
-            content=ContentFile(file_content),
+            content=ContentFile(file_content.encode('utf-8')),
             provider=provider
         )
 
