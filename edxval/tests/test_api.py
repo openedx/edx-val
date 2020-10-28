@@ -11,6 +11,7 @@ import shutil
 from io import open
 from tempfile import mkdtemp
 
+import chardet
 import mock
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -24,7 +25,7 @@ from django.urls import reverse
 from fs.osfs import OSFS
 from fs.path import combine
 from lxml import etree
-from mock import patch
+from mock import Mock, patch
 from rest_framework import status
 
 from edxval import api, utils
@@ -1894,6 +1895,45 @@ class ImportTest(TestCase):
             file_name,
             edx_video_id
         )
+
+    @patch('edxval.api.create_video_transcript')
+    @patch('edxval.api.get_transcript_format', Mock())
+    def test_import_transcript_from_fs_created_transcript_content_encoding(self, mock_create_video_transcript):
+        """
+        Test that `import_transcript_from_fs` correctly calls `create_video_transcript` with `utf-8` file content.
+        """
+        language_code = 'en'
+        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+
+        # First create utf-8 encoded transcript file in the file system.
+        # Make sure to include utf-8 characters to chardet recognizes it is utf-8 and not ascii
+        transcript_file_name = 'transcript.txt'
+        video_transcript = dict(
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+            video_id=edx_video_id,
+            file_data='Hello, edX greets you. random utf-8 characters: éâô'
+        )
+
+        utils.create_file_in_fs(
+            video_transcript['file_data'],
+            transcript_file_name,
+            self.file_system,
+            constants.EXPORT_IMPORT_STATIC_DIR
+        )
+
+        api.import_transcript_from_fs(
+            edx_video_id=edx_video_id,
+            language_code=language_code,
+            file_name=transcript_file_name,
+            provider=TranscriptProviderType.CUSTOM,
+            resource_fs=self.file_system,
+            static_dir=constants.EXPORT_IMPORT_STATIC_DIR
+        )
+
+        transcript_content = mock_create_video_transcript.call_args.kwargs['content']
+        content_encoding = chardet.detect(transcript_content.read())['encoding']
+
+        self.assertEqual(content_encoding, 'utf-8')
 
     @patch('edxval.api.logger')
     def test_import_transcript_from_fs_invalid_format(self, mock_logger):
