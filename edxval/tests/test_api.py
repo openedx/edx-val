@@ -22,8 +22,10 @@ from django.core.files.images import ImageFile
 from django.db import DatabaseError
 from django.test import TestCase
 from django.urls import reverse
+from fs.memoryfs import MemoryFS
 from fs.osfs import OSFS
 from fs.path import combine
+from fs.wrapfs import WrapFS
 from lxml import etree
 from mock import Mock, patch
 from rest_framework import status
@@ -1127,6 +1129,29 @@ class ExportTest(TestCase):
         # Verify that no transcript is present in the XML.
         self.assertIsNone(exported_xml.attrib.get('transcripts'))
 
+    def test_no_video_transcript_wrapfs(self):
+        """
+        Verify that transcript export for video with no transcript is working as expected,
+        when a WrapFS resource fs is used, as is possible when used with edx-platform.
+        """
+        fs = WrapFS(MemoryFS())
+        fs.makedir('course')
+        fs.makedir('course/static')  # Video XBlock requires this directory to exists, to put srt files etc.
+        expected = self.parse_xml("""
+            <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
+        """)
+
+        exported_metadata = api.export_to_xml(
+            constants.VIDEO_DICT_STAR['edx_video_id'],
+            fs,
+            constants.EXPORT_IMPORT_STATIC_DIR
+        )
+        exported_xml = exported_metadata['xml']
+        self.assert_xml_equal(exported_xml, expected)
+
+        # Verify that no transcript is present in the XML.
+        self.assertIsNone(exported_xml.attrib.get('transcripts'))
+
     @data(
         {'course_id': None, 'image': ''},
         {'course_id': 'test-course', 'image': 'image.jpg'},
@@ -1151,6 +1176,40 @@ class ExportTest(TestCase):
         exported_metadata = api.export_to_xml(
             constants.VIDEO_DICT_FISH['edx_video_id'],
             self.file_system,
+            constants.EXPORT_IMPORT_STATIC_DIR,
+            course_id
+        )
+
+        self.assert_xml_equal(exported_metadata['xml'], expected)
+        self.assertEqual(sorted(exported_metadata['transcripts'].keys()), ['de', 'en'])
+
+    @data(
+        {'course_id': None, 'image': ''},
+        {'course_id': 'test-course', 'image': 'image.jpg'},
+    )
+    @unpack
+    def test_basic_wrapfs(self, course_id, image):
+        """
+        Test that video export works as expected, with wrapfs as sometimes used by edx-platform.
+        """
+        fs = WrapFS(MemoryFS())
+        fs.makedir('course')
+        fs.makedir('course/static')  # Video XBlock requires this directory to exists, to put srt files etc.
+        expected = self.parse_xml("""
+            <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="{image}">
+                <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
+                <encoded_video url="http://www.meowmagic.com" file_size="33" bitrate="44" profile="desktop"/>
+                <encoded_video url="https://www.tmnt.com/tmnt101.m3u8" file_size="100" bitrate="0" profile="hls"/>
+                <transcripts>
+                    <transcript file_format="srt" language_code="de" provider="3PlayMedia" />
+                    <transcript file_format="srt" language_code="en" provider="Cielo24" />
+                </transcripts>
+            </video_asset>
+        """.format(image=image))
+
+        exported_metadata = api.export_to_xml(
+            constants.VIDEO_DICT_FISH['edx_video_id'],
+            fs,
             constants.EXPORT_IMPORT_STATIC_DIR,
             course_id
         )
