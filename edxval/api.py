@@ -966,6 +966,9 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
         static_dir (str): The Directory to store transcript file.
         resource_fs (SubFS|WrapFS): The file system to store transcripts.
 
+    resource_fs is usually a SubFS, but can be a WrapFS in places like exporting olx through the olx_rest_api.
+    This makes a difference because WrapFS does not have the _sub_dir attribute.
+
     Returns:
         lxml Element object with transcripts information
     """

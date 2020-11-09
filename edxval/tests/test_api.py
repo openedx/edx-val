@@ -67,6 +67,13 @@ def omit_attrs(dict, attrs_to_omit=None):  # pylint: disable=redefined-builtin
     return {attr: value for attr, value in dict.items() if attr not in attrs_to_omit}
 
 
+def _setup_wrap_fs() -> WrapFS:
+    fs = WrapFS(MemoryFS())
+    fs.makedir('course')
+    fs.makedir('course/static')  # Video XBlock requires this directory to exists, to put srt files etc.
+    return fs
+
+
 class SortedVideoTestMixin:
     """
     Test Mixin for testing api functions that sort the returned videos.
@@ -1134,9 +1141,7 @@ class ExportTest(TestCase):
         Verify that transcript export for video with no transcript is working as expected,
         when a WrapFS resource fs is used, as is possible when used with edx-platform.
         """
-        fs = WrapFS(MemoryFS())
-        fs.makedir('course')
-        fs.makedir('course/static')  # Video XBlock requires this directory to exists, to put srt files etc.
+        fs = _setup_wrap_fs()
         expected = self.parse_xml("""
             <video_asset client_video_id="TWINKLE TWINKLE" duration="122.0" image=""/>
         """)
@@ -1148,8 +1153,6 @@ class ExportTest(TestCase):
         )
         exported_xml = exported_metadata['xml']
         self.assert_xml_equal(exported_xml, expected)
-
-        # Verify that no transcript is present in the XML.
         self.assertIsNone(exported_xml.attrib.get('transcripts'))
 
     @data(
@@ -1190,11 +1193,10 @@ class ExportTest(TestCase):
     @unpack
     def test_basic_wrapfs(self, course_id, image):
         """
-        Test that video export works as expected, with wrapfs as sometimes used by edx-platform.
+        Test that video export works as expected with wrapfs,
+        as sometimes used by edx-platform (specifically olx_rest_api).
         """
-        fs = WrapFS(MemoryFS())
-        fs.makedir('course')
-        fs.makedir('course/static')  # Video XBlock requires this directory to exists, to put srt files etc.
+        fs = _setup_wrap_fs()
         expected = self.parse_xml("""
             <video_asset client_video_id="Shallow Swordfish" duration="122.0" image="{image}">
                 <encoded_video url="http://www.meowmix.com" file_size="11" bitrate="22" profile="mobile"/>
