@@ -964,7 +964,10 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
         video_id (str): Video id of the video.
         video_el (Element): lxml Element object
         static_dir (str): The Directory to store transcript file.
-        resource_fs (SubFS): The file system to store transcripts.
+        resource_fs (SubFS|WrapFS): The file system to store transcripts.
+
+    resource_fs is usually a SubFS, but can be a WrapFS in places like exporting olx through the olx_rest_api.
+    This makes a difference because WrapFS does not have the _sub_dir attribute.
 
     Returns:
         lxml Element object with transcripts information
@@ -974,18 +977,21 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     if video_transcripts.exists():
         transcripts_el = SubElement(video_el, 'transcripts')
 
-    # Create static directory based on the file system's subdirectory,
-    # falling back to default path in case of an error
-    try:
-        # File system should not start from /draft directory.
-        static_file_dir = combine(resource_fs._sub_dir.split('/')[1], static_dir)  # pylint: disable=protected-access
-    except KeyError:
-        logger.exception(
-            "VAL Transcript Export: Error creating static directory path for video {} in file system {}".format(
-                video_id, resource_fs
+    # Note: file system should not start from /draft directory.
+    static_file_dir = combine('course', static_dir)
+    # If we're in a sub directory (ie. a SubFS instead of a WrapFS),
+    # we need to try to base the static file directory on the second path segment,
+    # which will be the course run part for old mongodb key format courses.
+    # See https://openedx.atlassian.net/browse/TNL-7338
+    if hasattr(resource_fs, '_sub_dir'):
+        try:
+            static_file_dir = combine(resource_fs._sub_dir.split('/')[1], static_dir)  # pylint: disable=protected-access
+        except KeyError:
+            logger.exception(
+                "VAL Transcript Export: Error creating static directory path for video {} in file system {}".format(
+                    video_id, resource_fs
+                )
             )
-        )
-        static_file_dir = combine('course', static_dir)
 
     transcript_files_map = {}
     for video_transcript in video_transcripts:
