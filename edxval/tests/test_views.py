@@ -445,7 +445,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = json.loads(response.content.decode('utf-8'))
         # Check that invalid course keys have been filtered out.
-        self.assertEqual(response['courses'], [{u'edX/DemoX/Astonomy': None}])
+        self.assertEqual(response['courses'], [{'edX/DemoX/Astonomy': None}])
 
     def test_post_non_latin_client_video_id(self):
         """
@@ -474,7 +474,7 @@ class VideoListTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data.get("edx_video_id")[0],
-            u'video with this edx video id already exists.'
+            'video with this edx video id already exists.'
         )
         videos = len(self.client.get("/edxval/videos/").data)
         self.assertEqual(videos, 1)
@@ -763,15 +763,15 @@ class VideoImagesViewTest(APIAuthTestCase):
     @data(
         {
             'post_data': {},
-            'message': u'course_id and edx_video_id and generated_images must be specified to update a video image.'
+            'message': 'course_id and edx_video_id and generated_images must be specified to update a video image.'
         },
         {
             'post_data': {'course_id': 'does_not_exit_course', 'edx_video_id': 'super-soaker', 'generated_images': []},
-            'message': u'CourseVideo not found for course_id: does_not_exit_course'
+            'message': 'CourseVideo not found for course_id: does_not_exit_course'
         },
         {
             'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'does_not_exit_video', 'generated_images': []},
-            'message': u'CourseVideo not found for course_id: test_course_id'
+            'message': 'CourseVideo not found for course_id: test_course_id'
         },
         {
             'post_data': {'course_id': 'test_course_id', 'edx_video_id': 'super-soaker', 'generated_images': [1, 2, 3]},
@@ -848,14 +848,14 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data['message'],
-            u'Can not override existing transcript for video "{video_id}" and language code "{language}".'.format(
+            'Can not override existing transcript for video "{video_id}" and language code "{language}".'.format(
                 video_id=self.video.edx_video_id, language=post_transcript_data['language_code'])
         )
 
     @data(
         {
             'post_data': {},
-            'message': u'video_id and name and language_code and provider and file_format must be specified.'
+            'message': 'video_id and name and language_code and provider and file_format must be specified.'
         },
         {
             'post_data': {
@@ -865,7 +865,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
                 'provider': TranscriptProviderType.CIELO24,
                 'file_format': 'xyz'
             },
-            'message': u'"xyz" transcript file type is not supported. Supported formats are "{}"'.format(
+            'message': '"xyz" transcript file type is not supported. Supported formats are "{}"'.format(
                 sorted(dict(TranscriptFormat.CHOICES).keys())
             )
         },
@@ -877,7 +877,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
                 'provider': 'xyz',
                 'file_format': TranscriptFormat.SRT
             },
-            'message': u'"xyz" provider is not supported. Supported transcription providers are "{}"'.format(
+            'message': '"xyz" provider is not supported. Supported transcription providers are "{}"'.format(
                 sorted(dict(TranscriptProviderType.CHOICES).keys())
             )
         },
@@ -908,17 +908,17 @@ class VideoStatusViewTest(APIAuthTestCase):
     @data(
         {
             'patch_data': {},
-            'message': u'"edx_video_id and status" params must be specified.',
+            'message': '"edx_video_id and status" params must be specified.',
             'status_code': status.HTTP_400_BAD_REQUEST,
         },
         {
             'patch_data': {'edx_video_id': 'super-soaker', 'status': 'fake'},
-            'message': u'"fake" is not a valid Video status.',
+            'message': '"fake" is not a valid Video status.',
             'status_code': status.HTTP_400_BAD_REQUEST,
         },
         {
             'patch_data': {'edx_video_id': 'fake', 'status': 'transcript_ready'},
-            'message': u'Video is not found for specified edx_video_id: fake',
+            'message': 'Video is not found for specified edx_video_id: fake',
             'status_code': status.HTTP_400_BAD_REQUEST,
         },
         {

@@ -3,11 +3,11 @@ init
 """
 
 
-from django.contrib.auth import get_user_model
+from django.contrib import auth
 from django.contrib.auth.models import Permission
 from rest_framework.test import APITestCase
 
-User = get_user_model()
+User = auth.get_user_model()
 
 
 class APIAuthTestCase(APITestCase):

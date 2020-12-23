@@ -82,7 +82,7 @@ class TranscriptSerializer(serializers.ModelSerializer):
         video_id = self.context.get('video_id')
         video = Video.get_or_none(edx_video_id=video_id)
         if not video:
-            raise serializers.ValidationError('Video "{video_id}" is not valid.'.format(video_id=video_id))
+            raise serializers.ValidationError(f'Video "{video_id}" is not valid.')
 
         data.update(video=video)
         return data
@@ -163,14 +163,14 @@ class VideoSerializer(serializers.ModelSerializer):
             profiles = [ev["profile"] for ev in data.get("encoded_videos", [])]
             if len(profiles) != len(set(profiles)):
                 raise serializers.ValidationError("Invalid data: duplicate profiles")
-        except KeyError:
+        except KeyError as key_error:
             raise serializers.ValidationError(  # pylint: disable=raise-missing-from
                 "profile required for deserializing"
-            )
-        except TypeError:
+            ) from key_error
+        except TypeError as type_error:
             raise serializers.ValidationError(  # pylint: disable=raise-missing-from
                 "profile field needs to be a profile_name (str)"
-            )
+            ) from type_error
 
         # Clean course_video list from any invalid data.
         course_videos = [(course_video, image) for course_video, image in data.get('courses', []) if course_video]

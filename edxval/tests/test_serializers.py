@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests the serializers for the Video Abstraction Layer
 """
@@ -37,14 +36,14 @@ class SerializerTests(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             serializer.errors.get('bitrate')[0],
-            u"Ensure this value is greater than or equal to 0."
+            "Ensure this value is greater than or equal to 0."
         )
 
         serializer = EncodedVideoSerializer(data=constants.ENCODED_VIDEO_DICT_NEGATIVE_FILESIZE)
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             serializer.errors.get('file_size')[0],
-            u"Ensure this value is greater than or equal to 0."
+            "Ensure this value is greater than or equal to 0."
         )
 
     def test_negative_fields_for_video_serializer(self):
@@ -57,7 +56,7 @@ class SerializerTests(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             serializer.errors.get('duration')[0],
-            u"Ensure this value is greater than or equal to 0."
+            "Ensure this value is greater than or equal to 0."
         )
 
     def test_non_latin_serialization(self):
@@ -81,7 +80,7 @@ class SerializerTests(TestCase):
         message = serializer.errors.get("edx_video_id")[0]
         self.assertEqual(
             message,
-            u"edx_video_id has invalid characters"
+            "edx_video_id has invalid characters"
         )
 
     def test_invalid_course_id(self):

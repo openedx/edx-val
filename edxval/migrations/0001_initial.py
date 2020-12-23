@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import django.core.validators
 import edxval.models
 from django.db import migrations, models
@@ -35,7 +32,7 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('profile_name', models.CharField(unique=True, max_length=50, validators=[django.core.validators.RegexValidator(regex=u'^[a-zA-Z0-9\\-_]*$', message=u'profile_name has invalid characters', code=u'invalid profile_name')])),
+                ('profile_name', models.CharField(unique=True, max_length=50, validators=[django.core.validators.RegexValidator(regex='^[a-zA-Z0-9\\-_]*$', message='profile_name has invalid characters', code='invalid profile_name')])),
             ],
         ),
         migrations.CreateModel(
@@ -44,9 +41,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField(auto_now=True)),
-                ('fmt', models.CharField(db_index=True, max_length=20, choices=[(u'srt', u'SubRip'), (u'sjson', u'SRT JSON')])),
+                ('fmt', models.CharField(db_index=True, max_length=20, choices=[('srt', 'SubRip'), ('sjson', 'SRT JSON')])),
                 ('language', models.CharField(max_length=8, db_index=True)),
-                ('content', models.TextField(default=u'')),
+                ('content', models.TextField(default='')),
             ],
         ),
         migrations.CreateModel(
@@ -54,7 +51,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('edx_video_id', models.CharField(unique=True, max_length=100, validators=[django.core.validators.RegexValidator(regex=u'^[a-zA-Z0-9\\-_]*$', message=u'edx_video_id has invalid characters', code=u'invalid edx_video_id')])),
+                ('edx_video_id', models.CharField(unique=True, max_length=100, validators=[django.core.validators.RegexValidator(regex='^[a-zA-Z0-9\\-_]*$', message='edx_video_id has invalid characters', code='invalid edx_video_id')])),
                 ('client_video_id', models.CharField(db_index=True, max_length=255, blank=True)),
                 ('duration', models.FloatField(validators=[django.core.validators.MinValueValidator(0)])),
                 ('status', models.CharField(max_length=255, db_index=True)),
@@ -82,6 +79,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='coursevideo',
-            unique_together=set([('course_id', 'video')]),
+            unique_together={('course_id', 'video')},
         ),
     ]

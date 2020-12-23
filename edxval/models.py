@@ -34,7 +34,7 @@ from edxval.utils import (
 
 logger = logging.getLogger(__name__)
 
-URL_REGEX = u'^[a-zA-Z0-9\\-_]*$'
+URL_REGEX = '^[a-zA-Z0-9\\-_]*$'
 LIST_MAX_ITEMS = 3
 EXTERNAL_VIDEO_STATUS = 'external'
 
@@ -80,8 +80,8 @@ class Profile(models.Model):
         validators=[
             RegexValidator(
                 regex=URL_REGEX,
-                message=u'profile_name has invalid characters',
-                code=u'invalid profile_name'
+                message='profile_name has invalid characters',
+                code='invalid profile_name'
             ),
         ]
     )
@@ -108,8 +108,8 @@ class Video(models.Model):
         validators=[
             RegexValidator(
                 regex=URL_REGEX,
-                message=u'edx_video_id has invalid characters',
-                code=u'invalid edx_video_id'
+                message='edx_video_id has invalid characters',
+                code='invalid edx_video_id'
             ),
         ]
     )
@@ -160,7 +160,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
     """
     course_id = models.CharField(max_length=255)
     video = models.ForeignKey(Video, related_name='courses', on_delete=models.CASCADE)
-    is_hidden = models.BooleanField(default=False, help_text=u'Hide video for course.')
+    is_hidden = models.BooleanField(default=False, help_text='Hide video for course.')
 
     class Meta:
         """
@@ -242,7 +242,7 @@ class ListField(models.TextField):
         Converts a list to its json representation to store in database as text.
         """
         if value and not isinstance(value, list):
-            raise ValidationError(u'ListField value {} is not a list.'.format(value))
+            raise ValidationError(f'ListField value {value} is not a list.')
         return json.dumps(self.validate_list(value) or [])
 
     def from_db_value(self, value, expression, connection):  # pylint: disable=unused-argument
@@ -269,8 +269,8 @@ class ListField(models.TextField):
                     raise TypeError
 
                 self.validate_list(py_list)
-            except (ValueError, TypeError):
-                raise ValidationError(u'Must be a valid list of strings.')  # pylint: disable=raise-missing-from
+            except (ValueError, TypeError) as error:
+                raise ValidationError('Must be a valid list of strings.') from error
 
         return py_list
 
@@ -368,16 +368,16 @@ class VideoImage(TimeStampedModel):
         """
         Returns unicode representation of object.
         """
-        return u'{id} {course_video_id}'.format(id=self.id, course_video_id=self.course_video.id)
+        return f'{self.id} {self.course_video.id}'
 
 
 class TranscriptProviderType:
     """
     class for providing tuple choices.
     """
-    CUSTOM = u'Custom'
-    THREE_PLAY_MEDIA = u'3PlayMedia'
-    CIELO24 = u'Cielo24'
+    CUSTOM = 'Custom'
+    THREE_PLAY_MEDIA = '3PlayMedia'
+    CIELO24 = 'Cielo24'
 
     CHOICES = (
         (CUSTOM, CUSTOM),
@@ -420,7 +420,7 @@ class VideoTranscript(TimeStampedModel):
     """
     Transcript for a video
     """
-    video = models.ForeignKey(Video, related_name=u'video_transcripts', null=True, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, related_name='video_transcripts', null=True, on_delete=models.CASCADE)
     transcript = CustomizableFileField()
     language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(
@@ -439,7 +439,7 @@ class VideoTranscript(TimeStampedModel):
         Returns readable filename for a transcript
         """
         client_id, __ = os.path.splitext(self.video.client_video_id)
-        file_name = u'{name}-{language}.{format}'.format(
+        file_name = '{name}-{language}.{format}'.format(
             name=client_id,
             language=self.language_code,
             format=self.file_format
@@ -557,18 +557,18 @@ class VideoTranscript(TimeStampedModel):
         return storage.url(self.transcript.name)
 
     def __str__(self):
-        return u'{lang} Transcript for {video}'.format(lang=self.language_code, video=self.video.edx_video_id)
+        return f'{self.language_code} Transcript for {self.video.edx_video_id}'
 
 
 class Cielo24Turnaround:
     """
     Cielo24 turnarounds.
     """
-    STANDARD = u'STANDARD'
-    PRIORITY = u'PRIORITY'
+    STANDARD = 'STANDARD'
+    PRIORITY = 'PRIORITY'
     CHOICES = (
-        (STANDARD, u'Standard, 48h'),
-        (PRIORITY, u'Priority, 24h'),
+        (STANDARD, 'Standard, 48h'),
+        (PRIORITY, 'Priority, 24h'),
     )
 
 
@@ -576,13 +576,13 @@ class Cielo24Fidelity:
     """
     Cielo24 fidelity.
     """
-    MECHANICAL = u'MECHANICAL'
-    PREMIUM = u'PREMIUM'
-    PROFESSIONAL = u'PROFESSIONAL'
+    MECHANICAL = 'MECHANICAL'
+    PREMIUM = 'PREMIUM'
+    PROFESSIONAL = 'PROFESSIONAL'
     CHOICES = (
-        (MECHANICAL, u'Mechanical, 75% Accuracy'),
-        (PREMIUM, u'Premium, 95% Accuracy'),
-        (PROFESSIONAL, u'Professional, 99% Accuracy'),
+        (MECHANICAL, 'Mechanical, 75% Accuracy'),
+        (PREMIUM, 'Premium, 95% Accuracy'),
+        (PROFESSIONAL, 'Professional, 99% Accuracy'),
     )
 
 
@@ -590,20 +590,20 @@ class ThreePlayTurnaround:
     """
     3PlayMedia turnarounds.
     """
-    EXTENDED = u'extended'
-    STANDARD = u'standard'
-    EXPEDITED = u'expedited'
-    RUSH = u'rush'
-    SAME_DAY = u'same_day'
-    TWO_HOUR = u'two_hour'
+    EXTENDED = 'extended'
+    STANDARD = 'standard'
+    EXPEDITED = 'expedited'
+    RUSH = 'rush'
+    SAME_DAY = 'same_day'
+    TWO_HOUR = 'two_hour'
 
     CHOICES = (
-        (EXTENDED, u'10-Day/Extended'),
-        (STANDARD, u'4-Day/Standard'),
-        (EXPEDITED, u'2-Day/Expedited'),
-        (RUSH, u'24 hour/Rush'),
-        (SAME_DAY, u'Same Day'),
-        (TWO_HOUR, u'2 Hour'),
+        (EXTENDED, '10-Day/Extended'),
+        (STANDARD, '4-Day/Standard'),
+        (EXPEDITED, '2-Day/Expedited'),
+        (RUSH, '24 hour/Rush'),
+        (SAME_DAY, 'Same Day'),
+        (TWO_HOUR, '2 Hour'),
     )
 
 
@@ -611,44 +611,44 @@ class TranscriptPreference(TimeStampedModel):
     """
     Third Party Transcript Preferences for a Course
     """
-    course_id = models.CharField(verbose_name=u'Course ID', max_length=255, unique=True)
+    course_id = models.CharField(verbose_name='Course ID', max_length=255, unique=True)
     provider = models.CharField(
-        verbose_name=u'Provider',
+        verbose_name='Provider',
         max_length=20,
         choices=TranscriptProviderType.CHOICES,
     )
     cielo24_fidelity = models.CharField(
-        verbose_name=u'Cielo24 Fidelity',
+        verbose_name='Cielo24 Fidelity',
         max_length=20,
         choices=Cielo24Fidelity.CHOICES,
         null=True,
         blank=True,
     )
     cielo24_turnaround = models.CharField(
-        verbose_name=u'Cielo24 Turnaround',
+        verbose_name='Cielo24 Turnaround',
         max_length=20,
         choices=Cielo24Turnaround.CHOICES,
         null=True,
         blank=True,
     )
     three_play_turnaround = models.CharField(
-        verbose_name=u'3PlayMedia Turnaround',
+        verbose_name='3PlayMedia Turnaround',
         max_length=20,
         choices=ThreePlayTurnaround.CHOICES,
         null=True,
         blank=True,
     )
-    preferred_languages = ListField(verbose_name=u'Preferred Languages', max_items=50, default=[], blank=True)
+    preferred_languages = ListField(verbose_name='Preferred Languages', max_items=50, default=[], blank=True)
     video_source_language = models.CharField(
-        verbose_name=u'Video Source Language',
+        verbose_name='Video Source Language',
         max_length=50,
         null=True,
         blank=True,
-        help_text=u'This specifies the speech language of a Video.'
+        help_text='This specifies the speech language of a Video.'
     )
 
     def __str__(self):
-        return u'{course_id} - {provider}'.format(course_id=self.course_id, provider=self.provider)
+        return f'{self.course_id} - {self.provider}'
 
 
 class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
@@ -659,13 +659,13 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
     class Meta:
         unique_together = ('org', 'provider')
 
-    org = models.CharField(verbose_name=u'Course Organization', max_length=32)
+    org = models.CharField(verbose_name='Course Organization', max_length=32)
     provider = models.CharField(
-        verbose_name=u'Transcript Provider',
+        verbose_name='Transcript Provider',
         max_length=20,
         choices=TranscriptProviderType.CHOICES,
     )
-    has_creds = models.BooleanField(default=False, help_text=u'Transcript credentials state')
+    has_creds = models.BooleanField(default=False, help_text='Transcript credentials state')
 
     @classmethod
     def update_or_create(cls, org, provider, has_creds):
@@ -688,7 +688,7 @@ class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
             edX has Cielo24 credentials
             edX doesn't have 3PlayMedia credentials
         """
-        return u'{org} {state} {provider} credentials'.format(
+        return '{org} {state} {provider} credentials'.format(
             org=self.org, provider=self.provider, state='has' if self.has_creds else "doesn't have"
         )
 

@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterUniqueTogether(
             name='TranscriptCredentials',
-            unique_together=set([]),
+            unique_together=set(),
         ),
         migrations.DeleteModel(
             name='TranscriptCredentials',

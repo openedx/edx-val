@@ -135,7 +135,7 @@ class VideoTranscriptView(APIView):
             )
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data=dict(message=u'{missing} must be specified.'.format(missing=' and '.join(missing)))
+                data=dict(message='{missing} must be specified.'.format(missing=' and '.join(missing)))
             )
 
         video_id = request.data['video_id']
@@ -147,14 +147,14 @@ class VideoTranscriptView(APIView):
         supported_formats = sorted(dict(TranscriptFormat.CHOICES).keys())
         if file_format not in supported_formats:
             message = (
-                u'"{format}" transcript file type is not supported. Supported formats are "{supported_formats}"'
+                '"{format}" transcript file type is not supported. Supported formats are "{supported_formats}"'
             ).format(format=file_format, supported_formats=supported_formats)
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
         supported_providers = sorted(dict(TranscriptProviderType.CHOICES).keys())
         if provider not in supported_providers:
             message = (
-                u'"{provider}" provider is not supported. Supported transcription providers are "{supported_providers}"'
+                '"{provider}" provider is not supported. Supported transcription providers are "{supported_providers}"'
             ).format(provider=provider, supported_providers=supported_providers)
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
@@ -168,7 +168,7 @@ class VideoTranscriptView(APIView):
             response = Response(status=status.HTTP_200_OK)
         else:
             message = (
-                u'Can not override existing transcript for video "{video_id}" and language code "{language}".'
+                'Can not override existing transcript for video "{video_id}" and language code "{language}".'
             ).format(video_id=video_id, language=language_code)
             response = Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
@@ -195,7 +195,7 @@ class VideoStatusView(APIView):
         if missing:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'message': u'"{missing}" params must be specified.'.format(missing=' and '.join(missing))}
+                data={'message': '"{missing}" params must be specified.'.format(missing=' and '.join(missing))}
             )
 
         edx_video_id = request.data['edx_video_id']
@@ -203,7 +203,7 @@ class VideoStatusView(APIView):
         if video_status not in VALID_VIDEO_STATUSES:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'message': u'"{status}" is not a valid Video status.'.format(status=video_status)}
+                data={'message': f'"{video_status}" is not a valid Video status.'}
             )
 
         try:
@@ -216,7 +216,7 @@ class VideoStatusView(APIView):
         except Video.DoesNotExist:
             response_status = status.HTTP_400_BAD_REQUEST
             response_payload = {
-                'message': u'Video is not found for specified edx_video_id: {edx_video_id}'.format(
+                'message': 'Video is not found for specified edx_video_id: {edx_video_id}'.format(
                     edx_video_id=edx_video_id
                 )
             }
@@ -240,7 +240,7 @@ class VideoImagesView(APIView):
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={
-                    'message': u'{missing} must be specified to update a video image.'.format(
+                    'message': '{missing} must be specified to update a video image.'.format(
                         missing=' and '.join(missing)
                     )
                 }
@@ -265,7 +265,7 @@ class VideoImagesView(APIView):
         except CourseVideo.DoesNotExist:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'message': u'CourseVideo not found for course_id: {course_id}'.format(course_id=course_id)}
+                data={'message': f'CourseVideo not found for course_id: {course_id}'}
             )
 
         try:
