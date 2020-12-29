@@ -3,8 +3,11 @@ init
 """
 
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from rest_framework.test import APITestCase
+
+User = get_user_model()
 
 
 class APIAuthTestCase(APITestCase):
@@ -12,7 +15,7 @@ class APIAuthTestCase(APITestCase):
     TestCase that creates a readwrite and an unauthorized user in setUp
     """
     def setUp(self):
-        super(APIAuthTestCase, self).setUp()
+        super().setUp()
         self.username = self.password = 'readwrite'
         self.readwrite_user = User.objects.create_user(self.username, password=self.password)
         self.readwrite_user.user_permissions.set(Permission.objects.filter(content_type__app_label='edxval'))

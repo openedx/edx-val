@@ -18,7 +18,7 @@ class SerializerTests(TestCase):
         """
         Creates Profile objects and a video object
         """
-        super(SerializerTests, self).setUp()
+        super().setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         Video.objects.create(

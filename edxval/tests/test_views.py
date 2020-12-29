@@ -26,7 +26,7 @@ class VideoDetail(APIAuthTestCase):
         """
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
-        super(VideoDetail, self).setUp()
+        super().setUp()
 
     # Tests for successful PUT requests.
 
@@ -386,10 +386,10 @@ class VideoListTest(APIAuthTestCase):
         """
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
-        super(VideoListTest, self).setUp()
+        super().setUp()
 
     def tearDown(self):
-        super(VideoListTest, self).tearDown()
+        super().tearDown()
         Video.objects.all().delete()
 
     # Tests for successful POST 201 requests.
@@ -670,7 +670,7 @@ class VideoDetailTest(APIAuthTestCase):
         """
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
-        super(VideoDetailTest, self).setUp()
+        super().setUp()
 
     def test_get_all_videos(self):
         """
@@ -720,7 +720,7 @@ class VideoImagesViewTest(APIAuthTestCase):
         self.video2 = Video.objects.create(**constants.VIDEO_DICT_DIFFERENT_ID_FISH)
         self.course_video1 = CourseVideo.objects.create(video=self.video1, course_id=self.course_id)
         self.course_video2 = CourseVideo.objects.create(video=self.video2, course_id=self.course_id)
-        super(VideoImagesViewTest, self).setUp()
+        super().setUp()
 
     def test_update_auto_generated_images(self):
         """
@@ -812,7 +812,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         self.url = reverse('create-video-transcript')
         self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         self.transcript_data = constants.VIDEO_TRANSCRIPT_CIELO24
-        super(VideoTranscriptViewTest, self).setUp()
+        super().setUp()
 
     def test_create_transcript(self):
         """
@@ -903,7 +903,7 @@ class VideoStatusViewTest(APIAuthTestCase):
         """
         self.url = reverse('video-status-update')
         self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
-        super(VideoStatusViewTest, self).setUp()
+        super().setUp()
 
     @data(
         {
@@ -1043,7 +1043,7 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         CourseVideo.objects.create(video=video_wo_hls1, course_id=course_id1)
         CourseVideo.objects.create(video=video_wo_hls1, course_id=course_id2)
 
-        super(HLSMissingVideoViewTest, self).setUp()
+        super().setUp()
 
     @data(
         (1, 0),
