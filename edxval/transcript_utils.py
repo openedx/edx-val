@@ -107,7 +107,7 @@ class Transcript:
                     # the exception if something went wrong in parsing the transcript.
                     srt_subs = SubRipFile.from_string(content, error_handling=SubRipFile.ERROR_RAISE)
                 except Error as ex:  # Base exception from pysrt
-                    raise TranscriptsGenerationException(str(ex))
+                    raise TranscriptsGenerationException(str(ex))  # pylint: disable=raise-missing-from
 
                 return json.dumps(cls.generate_sjson_from_srt(srt_subs))
 

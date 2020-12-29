@@ -18,7 +18,7 @@ class VideoTranscriptTest(TestCase):
         Creates Profile objects and a video object
         """
         self.transcript_data = constants.VIDEO_TRANSCRIPT_CIELO24
-        super(VideoTranscriptTest, self).setUp()
+        super().setUp()
 
     def test_filename_property_new_line(self):
         """
@@ -46,7 +46,7 @@ class VideoImageTest(TestCase):
         """
         Create Video and VideoImage object
         """
-        super(VideoImageTest, self).setUp()
+        super().setUp()
         course_id = 'test-course'
         video = Video.objects.create(**constants.VIDEO_DICT_NEW_LINE)
 

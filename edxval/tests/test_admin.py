@@ -17,7 +17,7 @@ class AdminTestCase(TestCase):
     Test Case module for Profile Admin
     """
     def setUp(self):
-        super(AdminTestCase, self).setUp()
+        super().setUp()
         self.request = HttpRequest()
         self.conf_admin = ProfileAdmin(Profile, AdminSite())
         self.request.session = 'session'

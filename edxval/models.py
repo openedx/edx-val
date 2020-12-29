@@ -32,7 +32,7 @@ from edxval.utils import (
     video_transcript_path,
 )
 
-logger = logging.getLogger(__name__)  # pylint: disable=C0103
+logger = logging.getLogger(__name__)
 
 URL_REGEX = u'^[a-zA-Z0-9\\-_]*$'
 LIST_MAX_ITEMS = 3
@@ -215,13 +215,13 @@ class CustomizableImageField(models.ImageField):
             blank=True,
             null=True
         ))
-        super(CustomizableImageField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def deconstruct(self):
         """
         Override base class method.
         """
-        name, path, args, kwargs = super(CustomizableImageField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         del kwargs['upload_to']
         del kwargs['storage']
         del kwargs['max_length']
@@ -235,7 +235,7 @@ class ListField(models.TextField):
 
     def __init__(self, max_items=LIST_MAX_ITEMS, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
         self.max_items = max_items
-        super(ListField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_prep_value(self, value):
         """
@@ -270,7 +270,7 @@ class ListField(models.TextField):
 
                 self.validate_list(py_list)
             except (ValueError, TypeError):
-                raise ValidationError(u'Must be a valid list of strings.')
+                raise ValidationError(u'Must be a valid list of strings.')  # pylint: disable=raise-missing-from
 
         return py_list
 
@@ -290,7 +290,7 @@ class ListField(models.TextField):
         return validate_generated_images(value, self.max_items)
 
     def deconstruct(self):
-        name, path, args, kwargs = super(ListField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         # Only include kwarg if it's not the default
         if self.max_items != LIST_MAX_ITEMS:
             kwargs['max_items'] = self.max_items
@@ -403,13 +403,13 @@ class CustomizableFileField(models.FileField):
             blank=True,
             null=True
         ))
-        super(CustomizableFileField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def deconstruct(self):
         """
         Override base class method.
         """
-        name, path, args, kwargs = super(CustomizableFileField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         del kwargs['upload_to']
         del kwargs['storage']
         del kwargs['max_length']

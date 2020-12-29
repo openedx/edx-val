@@ -20,7 +20,7 @@ class TestTranscriptUtils(TestCase):
     Tests transcripts conversion util.
     """
     def setUp(self):
-        super(TestTranscriptUtils, self).setUp()
+        super().setUp()
 
         self.srt_transcript = textwrap.dedent(u"""\
             0

@@ -137,7 +137,7 @@ class CreateVideoTest(TestCase):
         """
         Creation of Profile objects that will be used to test video creation
         """
-        super(CreateVideoTest, self).setUp()
+        super().setUp()
         api.create_profile(constants.PROFILE_DESKTOP)
         api.create_profile(constants.PROFILE_MOBILE)
 
@@ -200,7 +200,7 @@ class UpdateVideoTest(TestCase):
         Creation of Video object that will be used to test video update
         Creation of Profile objects that will be used to test video update
         """
-        super(UpdateVideoTest, self).setUp()
+        super().setUp()
         api.create_profile(constants.PROFILE_DESKTOP)
         api.create_profile(constants.PROFILE_MOBILE)
         video_data = dict(
@@ -299,7 +299,7 @@ class GetVideoInfoTest(TestCase):
         """
         Creates EncodedVideo objects in database
         """
-        super(GetVideoInfoTest, self).setUp()
+        super().setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
@@ -381,7 +381,7 @@ class GetUrlsForProfileTest(TestCase):
         """
         Creates EncodedVideo objects in database
         """
-        super(GetUrlsForProfileTest, self).setUp()
+        super().setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
@@ -459,7 +459,7 @@ class GetVideoForCourseProfiles(TestCase):
         Creates two videos for first course where first video has 3 encodings and second
         video has 2 encoding and then 2 videos with 1 encoded video for the second course.
         """
-        super(GetVideoForCourseProfiles, self).setUp()
+        super().setUp()
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         desktop_profile = Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         hls_profile = Profile.objects.get(profile_name=constants.PROFILE_HLS)
@@ -687,7 +687,7 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
         """
         Creates EncodedVideo objects in database
         """
-        super(GetVideosForCourseTest, self).setUp()
+        super().setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
 
@@ -761,7 +761,7 @@ class GetYouTubeProfileVideosTest(TestCase):
         Creates two videos with two encodings for first course
         and then two videos with one encoded video for the second course.
         """
-        super(GetYouTubeProfileVideosTest, self).setUp()
+        super().setUp()
         encodes = [
             dict(constants.ENCODED_VIDEO_DICT_YOUTUBE, profile=constants.PROFILE_YOUTUBE),
             dict(constants.ENCODED_VIDEO_DICT_DESKTOP, profile=constants.PROFILE_DESKTOP)
@@ -822,7 +822,7 @@ class GetVideosForIdsTest(TestCase, SortedVideoTestMixin):
         """
         Creates EncodedVideo objects in database
         """
-        super(GetVideosForIdsTest, self).setUp()
+        super().setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
@@ -904,7 +904,7 @@ class GetVideoInfoTestWithHttpCalls(APIAuthTestCase):
         is to test that we have the same results, using a populated
         database via HTTP uploads.
         """
-        super(GetVideoInfoTestWithHttpCalls, self).setUp()
+        super().setUp()
         Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         url = reverse('video-list')
@@ -962,7 +962,7 @@ class TestCopyCourse(TestCase):
         """
         Creates a course with 2 videos and a course with 1 video
         """
-        super(TestCopyCourse, self).setUp()
+        super().setUp()
         self.course_id = 'test-course'
         self.image_name1 = 'image.jpg'
         # 1st video
@@ -1039,7 +1039,7 @@ class ExportTest(TestCase):
     Tests export_to_xml method.
     """
     def setUp(self):
-        super(ExportTest, self).setUp()
+        super().setUp()
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         desktop_profile = Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
         hls_profile = Profile.objects.get(profile_name=constants.PROFILE_HLS)
@@ -1288,7 +1288,7 @@ class ImportTest(TestCase):
     """
 
     def setUp(self):
-        super(ImportTest, self).setUp()
+        super().setUp()
         self.image_name = 'image.jpg'
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
@@ -2223,7 +2223,7 @@ class GetCourseVideoRemoveTest(TestCase):
         Creates video objects for courses
         """
         # create video in the test course
-        super(GetCourseVideoRemoveTest, self).setUp()
+        super().setUp()
         self.course_id = 'test-course'
         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
         CourseVideo.objects.create(video=video, course_id=self.course_id)
@@ -2308,7 +2308,7 @@ class CourseVideoImageTest(TestCase):
         """
         Creates video objects for courses.
         """
-        super(CourseVideoImageTest, self).setUp()
+        super().setUp()
         self.course_id = 'test-course'
         self.course_id2 = 'test-course2'
         self.video = Video.objects.create(**constants.VIDEO_DICT_FISH)
@@ -2544,7 +2544,7 @@ class TranscriptTest(TestCase):
         """
         Creates video and video transcript objects.
         """
-        super(TranscriptTest, self).setUp()
+        super().setUp()
         self.flash_transcript_path = 'edxval/tests/data/The_Flash.srt'
         self.arrow_transcript_path = 'edxval/tests/data/The_Arrow.srt'
 
@@ -2626,7 +2626,7 @@ class TranscriptTest(TestCase):
         Reverse the setup
         """
         # Remove the transcript files
-        super(TranscriptTest, self).tearDown()
+        super().tearDown()
         self.v1_transcript1.transcript.delete()
         self.v1_transcript2.transcript.delete()
         self.v2_transcript1.transcript.delete()
@@ -3054,7 +3054,7 @@ class TranscriptPreferencesTest(TestCase):
         """
         Tests setup
         """
-        super(TranscriptPreferencesTest, self).setUp()
+        super().setUp()
         self.course_id = 'edX/DemoX/Demo_Course'
         self.transcript_preferences = TranscriptPreference.objects.create(
             **constants.TRANSCRIPT_PREFERENCES_CIELO24
@@ -3153,7 +3153,7 @@ class TranscripCredentialsStateTest(TestCase):
         """
         Tests setup
         """
-        super(TranscripCredentialsStateTest, self).setUp()
+        super().setUp()
         third_party_trans_true = ThirdPartyTranscriptCredentialsState.objects.create(
             org='edX', provider='Cielo24', has_creds=True
         )

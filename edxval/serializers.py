@@ -164,9 +164,13 @@ class VideoSerializer(serializers.ModelSerializer):
             if len(profiles) != len(set(profiles)):
                 raise serializers.ValidationError("Invalid data: duplicate profiles")
         except KeyError:
-            raise serializers.ValidationError("profile required for deserializing")
+            raise serializers.ValidationError(  # pylint: disable=raise-missing-from
+                "profile required for deserializing"
+            )
         except TypeError:
-            raise serializers.ValidationError("profile field needs to be a profile_name (str)")
+            raise serializers.ValidationError(  # pylint: disable=raise-missing-from
+                "profile field needs to be a profile_name (str)"
+            )
 
         # Clean course_video list from any invalid data.
         course_videos = [(course_video, image) for course_video, image in data.get('courses', []) if course_video]
