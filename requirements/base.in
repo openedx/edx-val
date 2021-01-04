@@ -8,5 +8,6 @@ django-fernet-fields
 django-model-utils
 django-storages
 edx-drf-extensions
+edx-toggles
 lxml
 pysrt

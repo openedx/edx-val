@@ -8,6 +8,7 @@ from setuptools import setup
 
 PACKAGES = [
     'edxval',
+    'edxval.config',
     'edxval.migrations',
     'edxval.tests',
 ]
@@ -46,7 +47,7 @@ def load_requirements(*requirements_paths):
     return list(requirements)
 
 
-VERSION = '1.4.4'
+VERSION = '1.4.5'
 
 if sys.argv[-1] == 'tag':
     print("Tagging the version on github:")
