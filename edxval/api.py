@@ -19,6 +19,7 @@ from lxml import etree
 from lxml.etree import Element, SubElement
 from pysrt.srtexc import Error
 
+from edxval.config.waffle import OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
 from edxval.exceptions import (
     InvalidTranscriptFormat,
     InvalidTranscriptProvider,
@@ -42,7 +43,13 @@ from edxval.models import (
 )
 from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
 from edxval.transcript_utils import Transcript
-from edxval.utils import THIRD_PARTY_TRANSCRIPTION_PLANS, TranscriptFormat, create_file_in_fs, get_transcript_format
+from edxval.utils import (
+    THIRD_PARTY_TRANSCRIPTION_PLANS,
+    TranscriptFormat,
+    create_file_in_fs,
+    get_transcript_format,
+    is_duplicate_file,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1155,54 +1162,71 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
         static_dir (str): The Directory to retrieve transcript file.
     """
     file_format = None
-    transcript_data = get_video_transcript_data(edx_video_id, language_code)
+    existing_transcript = VideoTranscript.get_or_none(edx_video_id, language_code)
 
-    # First check if transcript record does not exist.
-    if not transcript_data:
-        # Read file from import file system and attach it to transcript record in DS.
-        try:
-            with resource_fs.open(combine(static_dir, file_name), 'r', encoding='utf-8-sig') as f:
-                file_content = f.read()
-        except ResourceNotFound:
-            # Don't raise exception in case transcript file is not found in course OLX.
-            logger.warning(
-                '[edx-val] "%s" transcript "%s" for video "%s" is not found.',
-                language_code,
-                file_name,
-                edx_video_id
-            )
-            return
-        except UnicodeDecodeError:
-            # Don't raise exception in case transcript contains non-utf8 content.
-            logger.warning(
-                '[edx-val] "%s" transcript "%s" for video "%s" contains a non-utf8 file content.',
-                language_code,
-                file_name,
-                edx_video_id
-            )
-            return
+    # check if the transcript exists and if it does, make sure that overriding
+    # existing transcripts is enabled before proceeding to import it
+    if (existing_transcript and
+            not OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS.is_enabled()):
+        return
 
-        # Get file format from transcript content.
-        try:
-            file_format = get_transcript_format(file_content)
-        except Error:
-            # Don't raise exception, just don't create transcript record.
-            logger.warning(
-                '[edx-val] Error while getting transcript format for video=%s -- language_code=%s --file_name=%s',
-                edx_video_id,
-                language_code,
-                file_name
-            )
-            return
-
-        # Create transcript record.
-        create_video_transcript(
-            video_id=edx_video_id,
-            language_code=language_code,
-            file_format=file_format,
-            content=ContentFile(file_content.encode('utf-8')),
-            provider=provider
+    # Read file from import file system and attach it to transcript record in DS.
+    try:
+        with resource_fs.open(combine(static_dir, file_name), 'r', encoding='utf-8-sig') as f:
+            file_content = f.read()
+    except ResourceNotFound:
+        # Don't raise exception in case transcript file is not found in course OLX.
+        logger.warning(
+            '[edx-val] "%s" transcript "%s" for video "%s" is not found.',
+            language_code,
+            file_name,
+            edx_video_id
         )
+        return
+    except UnicodeDecodeError:
+        # Don't raise exception in case transcript contains non-utf8 content.
+        logger.warning(
+            '[edx-val] "%s" transcript "%s" for video "%s" contains a non-utf8 file content.',
+            language_code,
+            file_name,
+            edx_video_id
+        )
+        return
+
+    # change file content to utf8
+    utf8_encoded_file_content = file_content.encode('utf-8')
+    new_transcript_content_file = ContentFile(utf8_encoded_file_content)
+
+    # check if transcript content already exists, and if it does, make sure
+    # the transcript isn't a duplicate transcript to the already existing one
+    if (existing_transcript and
+            is_duplicate_file(new_transcript_content_file, existing_transcript.transcript.file)):
+        return
+
+    # Get file format from transcript content.
+    try:
+        file_format = get_transcript_format(file_content)
+    except Error:
+        # Don't raise exception, just don't create transcript record.
+        logger.warning(
+            '[edx-val] Error while getting transcript format for video=%s -- language_code=%s --file_name=%s',
+            edx_video_id,
+            language_code,
+            file_name
+        )
+        return
+
+    # Create transcript record.
+    create_or_update_video_transcript(
+        video_id=edx_video_id,
+        language_code=language_code,
+        metadata={
+            'provider': provider,
+            'file_format': file_format,
+            'language_code': language_code,
+        },
+        file_data=new_transcript_content_file,
+    )
 
 
 def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, external_transcripts):

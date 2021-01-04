@@ -22,6 +22,7 @@ from django.core.files.images import ImageFile
 from django.db import DatabaseError
 from django.test import TestCase
 from django.urls import reverse
+from edx_toggles.toggles.testutils import override_waffle_flag
 from fs.memoryfs import MemoryFS
 from fs.osfs import OSFS
 from fs.path import combine
@@ -40,6 +41,7 @@ from edxval.api import (
     ValVideoNotFoundError,
     VideoSortField,
 )
+from edxval.config.waffle import OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -1787,103 +1789,182 @@ class ImportTest(TestCase):
             expected_transcripts
         )
 
-    def test_multiple_external_transcripts_for_language(self):
+    @data(
+        (
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
+            False,
+        ),
+        (
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+            True,
+        ),
+    )
+    @unpack
+    def test_multiple_external_transcripts_for_language(
+        self,
+        sub_transcript_data,
+        ext_transcript_data,
+        expected_transcript_data,
+        enable_override_existing_transcripts,
+    ):
         """
         Verify that transcript import for external video working as expected when multiple transcripts present against
         a language e.g. external english transcript is imported through sub and transcripts field.
+
+        There are two different cases here, based on whether **overriding existing transcripts is enabled**.
+
+        If overriding existing transcripts is **disabled**:
+            If a transcript was already uploaded/imported for a certain video, then importing that same video with
+            a new transcript does not overwrite it.
+            In this case:
+                1. Import `sub_transcript_file_name`
+                1. Import `ext_transcript_file_name`
+            Since both have the same video id, then `ext_transcript_file_name` would not be imported, so the transcript
+            would be the `sub_transcript_file_name`.
+
+        If overriding existing transcripts is **enabled**:
+            If a transcript was already uploaded/imported for a certain video, then importing the same video with a new
+            transcript will overwrite it, if and only if the content is different.
+            In this case,
+                1. Import `sub_transcript_file_name`
+                1. Import `ext_transcript_file_name`
+            Since both have the same video id, and `ext_transcript_file_name` has different content, it would get
+            imported, so the transcript would be the `ext_transcript_file_name`.
         """
-        # First create external transcripts.
-        sub_transcript_file_name = 'external-transcript-sub.srt'
-        utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'],
-            sub_transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
+        with override_waffle_flag(OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS, active=enable_override_existing_transcripts):
+            # First create external transcripts.
+            sub_transcript_file_name = 'external-transcript-sub.srt'
+            utils.create_file_in_fs(
+                sub_transcript_data['file_data'],
+                sub_transcript_file_name,
+                self.file_system,
+                constants.EXPORT_IMPORT_STATIC_DIR
+            )
 
-        ext_transcript_file_name = 'external-transcript-ext.sjson'
-        utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON['file_data'],
-            ext_transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
+            ext_transcript_file_name = 'external-transcript-ext.sjson'
+            utils.create_file_in_fs(
+                ext_transcript_data['file_data'],
+                ext_transcript_file_name,
+                self.file_system,
+                constants.EXPORT_IMPORT_STATIC_DIR
+            )
 
-        # Verify that one video is present before import.
-        self.assertEqual(Video.objects.count(), 1)
+            # Verify that one video is present before import.
+            self.assertEqual(Video.objects.count(), 1)
 
-        # Verify that no transript was present before import.
-        self.assertEqual(VideoTranscript.objects.count(), 0)
+            # Verify that no transript was present before import.
+            self.assertEqual(VideoTranscript.objects.count(), 0)
 
-        # Import xml with empty edx video id.
-        edx_video_id = api.import_from_xml(
-            etree.fromstring('<video_asset/>'),
-            '',
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {
-                'en': [sub_transcript_file_name, ext_transcript_file_name]
-            }
-        )
+            # Import xml with empty edx video id.
+            # Please note that the ext_transcript would be imported after the sub_transcript
+            edx_video_id = api.import_from_xml(
+                etree.fromstring('<video_asset/>'),
+                '',
+                self.file_system,
+                constants.EXPORT_IMPORT_STATIC_DIR,
+                {
+                    'en': [sub_transcript_file_name, ext_transcript_file_name]
+                }
+            )
 
-        # Verify that new video is created.
-        self.assertIsNotNone(edx_video_id)
+            # Verify that new video is created.
+            self.assertIsNotNone(edx_video_id)
 
-        # Verify transcript record is created with correct data i.e sub field transcript.
-        expected_transcripts = [
-            dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en')
-        ]
+            # Verify transcript record is created with correct data i.e sjson transcript.
+            expected_transcripts = [
+                dict(expected_transcript_data, video_id=edx_video_id, language_code='en')
+            ]
 
-        self.assert_transcripts(
-            edx_video_id,
-            expected_transcripts
-        )
+            self.assert_transcripts(
+                edx_video_id,
+                expected_transcripts
+            )
 
-    def test_external_internal_transcripts_conflict(self):
+    @data(
+        (
+            constants.VIDEO_TRANSCRIPT_CIELO24,
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+            constants.VIDEO_TRANSCRIPT_CIELO24,
+            False,
+        ),
+        (
+            constants.VIDEO_TRANSCRIPT_CIELO24,
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+            True,
+        ),
+    )
+    @unpack
+    def test_external_internal_transcripts_conflict(
+        self,
+        internal_transcript_data,
+        external_transcript_data,
+        expected_transcript_data,
+        enable_override_existing_transcripts,
+    ):
         """
-        Tests that when importing both external and internal (VAL) transcripts, internal transcript is imported.
+        Tests that when importing both external and internal (VAL) transcripts, which transcript is imported.
+
+        There are two different cases here, based on whether **overriding existing transcripts is enabled**.
+
+        If overriding existing transcripts is **disabled**:
+            If a transcript was already uploaded/imported for a certain video, then importing that same video with
+            a new transcript does not overwrite it. So in this case, since same video id, and internal transcripts
+            are imported first; meanwhile, the external transcript doesn't get imported.
+
+        If overriding existing transcripts is **enabled**:
+            If a transcript was already uploaded/imported for a certain video, then importing the same video with
+            a new transcript will overwrite it if the content is different. So, in this case, since same video id,
+            internal transcripts are imported first, and the external transcript has different content, it gets
+            imported, and the previous transcript gets overridden with the external one.
         """
-        # First create external transcript in sjson format.
-        en_transcript_file_name = 'external-transcript-en.sjson'
-        utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON['file_data'],
-            en_transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
+        video_dict = constants.VIDEO_DICT_STAR
 
-        # Let's create internal transcript in srt format.
-        expected_val_transcript = [self.transcript_data1]
-        import_xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_STAR,
-            video_transcripts=expected_val_transcript
-        )
+        with override_waffle_flag(OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS, active=enable_override_existing_transcripts):
+            # First create external transcript in sjson format.
+            external_transcript_file_name = 'external-transcript-en.sjson'
+            utils.create_file_in_fs(
+                external_transcript_data['file_data'],
+                external_transcript_file_name,
+                self.file_system,
+                constants.EXPORT_IMPORT_STATIC_DIR
+            )
 
-        # Verify that one video is present before import.
-        self.assertEqual(Video.objects.count(), 1)
+            internal_transcript_import_xml = self.make_import_xml(
+                video_dict=video_dict,
+                video_transcripts=[internal_transcript_data]
+            )
 
-        # Verify that no transript was present before import.
-        self.assertEqual(VideoTranscript.objects.count(), 0)
+            # Verify that one video is present before import.
+            self.assertEqual(Video.objects.count(), 1)
 
-        # Note that we have an external en transcript as well as internal en transcript.
-        edx_video_id = api.import_from_xml(
-            import_xml,
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {
-                'en': [en_transcript_file_name]
-            }
-        )
+            # Verify that no transript was present before import.
+            self.assertEqual(VideoTranscript.objects.count(), 0)
 
-        # Verify that new video is created.
-        self.assertIsNotNone(edx_video_id)
+            # Note that we have an external en transcript as well as internal en transcript.
+            # Note that the external transcript, in this case, gets imported after the internal one.
+            edx_video_id = api.import_from_xml(
+                internal_transcript_import_xml,
+                video_dict['edx_video_id'],
+                self.file_system,
+                constants.EXPORT_IMPORT_STATIC_DIR,
+                {
+                    'en': [external_transcript_file_name]
+                }
+            )
 
-        # Verify transcript record is created with internal transcript data.
-        self.assert_transcripts(
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            [self.transcript_data1]
-        )
+            # Verify that new video is created.
+            self.assertIsNotNone(edx_video_id)
+
+            # Verify transcript record is created with the external transcript data.
+            self.assert_transcripts(
+                video_dict['edx_video_id'],
+                [dict(expected_transcript_data, video_id=edx_video_id)]
+            )
 
     def test_external_internal_transcripts_different_languages(self):
         """
@@ -1957,9 +2038,12 @@ class ImportTest(TestCase):
             edx_video_id
         )
 
-    @patch('edxval.api.create_video_transcript')
+    @patch('edxval.api.create_or_update_video_transcript')
     @patch('edxval.api.get_transcript_format', Mock())
-    def test_import_transcript_from_fs_created_transcript_content_encoding(self, mock_create_video_transcript):
+    def test_import_transcript_from_fs_created_transcript_content_encoding(
+        self,
+        mock_create_or_update_video_transcript
+    ):
         """
         Test that `import_transcript_from_fs` correctly calls `create_video_transcript` with `utf-8` file content.
         """
@@ -1991,7 +2075,7 @@ class ImportTest(TestCase):
             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
         )
 
-        transcript_content = mock_create_video_transcript.call_args.kwargs['content']
+        transcript_content = mock_create_or_update_video_transcript.call_args.kwargs['file_data']
         content_encoding = chardet.detect(transcript_content.read())['encoding']
 
         self.assertEqual(content_encoding, 'utf-8')

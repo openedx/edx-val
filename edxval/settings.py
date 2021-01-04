@@ -117,6 +117,7 @@ INSTALLED_APPS = (
     # Third Party
     'rest_framework',
     'storages',
+    'waffle',
 
     # Our App
     'edxval',

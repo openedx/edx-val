@@ -1,7 +1,9 @@
 """
 Util methods to be used in api and models.
 """
+import hashlib
 import json
+from contextlib import closing
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -243,3 +245,40 @@ def validate_generated_images(value, max_items):
         raise ValidationError(u'list must only contain strings.')
 
     return value
+
+
+def generate_file_content_hash(uploaded_file):
+    """
+    Generates SHA256 Content Hash for a File
+
+    Arguments:
+        uploaded_file (UploadedFile): File which will be used for hash generation
+
+    Returns:
+        str sha256 hash
+    """
+    with closing(uploaded_file.open()) as file_data:
+        file_content = file_data.read()
+        if isinstance(file_content, str):
+            file_content = file_content.encode('utf-8')
+
+    content_hash = hashlib.sha256(file_content)
+
+    return content_hash.hexdigest()
+
+
+def is_duplicate_file(uploaded_file_1, uploaded_file_2):
+    """
+    Checks two files to know if they are duplicates by checking content hash
+
+    Arguments:
+        uploaded_file_1 (UploadedFile): File which will be compared to the second file
+        uploaded_file_2 (UploadedFile): File which will be compared to the first file
+
+    Returns:
+        if file is duplicate (boolean)
+    """
+    uploaded_file_1_hash = generate_file_content_hash(uploaded_file_1)
+    uploaded_file_2_hash = generate_file_content_hash(uploaded_file_2)
+
+    return uploaded_file_1_hash == uploaded_file_2_hash

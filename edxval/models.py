@@ -447,6 +447,27 @@ class VideoTranscript(TimeStampedModel):
 
         return file_name
 
+    def save_transcript(self, file_data, file_format, file_name=None):
+        """
+        Saves Transcript Content to a Video Transcript File
+
+        Arguments:
+            file_data(InMemoryUploadedFile): Transcript content.
+            file_format(unicode): Transcript file format.
+        """
+        # generate transcript file name if not already given
+        if not file_name:
+            file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=file_format)
+
+        # save the transcript file
+        if file_data:
+            self.transcript.save(file_name, file_data)
+        else:
+            self.transcript.name = file_name
+
+        # save the object
+        self.save()
+
     @classmethod
     def get_or_none(cls, video_id, language_code):
         """
@@ -476,18 +497,16 @@ class VideoTranscript(TimeStampedModel):
             provider(unicode): Transcript provider.
         """
         video_transcript = cls(video=video, language_code=language_code, file_format=file_format, provider=provider)
-        with closing(content) as transcript_content:
-            try:
-                file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=video_transcript.file_format)
-                video_transcript.transcript.save(file_name, transcript_content)
-                video_transcript.save()
-            except Exception:
-                logger.exception(
-                    '[VAL] Transcript save failed to storage for video_id "%s" language code "%s"',
-                    video.edx_video_id,
-                    language_code
-                )
-                raise
+
+        try:
+            video_transcript.save_transcript(content, file_format)
+        except Exception:
+            logger.exception(
+                '[VAL] Transcript save failed to storage for video_id "%s" language code "%s"',
+                video.edx_video_id,
+                language_code
+            )
+            raise
 
         return video_transcript
 
@@ -519,14 +538,7 @@ class VideoTranscript(TimeStampedModel):
         transcript_name = metadata.get('file_name')
 
         try:
-            if transcript_name:
-                video_transcript.transcript.name = transcript_name
-            elif file_data:
-                with closing(file_data) as transcript_file_data:
-                    file_name = '{uuid}.{ext}'.format(uuid=uuid4().hex, ext=video_transcript.file_format)
-                    video_transcript.transcript.save(file_name, transcript_file_data)
-
-            video_transcript.save()
+            video_transcript.save_transcript(file_data, video_transcript.file_format, file_name=transcript_name)
         except Exception:
             logger.exception(
                 '[VAL] Transcript save failed to storage for video_id "%s" language code "%s"',
