@@ -49,7 +49,7 @@ cryptography==3.2.1
     #   pyjwt
 ddt==1.4.1
     # via -r requirements/test.in
-diff-cover==4.0.1
+diff-cover==4.1.1
     # via -r requirements/dev.in
 distlib==0.3.1
     # via virtualenv
@@ -287,11 +287,11 @@ toml==0.10.2
     #   tox
 tox-battery==0.6.1
     # via -r requirements/travis.in
-tox==3.20.1
+tox==3.21.0
     # via
     #   -r requirements/travis.in
     #   tox-battery
-tqdm==4.55.1
+tqdm==4.56.0
     # via twine
 twine==1.15.0
     # via -r requirements/quality.in
@@ -303,7 +303,7 @@ urllib3==1.26.2
     # via
     #   requests
     #   responses
-virtualenv==20.2.2
+virtualenv==20.3.0
     # via tox
 webencodings==0.5.1
     # via bleach
