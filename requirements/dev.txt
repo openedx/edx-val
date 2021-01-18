@@ -112,7 +112,7 @@ filelock==3.0.12
     # via
     #   tox
     #   virtualenv
-fs==2.4.11
+fs==2.4.12
     # via -r requirements/test.in
 future==0.18.2
     # via pyjwkest
@@ -167,7 +167,7 @@ pbr==5.5.1
     # via stevedore
 pip-tools==5.5.0
     # via -r requirements/dev.in
-pkginfo==1.6.1
+pkginfo==1.7.0
     # via twine
 pluggy==0.13.1
     # via
@@ -216,7 +216,7 @@ pyparsing==2.4.7
     # via packaging
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest-cov==2.10.1
+pytest-cov==2.11.0
     # via -r requirements/test.in
 pytest-django==4.1.0
     # via -r requirements/test.in
@@ -288,7 +288,7 @@ toml==0.10.2
     #   tox
 tox-battery==0.6.1
     # via -r requirements/travis.in
-tox==3.21.0
+tox==3.21.1
     # via
     #   -r requirements/travis.in
     #   tox-battery
@@ -304,7 +304,7 @@ urllib3==1.26.2
     # via
     #   requests
     #   responses
-virtualenv==20.3.0
+virtualenv==20.3.1
     # via tox
 webencodings==0.5.1
     # via bleach
