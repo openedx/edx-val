@@ -164,11 +164,11 @@ class VideoSerializer(serializers.ModelSerializer):
             if len(profiles) != len(set(profiles)):
                 raise serializers.ValidationError("Invalid data: duplicate profiles")
         except KeyError as key_error:
-            raise serializers.ValidationError(  # pylint: disable=raise-missing-from
+            raise serializers.ValidationError(
                 "profile required for deserializing"
             ) from key_error
         except TypeError as type_error:
-            raise serializers.ValidationError(  # pylint: disable=raise-missing-from
+            raise serializers.ValidationError(
                 "profile field needs to be a profile_name (str)"
             ) from type_error
 
