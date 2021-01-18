@@ -54,12 +54,13 @@ django-waffle==2.0.0
     #   django-fernet-fields
     #   django-model-utils
     #   django-storages
+    #   djangorestframework
     #   drf-jwt
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
     #   rest-condition
-djangorestframework==3.9.4
+djangorestframework==3.12.2
     # via
     #   -c requirements/constraints.txt
     #   drf-jwt
@@ -71,7 +72,7 @@ edx-django-utils==3.13.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
-edx-drf-extensions==6.2.0
+edx-drf-extensions==6.3.0
     # via -r requirements/base.in
 edx-opaque-keys==2.1.1
     # via edx-drf-extensions

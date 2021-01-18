@@ -11,7 +11,7 @@
 
 # Constraining this since we haven't handled newer versions of Django Rest Framework
 # and we want to allow edx-platform to update this separately.
-djangorestframework==3.9.4
+djangorestframework==3.12.2
 
 # zipp 2.0.0 requires Python >= 3.6
 zipp==1.0.0

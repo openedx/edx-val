@@ -66,12 +66,13 @@ django==2.2.17
     #   django-fernet-fields
     #   django-model-utils
     #   django-storages
+    #   djangorestframework
     #   drf-jwt
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
     #   rest-condition
-djangorestframework==3.9.4
+djangorestframework==3.12.2
     # via
     #   -c requirements/constraints.txt
     #   drf-jwt
@@ -85,7 +86,7 @@ edx-django-utils==3.13.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
-edx-drf-extensions==6.2.0
+edx-drf-extensions==6.3.0
     # via -r requirements/base.in
 edx-lint==1.6
     # via -r requirements/quality.in
@@ -151,7 +152,7 @@ pycryptodomex==3.9.9
     # via pyjwkest
 pydocstyle==5.1.1
     # via -r requirements/quality.in
-pygments==2.7.3
+pygments==2.7.4
     # via readme-renderer
 pyjwkest==1.4.2
     # via edx-drf-extensions
