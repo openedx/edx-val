@@ -80,7 +80,7 @@ edx-toggles==1.2.2
     # via
     #   -c requirements/constraints.txt
     #   -r requirements/base.in
-fs==2.4.11
+fs==2.4.12
     # via -r requirements/test.in
 future==0.18.2
     # via pyjwkest
@@ -130,7 +130,7 @@ pyparsing==2.4.7
     # via packaging
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest-cov==2.10.1
+pytest-cov==2.11.0
     # via -r requirements/test.in
 pytest-django==4.1.0
     # via -r requirements/test.in
