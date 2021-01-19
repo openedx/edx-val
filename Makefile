@@ -50,14 +50,16 @@ requirements: ## install development environment requirements
 	pip install -qr requirements/dev.txt --exists-action w
 	pip-sync requirements/dev.txt requirements/private.*
 
-test: clean ## run tests in the current virtualenv
-	python manage.py test
+test: ## run the tox environment tests for the Python version supported in the virtualenv
+## this checks the python version, and changes it to pyNM
+## then greps the pyNM with the envlist available in tox
+## then runs the envs for that specific python version
+	tox -e $(shell tox -a | grep -i $(shell python -V | awk -F'[= .]'  '{print substr(tolower($$1),1,2) $$2 $$3}') | tr '\n' ',')
 
 diff_cover: test ## find diff lines that need test coverage
 	diff-cover coverage.xml
 
-test-all: ## run tests on every supported Python/Django combination
-	tox -e quality
+test-all: ## run all the tox environment tests specified in the tox config
 	tox
 
 validate: quality test ## run tests and quality checks
