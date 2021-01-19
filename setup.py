@@ -47,7 +47,7 @@ def load_requirements(*requirements_paths):
     return list(requirements)
 
 
-VERSION = '1.4.6'
+VERSION = '2.0.0'
 
 if sys.argv[-1] == 'tag':
     print("Tagging the version on github:")
@@ -71,7 +71,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.8',
         'Framework :: Django',
         'Framework :: Django :: 2.2',
