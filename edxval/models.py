@@ -362,7 +362,7 @@ class VideoImage(TimeStampedModel):
         Return image url for a course video image.
         """
         storage = get_video_image_storage()
-        return storage.url(self.image.name)
+        return storage.url(self.image.name).strip('/')
 
     def __str__(self):
         """
@@ -554,7 +554,7 @@ class VideoTranscript(TimeStampedModel):
         Returns language transcript url for a particular language.
         """
         storage = get_video_transcript_storage()
-        return storage.url(self.transcript.name)
+        return storage.url(self.transcript.name).strip('/')
 
     def __str__(self):
         return f'{self.language_code} Transcript for {self.video.edx_video_id}'
