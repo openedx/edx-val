@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from django.db import migrations, models
 
 AUDIO_MP3_PROFILE = 'audio_mp3'

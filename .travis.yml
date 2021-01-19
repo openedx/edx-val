@@ -1,17 +1,20 @@
 language: python
 
 python:
-  - 3.5
-  - 3.8
-
+  - '3.8'
 env:
-- TOXENV=django22
-- TOXENV=quality
-
+  - TOXENV=quality
+  - TOXENV=django22
+  - TOXENV=django30
+  - TOXENV=django31
+matrix:
+  allow_failures:
+    - python: 3.8
+      env: TOXENV=django31
 install:
-- pip install -r requirements/travis.txt
+  - pip install -r requirements/travis.txt
 script:
-- tox
+  - tox
 after_success: coveralls
 # Set password via "travis encrypt --add deploy.password"; for details, see
 # https://docs.travis-ci.com/user/deployment/pypi
@@ -22,7 +25,7 @@ deploy:
   skip_upload_docs: true
   on:
     tags: true
-    python: 3.5
-    condition: "$TOXENV = quality"
+    python: 3.8
+    condition: $TOXENV = quality
   password:
     secure: JGKw0H2Hl1i3OuJ+54hGX/YImhWe+MvkkeFZDynpBKir8XD+E/fbz2lvvmggIrMsawkE5qlOjK8f4d4LMzwL51Ln0EmuIkhUceXLDihrEymZu97uAWbT5qR55RrfwZk/qaYV8JHAszBD3yLA5VOyDLTiDt9s2ilZDQqQqecX514=

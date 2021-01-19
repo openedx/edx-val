@@ -57,7 +57,7 @@ class VideoImageAdmin(admin.ModelAdmin):
 
     def get_course_video(self, obj):
         """ get course video """
-        return u'"{course_id}" -- "{edx_video_id}" '.format(
+        return '"{course_id}" -- "{edx_video_id}" '.format(
             course_id=obj.course_video.course_id,
             edx_video_id=obj.course_video.video.edx_video_id
         )

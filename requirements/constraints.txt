@@ -8,14 +8,6 @@
 # pin when possible.  Writing an issue against the offending project and
 # linking to it here is good.
 
-
-# Constraining this since we haven't handled newer versions of Django Rest Framework
-# and we want to allow edx-platform to update this separately.
-djangorestframework==3.12.2
-
-# zipp 2.0.0 requires Python >= 3.6
-zipp==1.0.0
-
 # edx-toggles is set to 1.2.2 because we need `edx_toggles.toggles.__future__`
 # we also expect v2.0.0 to introduce breaking changes in the feature toggle API
 edx-toggles==1.2.2

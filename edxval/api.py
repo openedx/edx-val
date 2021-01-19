@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 The internal API for VAL.
 """
@@ -160,11 +159,11 @@ def update_video(video_data):
     """
     try:
         video = _get_video(video_data.get("edx_video_id"))
-    except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video with edx_video_id: {0}".format(
+    except Video.DoesNotExist as no_video_error:
+        error_message = "Video not found when trying to update video with edx_video_id: {}".format(
             video_data.get("edx_video_id")
         )
-        raise ValVideoNotFoundError(error_message)  # pylint: disable=raise-missing-from
+        raise ValVideoNotFoundError(error_message) from no_video_error
 
     serializer = VideoSerializer(video, data=video_data)
     if serializer.is_valid():
@@ -187,11 +186,11 @@ def update_video_status(edx_video_id, status):
     """
     try:
         video = _get_video(edx_video_id)
-    except Video.DoesNotExist:
-        error_message = u"Video not found when trying to update video status with edx_video_id: {0}".format(
+    except Video.DoesNotExist as no_video_error:
+        error_message = "Video not found when trying to update video status with edx_video_id: {}".format(
             edx_video_id
         )
-        raise ValVideoNotFoundError(error_message)  # pylint: disable=raise-missing-from
+        raise ValVideoNotFoundError(error_message) from no_video_error
 
     video.status = status
     video.save()
@@ -380,11 +379,11 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
 
     file_format = metadata.get('file_format')
     if file_format and file_format not in list(dict(TranscriptFormat.CHOICES).keys()):
-        raise InvalidTranscriptFormat('{} transcript format is not supported'.format(file_format))
+        raise InvalidTranscriptFormat(f'{file_format} transcript format is not supported')
 
     provider = metadata.get('provider')
     if provider and provider not in list(dict(TranscriptProviderType.CHOICES).keys()):
-        raise InvalidTranscriptProvider('{} transcript provider is not supported'.format(provider))
+        raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
 
     try:
         # Video should be present in edxval in order to attach transcripts to it.
@@ -502,12 +501,12 @@ def update_video_image(edx_video_id, course_id, image_data, file_name):
         course_video = CourseVideo.objects.select_related('video').get(
             course_id=course_id, video__edx_video_id=edx_video_id
         )
-    except ObjectDoesNotExist:
-        error_message = u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+    except ObjectDoesNotExist as no_video_error:
+        error_message = 'VAL: CourseVideo not found for edx_video_id: {} and course_id: {}'.format(
             edx_video_id,
             course_id
         )
-        raise ValVideoNotFoundError(error_message)  # pylint: disable=raise-missing-from
+        raise ValVideoNotFoundError(error_message) from no_video_error
 
     video_image, _ = VideoImage.create_or_update(course_video, file_name, image_data)
     return video_image.image_url()
@@ -530,7 +529,7 @@ def create_profile(profile_name):
         profile.full_clean()
         profile.save()
     except ValidationError as err:
-        raise ValCannotCreateError(err.message_dict)  # pylint: disable=raise-missing-from
+        raise ValCannotCreateError(err.message_dict) from err
 
 
 def _get_video(edx_video_id):
@@ -545,13 +544,13 @@ def _get_video(edx_video_id):
                     .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
                     .prefetch_related("courses") \
                     .get(edx_video_id=edx_video_id)
-    except Video.DoesNotExist:
-        error_message = u"Video not found for edx_video_id: {0}".format(edx_video_id)
-        raise ValVideoNotFoundError(error_message)  # pylint: disable=raise-missing-from
-    except Exception:
-        error_message = u"Could not get edx_video_id: {0}".format(edx_video_id)
+    except Video.DoesNotExist as no_video_error:
+        error_message = f"Video not found for edx_video_id: {edx_video_id}"
+        raise ValVideoNotFoundError(error_message) from no_video_error
+    except Exception as exc:
+        error_message = f"Could not get edx_video_id: {edx_video_id}"
         logger.exception(error_message)
-        raise ValInternalError(error_message)  # pylint: disable=raise-missing-from
+        raise ValInternalError(error_message) from exc
 
 
 def get_video_info(edx_video_id):
@@ -833,10 +832,10 @@ def get_video_info_for_course_and_profiles(course_id, profiles):
             profile__profile_name__in=profiles,
             video__courses__course_id=course_id
         ).select_related()
-    except Exception:
-        error_message = u"Could not get encoded videos for course: {0}".format(course_id)
+    except Exception as exc:
+        error_message = f"Could not get encoded videos for course: {course_id}"
         logger.exception(error_message)
-        raise ValInternalError(error_message)  # pylint: disable=raise-missing-from
+        raise ValInternalError(error_message) from exc
 
     # DRF serializers were causing extra queries for some reason...
     return_dict = {}
@@ -1098,7 +1097,7 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
         return edx_video_id
     except ValidationError as err:
         logger.exception(xml)
-        raise ValCannotCreateError(err.message_dict)  # pylint: disable=raise-missing-from
+        raise ValCannotCreateError(err.message_dict) from err
     except Video.DoesNotExist:
         pass
 
@@ -1253,7 +1252,7 @@ def create_transcript_objects(xml, edx_video_id, resource_fs, static_dir, extern
             try:
                 file_format = transcript.attrib['file_format']
                 language_code = transcript.attrib['language_code']
-                transcript_file_name = u'{edx_video_id}-{language_code}.{file_format}'.format(
+                transcript_file_name = '{edx_video_id}-{language_code}.{file_format}'.format(
                     edx_video_id=edx_video_id,
                     language_code=language_code,
                     file_format=file_format

@@ -147,7 +147,7 @@ def video_image_path(video_image_instance, filename):  # pylint:disable=unused-a
         video_image_instance (VideoImage): This is passed automatically by models.CustomizableImageField
         filename (str): name of image file
     """
-    return u'{}{}'.format(settings.VIDEO_IMAGE_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
+    return '{}{}'.format(settings.VIDEO_IMAGE_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
 
 
 def get_video_image_storage():
@@ -172,7 +172,7 @@ def video_transcript_path(video_transcript_instance, filename):  # pylint:disabl
         video_transcript_instance (VideoTranscript): This is passed automatically by models.CustomizableFileField
         filename (str): name of image file
     """
-    return u'{}{}'.format(settings.VIDEO_TRANSCRIPTS_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
+    return '{}{}'.format(settings.VIDEO_TRANSCRIPTS_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
 
 
 def get_video_transcript_storage():
@@ -238,11 +238,11 @@ def validate_generated_images(value, max_items):
     """
     if len(value) > max_items:
         raise ValidationError(
-            u'list must not contain more than {max_items} items.'.format(max_items=max_items)
+            f'list must not contain more than {max_items} items.'
         )
 
     if all(isinstance(item, str) for item in value) is False:
-        raise ValidationError(u'list must only contain strings.')
+        raise ValidationError('list must only contain strings.')
 
     return value
 

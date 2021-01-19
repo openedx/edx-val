@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from django.db import migrations, models
 
 
@@ -13,7 +10,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterUniqueTogether(
             name='videotranscript',
-            unique_together=set([('language_code',)]),
+            unique_together={('language_code',)},
         ),
         migrations.RemoveField(
             model_name='videotranscript',
@@ -26,6 +23,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='videotranscript',
-            unique_together=set([('video', 'language_code')]),
+            unique_together={('video', 'language_code')},
         ),
     ]

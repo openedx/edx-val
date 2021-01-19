@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import django.utils.timezone
 import edxval.models
 import model_utils.fields

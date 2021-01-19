@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for transcript utils.
 """
@@ -22,7 +21,7 @@ class TestTranscriptUtils(TestCase):
     def setUp(self):
         super().setUp()
 
-        self.srt_transcript = textwrap.dedent(u"""\
+        self.srt_transcript = textwrap.dedent("""\
             0
             00:00:10,500 --> 00:00:13,000
             Elephant&#39;s Dream 大象的梦想
@@ -33,7 +32,7 @@ class TestTranscriptUtils(TestCase):
 
         """).encode('utf8')
 
-        self.sjson_transcript = textwrap.dedent(u"""\
+        self.sjson_transcript = textwrap.dedent("""\
             {
                 "start": [
                     10500,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for the API for Video Abstraction Layer
 """
@@ -8,11 +7,10 @@ import copy
 import json
 import os
 import shutil
-from io import open
 from tempfile import mkdtemp
+from unittest import mock
+from unittest.mock import Mock, patch
 
-import chardet
-import mock
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -22,15 +20,15 @@ from django.core.files.images import ImageFile
 from django.db import DatabaseError
 from django.test import TestCase
 from django.urls import reverse
-from edx_toggles.toggles.testutils import override_waffle_flag
 from fs.memoryfs import MemoryFS
 from fs.osfs import OSFS
 from fs.path import combine
 from fs.wrapfs import WrapFS
 from lxml import etree
-from mock import Mock, patch
 from rest_framework import status
 
+import chardet
+from edx_toggles.toggles.testutils import override_waffle_flag
 from edxval import api, utils
 from edxval.api import (
     InvalidTranscriptFormat,
@@ -177,8 +175,8 @@ class CreateVideoTest(TestCase):
         Tests the creation of an external video.
         """
         expected_video = {
-            'status': u'external',
-            'client_video_id': u'Test Video',
+            'status': 'external',
+            'client_video_id': 'Test Video',
             'duration': 0,
             'encoded_videos': [],
             'courses': []
@@ -349,7 +347,7 @@ class GetVideoInfoTest(TestCase):
         Tests if unicode inputs are handled correctly
         """
         with self.assertRaises(api.ValVideoNotFoundError):
-            api.get_video_info(u"๓ﻉѻฝ๓ٱซ")
+            api.get_video_info("๓ﻉѻฝ๓ٱซ")
 
     @mock.patch.object(Video, '__init__')
     def test_force_database_error(self, mock_get):
@@ -419,9 +417,9 @@ class GetUrlsForProfileTest(TestCase):
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         urls = api.get_urls_for_profiles(edx_video_id, profiles)
         self.assertEqual(len(urls), 3)
-        self.assertEqual(urls["mobile"], u'http://www.meowmix.com')
-        self.assertEqual(urls["desktop"], u'http://www.meowmagic.com')
-        self.assertEqual(urls["hls"], u'https://www.tmnt.com/tmnt101.m3u8')
+        self.assertEqual(urls["mobile"], 'http://www.meowmix.com')
+        self.assertEqual(urls["desktop"], 'http://www.meowmagic.com')
+        self.assertEqual(urls["hls"], 'https://www.tmnt.com/tmnt101.m3u8')
 
     def test_get_urls_for_profiles_no_video(self):
         """
@@ -448,7 +446,7 @@ class GetUrlsForProfileTest(TestCase):
         profile = "mobile"
         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
         url = api.get_url_for_profile(edx_video_id, profile)
-        self.assertEqual(url, u'http://www.meowmix.com')
+        self.assertEqual(url, 'http://www.meowmix.com')
 
 
 class GetVideoForCourseProfiles(TestCase):
@@ -1227,7 +1225,7 @@ class ExportTest(TestCase):
         """
         language_code = 'en'
         video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        transcript_files = {'de': u'super-soaker-de.srt', 'en': u'super-soaker-en.srt'}
+        transcript_files = {'de': 'super-soaker-de.srt', 'en': 'super-soaker-en.srt'}
         expected_transcript_path = combine(
             self.temp_dir,
             combine(constants.EXPORT_IMPORT_COURSE_DIR, constants.EXPORT_IMPORT_STATIC_DIR)
@@ -1356,7 +1354,7 @@ class ImportTest(TestCase):
                 )
 
                 # Create transcript files
-                transcript_file_name = u'{edx_video_id}-{language_code}.{file_format}'.format(
+                transcript_file_name = '{edx_video_id}-{language_code}.{file_format}'.format(
                     edx_video_id=video_dict['edx_video_id'],
                     language_code=language_code,
                     file_format=file_format
@@ -2129,7 +2127,7 @@ class ImportTest(TestCase):
         invalid_transcript = dict(
             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
             video_id=edx_video_id,
-            file_data=u'Привіт, edX вітає вас.'
+            file_data='Привіт, edX вітає вас.'
         )
 
         with self.file_system.open(combine(constants.EXPORT_IMPORT_STATIC_DIR, transcript_file_name), 'wb') as f:
@@ -2266,7 +2264,7 @@ class ImportTest(TestCase):
         Verify that video transcript import working as expected if transcript xml data is missing.
         """
         video_id = 'super-soaker'
-        transcript_xml = u'<transcript file_format="srt" provider="Cielo24"/>'
+        transcript_xml = '<transcript file_format="srt" provider="Cielo24"/>'
         xml = etree.fromstring("""
             <video_asset>
                 <transcripts>
@@ -2283,7 +2281,7 @@ class ImportTest(TestCase):
         # Create transcript files
         utils.create_file_in_fs(
             constants.TRANSCRIPT_DATA['wow'],
-            u'super-soaker-de.sjson',
+            'super-soaker-de.sjson',
             self.file_system,
             constants.EXPORT_IMPORT_STATIC_DIR
         )
@@ -2491,7 +2489,7 @@ class CourseVideoImageTest(TestCase):
 
         self.assertEqual(
             get_exception.exception.args[0],
-            u'VAL: CourseVideo not found for edx_video_id: {0} and course_id: {1}'.format(
+            'VAL: CourseVideo not found for edx_video_id: {} and course_id: {}'.format(
                 self.edx_video_id,
                 does_not_course_id
             )
@@ -2528,7 +2526,7 @@ class CourseVideoImageTest(TestCase):
 
         self.assertEqual(
             set_exception.exception.message,
-            u'list must not contain more than {} items.'.format(LIST_MAX_ITEMS)
+            f'list must not contain more than {LIST_MAX_ITEMS} items.'
         )
 
         # expect a validation error if we try to a list with non-string items
@@ -2536,7 +2534,7 @@ class CourseVideoImageTest(TestCase):
             video_image.generated_images = ['a', 1, 2]
             video_image.save()
 
-        self.assertEqual(set_exception.exception.message, u'list must only contain strings.')
+        self.assertEqual(set_exception.exception.message, 'list must only contain strings.')
 
         # expect a validation error if we try to set non list data
         for item in ('a string', 555, {'a': 1}, (1,)):
@@ -2593,7 +2591,7 @@ class CourseVideoImageTest(TestCase):
         with self.assertRaises(IOError) as file_open_exception:
             ImageFile(open(existing_image_name, 'rb'))
 
-        self.assertEqual(file_open_exception.exception.strerror, u'No such file or directory')
+        self.assertEqual(file_open_exception.exception.strerror, 'No such file or directory')
 
     def test_video_image_deletion_multiple(self):
         """
@@ -2745,13 +2743,13 @@ class TranscriptTest(TestCase):
         """
         Verify that `get_video_transcript` works as expected if transcript is found.
         """
-        transcript = api.get_video_transcript(u'super-soaker', u'fr')
+        transcript = api.get_video_transcript('super-soaker', 'fr')
         expectation = {
-            'video_id': u'super-soaker',
+            'video_id': 'super-soaker',
             'url': self.v1_transcript2.url(),
             'file_format': utils.TranscriptFormat.SRT,
             'provider': TranscriptProviderType.CIELO24,
-            'language_code': u'fr'
+            'language_code': 'fr'
         }
         self.assertDictEqual(transcript, expectation)
 
@@ -2760,8 +2758,8 @@ class TranscriptTest(TestCase):
         """
         Verify that `get_video_transcript_data` logs and raises an exception.
         """
-        video_id = u'medium-soaker'
-        language_code = u'zh'
+        video_id = 'medium-soaker'
+        language_code = 'zh'
         with self.assertRaises(IOError):
             api.get_video_transcript_data(video_id, language_code)
 
@@ -2775,7 +2773,7 @@ class TranscriptTest(TestCase):
         """
         Verify the `get_video_transcript_data` returns none if transcript is not present for a video.
         """
-        transcript = api.get_video_transcript_data(u'non-existant-video', u'en')
+        transcript = api.get_video_transcript_data('non-existant-video', 'en')
         self.assertIsNone(transcript)
 
     @data(
@@ -2944,8 +2942,8 @@ class TranscriptTest(TestCase):
         """
         Verify that `create_video_transcript` api function creates transcript as expected.
         """
-        edx_video_id = u'1234'
-        language_code = u'en'
+        edx_video_id = '1234'
+        language_code = 'en'
         transcript_props = dict(
             video_id=edx_video_id,
             language_code=language_code,
@@ -3008,7 +3006,7 @@ class TranscriptTest(TestCase):
         Verify that `get_available_transcript_languages` works as expected.
         """
         # `super-soaker` has got 'en' and 'fr' transcripts
-        transcript_languages = api.get_available_transcript_languages(video_id=u'super-soaker')
+        transcript_languages = api.get_available_transcript_languages(video_id='super-soaker')
         self.assertEqual(transcript_languages, ['en', 'fr'])
 
     @patch('edxval.api.logger')
@@ -3043,7 +3041,7 @@ class TranscriptTest(TestCase):
         """
         language_code = 'en'
         video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        transcript_file_name = u'super-soaker-en.srt'
+        transcript_file_name = 'super-soaker-en.srt'
         expected_transcript_path = combine(
             combine(self.temp_dir, constants.EXPORT_IMPORT_COURSE_DIR),
             combine(constants.EXPORT_IMPORT_STATIC_DIR, transcript_file_name)
@@ -3272,17 +3270,17 @@ class TranscripCredentialsStateTest(TestCase):
         {
             'org': 'edX',
             'provider': 'Cielo24',
-            'result': {u'Cielo24': True}
+            'result': {'Cielo24': True}
         },
         {
             'org': 'edX',
             'provider': '3PlayMedia',
-            'result': {u'3PlayMedia': False}
+            'result': {'3PlayMedia': False}
         },
         {
             'org': 'edX',
             'provider': None,
-            'result': {u'3PlayMedia': False, u'Cielo24': True}
+            'result': {'3PlayMedia': False, 'Cielo24': True}
         },
         {
             'org': 'does_not_exist',
