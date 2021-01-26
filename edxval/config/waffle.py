@@ -8,21 +8,7 @@ from edx_toggles.toggles.__future__ import WaffleFlag
 
 WAFFLE_NAMESPACE = 'edxval'
 
-
-def waffle_name(toggle_name):
-    """
-    Method to append waffle namespace to toggle's name
-
-    Reason behind not using f-strings is backwards compatibility
-    Since this is a method, it should be easy to change later on
-    """
-    return "{namespace}.{toggle_name}".format(
-        namespace=WAFFLE_NAMESPACE,
-        toggle_name=toggle_name,
-    )
-
-
-# .. toggle_name: OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
+# .. toggle_name: edxval.override_existing_imported_transcripts
 # .. toggle_implementation: WaffleFlag
 # .. toggle_default: False
 # .. toggle_description: Enables overriding existing transcripts when importing courses with already
@@ -33,6 +19,5 @@ def waffle_name(toggle_name):
 # .. toggle_creation_date: 2021-01-01
 # .. toggle_tickets: https://openedx.atlassian.net/browse/OSPR-5117
 OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS = WaffleFlag(
-    waffle_name('override_existing_imported_transcripts'),
-    module_name=__name__,
+    f'{WAFFLE_NAMESPACE}.override_existing_imported_transcripts', __name__
 )
