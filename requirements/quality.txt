@@ -18,7 +18,7 @@ click==7.1.2              # via click-log, code-annotations, edx-lint
 code-annotations==0.10.2  # via edx-toggles
 colorama==0.4.4           # via twine
 coverage==5.3.1           # via -r requirements/test.in, pytest-cov
-cryptography==3.3.1       # via django-fernet-fields, pyjwt
+cryptography==3.3.1       # via django-fernet-fields, pyjwt, secretstorage
 ddt==1.4.1                # via -r requirements/test.in
 django-crum==0.7.9        # via edx-django-utils, edx-toggles
 django-fernet-fields==0.6  # via -r requirements/base.in
@@ -33,12 +33,13 @@ edx-django-utils==3.13.0  # via edx-drf-extensions, edx-toggles
 edx-drf-extensions==6.3.0  # via -r requirements/base.in
 edx-lint==1.6             # via -r requirements/quality.in
 edx-opaque-keys==2.1.1    # via edx-drf-extensions
-edx-toggles==1.2.2        # via -c requirements/constraints.txt, -r requirements/base.in
+edx-toggles==3.1.0        # via -r requirements/base.in
 fs==2.4.12                # via -r requirements/test.in
 future==0.18.2            # via pyjwkest
 idna==2.10                # via requests
 iniconfig==1.1.1          # via pytest
 isort==5.7.0              # via -r requirements/quality.in, pylint
+jeepney==0.6.0            # via keyring, secretstorage
 jinja2==2.11.2            # via code-annotations
 keyring==21.8.0           # via twine
 lazy-object-proxy==1.4.3  # via astroid
@@ -80,6 +81,7 @@ requests==2.25.1          # via edx-drf-extensions, pyjwkest, requests-toolbelt,
 responses==0.12.1         # via -r requirements/test.in
 rest-condition==1.0.3     # via edx-drf-extensions
 rfc3986==1.4.0            # via twine
+secretstorage==3.3.0      # via keyring
 semantic-version==2.8.5   # via edx-drf-extensions
 six==1.15.0               # via astroid, bleach, cryptography, edx-drf-extensions, edx-lint, edx-opaque-keys, fs, pyjwkest, python-dateutil, readme-renderer, responses
 snowballstemmer==2.0.0    # via pydocstyle

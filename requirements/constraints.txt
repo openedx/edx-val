@@ -7,7 +7,3 @@
 # link to other information that will help people in the future to remove the
 # pin when possible.  Writing an issue against the offending project and
 # linking to it here is good.
-
-# edx-toggles is set to 1.2.2 because we need `edx_toggles.toggles.__future__`
-# we also expect v2.0.0 to introduce breaking changes in the feature toggle API
-edx-toggles==1.2.2
