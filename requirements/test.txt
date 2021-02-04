@@ -26,7 +26,7 @@ drf-jwt==1.17.3           # via edx-drf-extensions
 edx-django-utils==3.13.0  # via edx-drf-extensions, edx-toggles
 edx-drf-extensions==6.3.0  # via -r requirements/base.in
 edx-opaque-keys==2.1.1    # via edx-drf-extensions
-edx-toggles==1.2.2        # via -c requirements/constraints.txt, -r requirements/base.in
+edx-toggles==3.1.0        # via -r requirements/base.in
 fs==2.4.12                # via -r requirements/test.in
 future==0.18.2            # via pyjwkest
 idna==2.10                # via requests

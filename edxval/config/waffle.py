@@ -4,7 +4,7 @@ waffle switches for edx's video abstraction layer.
 """
 
 
-from edx_toggles.toggles.__future__ import WaffleFlag
+from edx_toggles.toggles import WaffleFlag
 
 WAFFLE_NAMESPACE = 'edxval'
 
