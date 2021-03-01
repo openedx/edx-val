@@ -22,7 +22,7 @@ click==7.1.2
     # via code-annotations
 code-annotations==1.1.0
     # via edx-toggles
-coverage==5.4
+coverage==5.5
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -94,7 +94,7 @@ markupsafe==1.1.1
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==6.0.1.155
+newrelic==6.2.0.156
     # via edx-django-utils
 packaging==20.9
     # via pytest
