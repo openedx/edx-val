@@ -8,7 +8,7 @@ appdirs==1.4.4
     # via
     #   fs
     #   virtualenv
-astroid==2.5.1
+astroid==2.5.2
     # via
     #   pylint
     #   pylint-celery
@@ -48,7 +48,7 @@ coverage==5.5
     #   pytest-cov
 coveralls==3.0.1
     # via -r requirements/travis.in
-cryptography==3.4.6
+cryptography==3.4.7
     # via
     #   django-fernet-fields
     #   pyjwt
@@ -90,7 +90,7 @@ django==2.2.19
     #   edx-lint
     #   edx-toggles
     #   rest-condition
-djangorestframework==3.12.2
+djangorestframework==3.12.4
     # via
     #   drf-jwt
     #   edx-drf-extensions
@@ -117,13 +117,13 @@ filelock==3.0.12
     # via
     #   tox
     #   virtualenv
-fs==2.4.12
+fs==2.4.13
     # via -r requirements/test.in
 future==0.18.2
     # via pyjwkest
 idna==2.10
     # via requests
-importlib-metadata==3.7.3
+importlib-metadata==3.9.0
     # via
     #   keyring
     #   twine
@@ -146,9 +146,9 @@ jinja2==2.11.3
     #   code-annotations
     #   diff-cover
     #   jinja2-pluralize
-keyring==23.0.0
+keyring==23.0.1
     # via twine
-lazy-object-proxy==1.5.2
+lazy-object-proxy==1.6.0
     # via astroid
 lxml==4.6.3
     # via -r requirements/base.in
