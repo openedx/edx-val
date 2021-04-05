@@ -31,7 +31,7 @@ click==7.1.2
     #   click-log
     #   code-annotations
     #   edx-lint
-code-annotations==1.1.0
+code-annotations==1.1.1
     # via
     #   edx-lint
     #   edx-toggles
@@ -84,11 +84,11 @@ djangorestframework==3.12.4
     #   drf-jwt
     #   edx-drf-extensions
     #   rest-condition
-docutils==0.16
+docutils==0.17
     # via readme-renderer
-drf-jwt==1.18.0
+drf-jwt==1.19.0
     # via edx-drf-extensions
-edx-django-utils==3.15.0
+edx-django-utils==3.16.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -106,7 +106,7 @@ future==0.18.2
     # via pyjwkest
 idna==2.10
     # via requests
-importlib-metadata==3.9.0
+importlib-metadata==3.10.0
     # via
     #   keyring
     #   twine
@@ -162,7 +162,7 @@ pygments==2.8.1
     # via readme-renderer
 pyjwkest==1.4.2
     # via edx-drf-extensions
-pyjwt[crypto]==1.7.1
+pyjwt[crypto]==2.0.1
     # via drf-jwt
 pylint-celery==0.3
     # via edx-lint
@@ -172,7 +172,7 @@ pylint-plugin-utils==0.6
     # via
     #   pylint-celery
     #   pylint-django
-pylint==2.7.2
+pylint==2.7.4
     # via
     #   edx-lint
     #   pylint-celery
@@ -188,7 +188,7 @@ pytest-cov==2.11.1
     # via -r requirements/test.in
 pytest-django==4.1.0
     # via -r requirements/test.in
-pytest==6.2.2
+pytest==6.2.3
     # via
     #   pytest-cov
     #   pytest-django
@@ -213,7 +213,7 @@ requests==2.25.1
     #   requests-toolbelt
     #   responses
     #   twine
-responses==0.13.1
+responses==0.13.2
     # via -r requirements/test.in
 rest-condition==1.0.3
     # via edx-drf-extensions
