@@ -94,3 +94,19 @@ class TestTranscriptUtils(TestCase):
         invalid_srt_transcript = b'invalid SubRip file content'
         with self.assertRaises(TranscriptsGenerationException):
             Transcript.convert(invalid_srt_transcript, 'srt', 'sjson')
+
+    def test_convert_latin1(self):
+        """
+        Test that we fall back to Latin-1 if the content is not proper Unicode.
+        """
+        latin1_srt_transcript = textwrap.dedent("""\
+            0
+            00:00:10,500 --> 00:00:13,000
+            éléphant's Dream
+
+            1
+            00:00:15,000 --> 00:00:18,000
+            At the left we can see...
+
+        """).encode('latin-1')
+        Transcript.convert(latin1_srt_transcript, 'srt', 'sjson')
