@@ -94,7 +94,12 @@ class Transcript:
 
         # Decode the content with utf-8-sig which will also
         # skip byte order mark(BOM) character if found.
-        content = content.decode('utf-8-sig')
+        try:
+            content = content.decode('utf-8-sig')
+        except UnicodeDecodeError:
+            # Most of our stuff is UTF-8, but don't break if Latin-1 encoded
+            # transcripts are still floating around in older courses.
+            content = content.decode('latin-1')
 
         if input_format == output_format:
             return content
