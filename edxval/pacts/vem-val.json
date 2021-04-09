@@ -1,0 +1,527 @@
+{
+  "consumer": {
+    "name": "VEM"
+  },
+  "provider": {
+    "name": "VAL"
+  },
+  "interactions": [
+    {
+      "description": "A request for oauth token",
+      "request": {
+        "method": "post",
+        "path": "/oauth2/access_token"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+        },
+        "body": {
+          "access_token": "token",
+          "expires_in": 1
+        },
+        "matchingRules": {
+          "$.body.expires_in": {
+            "match": "type"
+          }
+        }
+      }
+    },
+    {
+      "description": "A request for video transcript creation for a given provider and language",
+      "providerState": "A valid video with no video transcript information exists",
+      "request": {
+        "method": "post",
+        "path": "/edxval/videos/video-transcripts/create/",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "video_id": "3386eda1-8d6e-439d-tb89-e90a5c52h103",
+          "language_code": "en",
+          "name": "video_transcript",
+          "file_format": "sjson",
+          "provider": "3PlayMedia"
+        },
+        "matchingRules": {
+          "$.body.video_id": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-]+"
+          },
+          "$.body.language_code": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.body.name": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-_]+"
+          },
+          "$.body.file_format": {
+            "match": "regex",
+            "regex": "srt|sjson"
+          },
+          "$.body.provider": {
+            "match": "regex",
+            "regex": "3PlayMedia|Cielo24"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+        },
+        "body": ""
+      }
+    },
+    {
+      "description": "A request for updating video details",
+      "providerState": "A valid video with no details exists",
+      "request": {
+        "method": "put",
+        "path": "/edxval/videos/3386eda1-8d6e-439d-tb89-e90a5c52h103",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "encoded_videos": [
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "hls"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "mp3"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "mobile_low"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "desktop_mp4"
+            }
+          ],
+          "courses": [
+
+          ],
+          "edx_video_id": "3386eda1-8d6e-439d-tb89-e90a5c52h103",
+          "client_video_id": "filename",
+          "duration": 1,
+          "status": "file_complete"
+        },
+        "matchingRules": {
+          "$.body.encoded_videos[0].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[0].bitrate": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[1].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[1].bitrate": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[2].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[2].bitrate": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[3].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[3].bitrate": {
+            "match": "type"
+          },
+          "$.body.duration": {
+            "match": "type"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+        },
+        "body": {
+          "encoded_videos": [
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "hls",
+              "created": "2021-01-01T00:00:00",
+              "modified": "2021-04-13T12:11:48.045287"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "hls",
+              "created": "2021-01-01T00:00:00",
+              "modified": "2021-04-13T12:11:48.045287"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "hls",
+              "created": "2021-01-01T00:00:00",
+              "modified": "2021-04-13T12:11:48.045287"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "hls",
+              "created": "2021-01-01T00:00:00",
+              "modified": "2021-04-13T12:11:48.045287"
+            }
+          ],
+          "courses": [
+            {
+              "course-v1:testX+test123+2030": null
+            }
+          ],
+          "edx_video_id": "3386eda1-8d6e-439d-tb89-e90a5c52h103",
+          "client_video_id": "filename",
+          "created": "2021-01-01T00:00:00",
+          "url": "url",
+          "duration": 1,
+          "status": "file_complete"
+        },
+        "matchingRules": {
+          "$.body": {
+            "match": "type"
+          },
+          "$.body.encoded_videos": {
+            "min": 4
+          },
+          "$.body.encoded_videos[*].*": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[*].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[*].bitrate": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[*].profile": {
+            "match": "regex",
+            "regex": "hls|mp3|desktop_mp4|mobile_low"
+          },
+          "$.body.client_video_id": {
+            "match": "regex",
+            "regex": "[a-zA-Z_]+"
+          },
+          "$.body.duration": {
+            "match": "type"
+          },
+          "$.body.status": {
+            "match": "regex",
+            "regex": "[a-zA-Z_]+"
+          }
+        }
+      }
+    },
+    {
+      "description": "A request for updating video thumbnails",
+      "providerState": "A valid video with no image information exists",
+      "request": {
+        "method": "post",
+        "path": "/edxval/videos/video-images/update/",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "edx_video_id": "3386eda1-8d6e-439d-tb89-e90a5c52h103",
+          "course_id": "course-v1:testX+test123+2030",
+          "generated_images": [
+            "https://video-1.png"
+          ]
+        },
+        "matchingRules": {
+          "$.body.edx_video_id": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-]+"
+          },
+          "$.body.course_id": {
+            "match": "regex",
+            "regex": "[^\\/+]+(\\/|\\+)[^\\/+]+(\\/|\\+)[^\\/]+"
+          },
+          "$.body.generated_images": {
+            "min": 1
+          },
+          "$.body.generated_images[*].*": {
+            "match": "type"
+          },
+          "$.body.generated_images[*]": {
+            "match": "regex",
+            "regex": "(https:\\/\\/){1}[a-zA-Z.0-9-:\\/]+.png"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+        },
+        "body": ""
+      }
+    },
+    {
+      "description": "A request for updating video status",
+      "providerState": "A valid video_id video exists",
+      "request": {
+        "method": "patch",
+        "path": "/edxval/videos/status/",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "edx_video_id": "3386eda1-8d6e-439d-tb89-e90a5c52h103",
+          "status": "file_complete"
+        },
+        "matchingRules": {
+          "$.body.edx_video_id": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-]+"
+          },
+          "$.body.status": {
+            "match": "regex",
+            "regex": "[a-zA-Z]+"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+        },
+        "body": {
+        }
+      }
+    },
+    {
+      "description": "A request for video transcript creation for a given provider and language",
+      "providerState": "A valid video and video transcript information exists",
+      "request": {
+        "method": "post",
+        "path": "/edxval/videos/video-transcripts/create/",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "video_id": "3386eda1-8d6e-439d-tb89-e90a5c52h103",
+          "language_code": "en",
+          "name": "video_transcript",
+          "file_format": "sjson",
+          "provider": "3PlayMedia"
+        },
+        "matchingRules": {
+          "$.body.video_id": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-]+"
+          },
+          "$.body.language_code": {
+            "match": "regex",
+            "regex": "[a-z]+"
+          },
+          "$.body.name": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-_]+"
+          },
+          "$.body.file_format": {
+            "match": "regex",
+            "regex": "srt|sjson"
+          },
+          "$.body.provider": {
+            "match": "regex",
+            "regex": "3PlayMedia|Cielo24"
+          }
+        }
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+        },
+        "body": {
+          "message": "Can not override existing transcript for video \"3386eda1-8d6e-439d-tb89-e90a5c52h103\" and language code \"en\"."
+        }
+      }
+    },
+    {
+      "description": "A request for updating video details",
+      "providerState": "No video and video details exist",
+      "request": {
+        "method": "put",
+        "path": "/edxval/videos/invalid_video_id",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "encoded_videos": [
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "hls"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "mp3"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "mobile_low"
+            },
+            {
+              "url": "string",
+              "file_size": 1,
+              "bitrate": 1,
+              "profile": "desktop_mp4"
+            }
+          ],
+          "courses": [
+
+          ],
+          "edx_video_id": "invalid_video_id",
+          "client_video_id": "filename",
+          "duration": 1,
+          "status": "ready"
+        },
+        "matchingRules": {
+          "$.body.encoded_videos[0].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[0].bitrate": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[1].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[1].bitrate": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[2].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[2].bitrate": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[3].file_size": {
+            "match": "type"
+          },
+          "$.body.encoded_videos[3].bitrate": {
+            "match": "type"
+          },
+          "$.body.duration": {
+            "match": "type"
+          }
+        }
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+        },
+        "body": {
+          "detail": "Not found."
+        }
+      }
+    },
+    {
+      "description": "A request for updating video thumbnails",
+      "providerState": "No valid video with video images details exist",
+      "request": {
+        "method": "post",
+        "path": "/edxval/videos/video-images/update/",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "edx_video_id": "3386eda1-8d6e-439d-tb89-e90a5c52h103",
+          "course_id": "course-v1:testX+test123+2030",
+          "generated_images": [
+            "https://video-1.png"
+          ]
+        },
+        "matchingRules": {
+          "$.body.edx_video_id": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-]+"
+          },
+          "$.body.course_id": {
+            "match": "regex",
+            "regex": "[^\\/+]+(\\/|\\+)[^\\/+]+(\\/|\\+)[^\\/]+"
+          },
+          "$.body.generated_images": {
+            "min": 1
+          },
+          "$.body.generated_images[*].*": {
+            "match": "type"
+          },
+          "$.body.generated_images[*]": {
+            "match": "regex",
+            "regex": "(https:\\/\\/){1}[a-zA-Z.0-9-:\\/]+.png"
+          }
+        }
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+        },
+        "body": {
+          "message": "CourseVideo not found for course_id: course-v1:testX+test123+2030"
+        }
+      }
+    },
+    {
+      "description": "An update video status request",
+      "providerState": "A video against given video id does not exist",
+      "request": {
+        "method": "patch",
+        "path": "/edxval/videos/status/",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "edx_video_id": "invalid_video_id",
+          "status": "file_complete"
+        },
+        "matchingRules": {
+          "$.body.edx_video_id": {
+            "match": "regex",
+            "regex": "[a-zA-Z0-9-]+"
+          },
+          "$.body.status": {
+            "match": "regex",
+            "regex": "[a-zA-Z]+"
+          }
+        }
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+        },
+        "body": {
+          "message": "Video is not found for specified edx_video_id: invalid_video_id"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
