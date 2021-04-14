@@ -1,6 +1,7 @@
 """
 Url file for django app edxval.
 """
+from django.conf import settings
 from django.conf.urls import url
 
 from edxval import views
@@ -33,3 +34,11 @@ urlpatterns = [
         name='update-video-images'
     ),
 ]
+
+if getattr(settings, 'TEST_ONLY_URLS', None):
+    from edxval.pacts.views import provider_state
+    urlpatterns.append(url(
+        r'^pact/provider_states/$',
+        provider_state,
+        name='provider-state-view'
+    ))
