@@ -17,3 +17,13 @@ DATABASES = {
 TEST_ONLY_URLS = True
 PROVIDER_BASE_URL = 'http://127.0.0.1:8000'
 PROVIDER_STATES_URL = '{}/edxval/pact/provider_states/'.format(PROVIDER_BASE_URL)
+
+# PACT BROKER
+
+# if env variables are in place
+# import os
+# PACT_BROKER_BASE_URL = os.environ.get('PACT_BROKER_BASE_URL', None)
+# PACT_BROKER_BASE_URL = os.environ.get('PUBLISH_VERIFICATION_RESULTS', False)
+
+PACT_BROKER_BASE_URL = 'http://localhost:9292'
+PUBLISH_VERIFICATION_RESULTS = True
