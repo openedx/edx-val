@@ -7,27 +7,6 @@
   },
   "interactions": [
     {
-      "description": "A request for oauth token",
-      "request": {
-        "method": "post",
-        "path": "/oauth2/access_token"
-      },
-      "response": {
-        "status": 200,
-        "headers": {
-        },
-        "body": {
-          "access_token": "token",
-          "expires_in": 1
-        },
-        "matchingRules": {
-          "$.body.expires_in": {
-            "match": "type"
-          }
-        }
-      }
-    },
-    {
       "description": "A request for video transcript creation for a given provider and language",
       "providerState": "A valid video with no video transcript information exists",
       "request": {
@@ -159,7 +138,7 @@
               "bitrate": 1,
               "profile": "hls",
               "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-13T12:11:48.045287"
+              "modified": "2021-04-14T12:19:47.883503"
             },
             {
               "url": "string",
@@ -167,7 +146,7 @@
               "bitrate": 1,
               "profile": "hls",
               "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-13T12:11:48.045287"
+              "modified": "2021-04-14T12:19:47.883503"
             },
             {
               "url": "string",
@@ -175,7 +154,7 @@
               "bitrate": 1,
               "profile": "hls",
               "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-13T12:11:48.045287"
+              "modified": "2021-04-14T12:19:47.883503"
             },
             {
               "url": "string",
@@ -183,7 +162,7 @@
               "bitrate": 1,
               "profile": "hls",
               "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-13T12:11:48.045287"
+              "modified": "2021-04-14T12:19:47.883503"
             }
           ],
           "courses": [

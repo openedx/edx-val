@@ -27,3 +27,6 @@ PROVIDER_STATES_URL = '{}/edxval/pact/provider_states/'.format(PROVIDER_BASE_URL
 
 PACT_BROKER_BASE_URL = 'http://localhost:9292'
 PUBLISH_VERIFICATION_RESULTS = True
+
+
+MIDDLEWARE = MIDDLEWARE + ('edxval.pacts.middleware.AuthenticationMiddleware',)
