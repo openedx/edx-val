@@ -53,6 +53,7 @@ cryptography==3.4.7
     # via
     #   django-fernet-fields
     #   pyjwt
+    #   secretstorage
 ddt==1.4.2
     # via -r requirements/test.in
 diff-cover==5.0.1
@@ -125,7 +126,7 @@ future==0.18.2
     # via pyjwkest
 idna==2.10
     # via requests
-importlib-metadata==3.10.0
+importlib-metadata==4.0.0
     # via
     #   keyring
     #   twine
@@ -137,6 +138,10 @@ isort==5.8.0
     # via
     #   -r requirements/quality.in
     #   pylint
+jeepney==0.6.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2-pluralize==0.3.0
     # via diff-cover
 jinja2==2.11.3
@@ -169,7 +174,7 @@ pbr==5.5.1
     # via stevedore
 pep517==0.10.0
     # via pip-tools
-pip-tools==6.0.1
+pip-tools==6.1.0
     # via -r requirements/dev.in
 pkginfo==1.7.0
     # via twine
@@ -259,6 +264,8 @@ rest-condition==1.0.3
     # via edx-drf-extensions
 rfc3986==1.4.0
     # via twine
+secretstorage==3.3.1
+    # via keyring
 semantic-version==2.8.5
     # via edx-drf-extensions
 six==1.15.0
