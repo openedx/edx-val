@@ -31,8 +31,8 @@ def provider_state(request):
     }
     request_body = json.loads(request.body)
     state = request_body.get('state')
+    clear_database()
     if state in state_setup_mapping:
         print('Setting up provider state for state value: {}'.format(state))
-        clear_database()
         state_setup_mapping[state]()
     return JsonResponse({'result': state})
