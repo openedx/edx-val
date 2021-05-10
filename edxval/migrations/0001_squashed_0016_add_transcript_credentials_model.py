@@ -42,8 +42,6 @@ def delete_default_profiles(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    replaces = [('edxval', '0001_initial'), ('edxval', '0002_data__default_profiles'), ('edxval', '0003_coursevideo_is_hidden'), ('edxval', '0004_data__add_hls_profile'), ('edxval', '0005_videoimage'), ('edxval', '0006_auto_20171009_0725'), ('edxval', '0007_transcript_credentials_state'), ('edxval', '0008_remove_subtitles'), ('edxval', '0009_auto_20171127_0406'), ('edxval', '0010_add_video_as_foreign_key'), ('edxval', '0011_data__add_audio_mp3_profile'), ('edxval', '0012_thirdpartytranscriptcredentialsstate_has_creds'), ('edxval', '0013_thirdpartytranscriptcredentialsstate_copy_values'), ('edxval', '0014_transcript_credentials_state_retype_exists'), ('edxval', '0015_remove_thirdpartytranscriptcredentialsstate_exists'), ('edxval', '0016_add_transcript_credentials_model')]
-
     initial = True
 
     dependencies = [
