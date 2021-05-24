@@ -29,15 +29,14 @@ chardet==4.0.0
     #   requests
 click-log==0.3.2
     # via edx-lint
-click==7.1.2
+click==8.0.1
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   click-log
     #   code-annotations
     #   edx-lint
     #   pact-python
     #   pip-tools
-code-annotations==1.1.1
+code-annotations==1.1.2
     # via
     #   edx-lint
     #   edx-toggles
@@ -71,7 +70,7 @@ django-model-utils==4.1.1
     # via -r requirements/base.in
 django-storages==1.11.1
     # via -r requirements/base.in
-django-waffle==2.1.0
+django-waffle==2.2.0
     # via
     #   edx-django-utils
     #   edx-drf-extensions
@@ -80,7 +79,6 @@ django==2.2.23
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
-    #   code-annotations
     #   django-crum
     #   django-fernet-fields
     #   django-model-utils
@@ -104,7 +102,9 @@ docutils==0.16
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   readme-renderer
 drf-jwt==1.19.0
-    # via edx-drf-extensions
+    # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   edx-drf-extensions
 edx-django-utils==4.0.0
     # via
     #   edx-drf-extensions
@@ -145,7 +145,7 @@ jeepney==0.6.0
     #   secretstorage
 jinja2-pluralize==0.3.0
     # via diff-cover
-jinja2==3.0.0
+jinja2==3.0.1
     # via
     #   code-annotations
     #   diff-cover
@@ -156,7 +156,7 @@ lazy-object-proxy==1.6.0
     # via astroid
 lxml==4.6.3
     # via -r requirements/base.in
-markupsafe==2.0.0
+markupsafe==2.0.1
     # via jinja2
 mccabe==0.6.1
     # via pylint
@@ -198,7 +198,7 @@ pycparser==2.20
     # via cffi
 pycryptodomex==3.10.1
     # via pyjwkest
-pydocstyle==6.0.0
+pydocstyle==6.1.1
     # via -r requirements/quality.in
 pygments==2.9.0
     # via
