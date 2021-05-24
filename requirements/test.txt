@@ -18,12 +18,11 @@ chardet==4.0.0
     # via
     #   pysrt
     #   requests
-click==7.1.2
+click==8.0.1
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   code-annotations
     #   pact-python
-code-annotations==1.1.1
+code-annotations==1.1.2
     # via edx-toggles
 coverage[toml]==5.5
     # via
@@ -45,7 +44,7 @@ django-model-utils==4.1.1
     # via -r requirements/base.in
 django-storages==1.11.1
     # via -r requirements/base.in
-django-waffle==2.1.0
+django-waffle==2.2.0
     # via
     #   edx-django-utils
     #   edx-drf-extensions
@@ -53,7 +52,6 @@ django-waffle==2.1.0
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
-    #   code-annotations
     #   django-crum
     #   django-fernet-fields
     #   django-model-utils
@@ -70,7 +68,9 @@ djangorestframework==3.12.4
     #   edx-drf-extensions
     #   rest-condition
 drf-jwt==1.19.0
-    # via edx-drf-extensions
+    # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   edx-drf-extensions
 edx-django-utils==4.0.0
     # via
     #   edx-drf-extensions
@@ -89,11 +89,11 @@ idna==2.10
     # via requests
 iniconfig==1.1.1
     # via pytest
-jinja2==3.0.0
+jinja2==3.0.1
     # via code-annotations
 lxml==4.6.3
     # via -r requirements/base.in
-markupsafe==2.0.0
+markupsafe==2.0.1
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
