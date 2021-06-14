@@ -97,7 +97,7 @@ markupsafe==2.0.1
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==6.4.0.157
+newrelic==6.4.1.158
     # via edx-django-utils
 packaging==20.9
     # via pytest

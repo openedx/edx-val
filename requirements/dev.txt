@@ -162,7 +162,7 @@ mccabe==0.6.1
     # via pylint
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==6.4.0.157
+newrelic==6.4.1.158
     # via edx-django-utils
 packaging==20.9
     # via
@@ -308,7 +308,7 @@ tox==3.23.1
     # via
     #   -r requirements/travis.in
     #   tox-battery
-tqdm==4.61.0
+tqdm==4.61.1
     # via twine
 twine==3.4.1
     # via -r requirements/quality.in
