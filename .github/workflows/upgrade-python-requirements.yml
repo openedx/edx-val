@@ -1,9 +1,6 @@
 name: Upgrade Requirements
 
 on:
-  push:
-    branches:
-      - '**'
   schedule:
     # will start the job at 2:15 UTC every Friday
     - cron: "15 2 * * 5"
