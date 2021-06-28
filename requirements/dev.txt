@@ -127,7 +127,7 @@ future==0.18.2
     # via pyjwkest
 idna==2.10
     # via requests
-importlib-metadata==4.5.0
+importlib-metadata==4.6.0
     # via
     #   keyring
     #   twine
@@ -312,7 +312,7 @@ tqdm==4.61.1
     # via twine
 twine==3.4.1
     # via -r requirements/quality.in
-urllib3==1.26.5
+urllib3==1.26.6
     # via
     #   requests
     #   responses

@@ -180,7 +180,7 @@ toml==0.10.2
     # via
     #   pytest
     #   pytest-cov
-urllib3==1.26.5
+urllib3==1.26.6
     # via
     #   requests
     #   responses
