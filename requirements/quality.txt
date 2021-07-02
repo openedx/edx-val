@@ -6,7 +6,7 @@
 #
 appdirs==1.4.4
     # via fs
-astroid==2.5.6
+astroid==2.6.2
     # via
     #   pylint
     #   pylint-celery
@@ -84,10 +84,8 @@ djangorestframework==3.12.4
     #   drf-jwt
     #   edx-drf-extensions
     #   rest-condition
-docutils==0.16
-    # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   readme-renderer
+docutils==0.17.1
+    # via readme-renderer
 drf-jwt==1.19.0
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
@@ -100,7 +98,7 @@ edx-drf-extensions==6.5.0
     # via -r requirements/base.in
 edx-lint==5.0.0
     # via -r requirements/quality.in
-edx-opaque-keys==2.2.1
+edx-opaque-keys==2.2.2
     # via edx-drf-extensions
 edx-toggles==4.1.0
     # via -r requirements/base.in
@@ -174,7 +172,7 @@ pyjwt[crypto]==1.7.1
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   drf-jwt
-pylint==2.8.3
+pylint==2.9.3
     # via
     #   edx-lint
     #   pylint-celery
