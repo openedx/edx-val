@@ -826,6 +826,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         serialized_data = TranscriptSerializer(VideoTranscript.objects.first()).data
+        serialized_data['url'] = serialized_data['url'].lstrip('/')
         post_transcript_data['url'] = post_transcript_data.pop('name')
         self.assertDictEqual(serialized_data, post_transcript_data)
 

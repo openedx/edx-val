@@ -7,10 +7,7 @@ env:
   - TOXENV=django22
   - TOXENV=django30
   - TOXENV=django31
-matrix:
-  allow_failures:
-    - python: 3.8
-      env: TOXENV=django31
+  - TOXENV=django32
 install:
   - pip install -r requirements/travis.txt
 script:

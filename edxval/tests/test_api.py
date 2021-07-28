@@ -2410,10 +2410,12 @@ class CourseVideoImageTest(TestCase):
         """
         Verify that `update_video_image` api function works as expected.
         """
-        self.assertEqual(self.course_video.video_image.image.name, self.image_url)
-        self.assertEqual(self.course_video2.video_image.image.name, self.image_url2)
-        self.assertEqual(ImageFile(open(self.image_path1, 'rb')).size, ImageFile(open(self.image_url, 'rb')).size)
-        self.assertEqual(ImageFile(open(self.image_path2, 'rb')).size, ImageFile(open(self.image_url2, 'rb')).size)
+        image_url = self.image_url.lstrip('/')
+        image_url2 = self.image_url2.lstrip('/')
+        self.assertEqual(self.course_video.video_image.image.name, image_url)
+        self.assertEqual(self.course_video2.video_image.image.name, image_url2)
+        self.assertEqual(ImageFile(open(self.image_path1, 'rb')).size, ImageFile(open(image_url, 'rb')).size)
+        self.assertEqual(ImageFile(open(self.image_path2, 'rb')).size, ImageFile(open(image_url2, 'rb')).size)
 
     def test_get_course_video_image_url(self):
         """
@@ -2585,7 +2587,7 @@ class CourseVideoImageTest(TestCase):
 
         # Verify that new image is set to course_video
         course_video = CourseVideo.objects.get(video=self.video, course_id=self.course_id)
-        self.assertEqual(course_video.video_image.image.name, image_url)
+        self.assertEqual(course_video.video_image.image.url, image_url)
 
         # Verify that an exception is raised if we try to open a delete image file
         with self.assertRaises(IOError) as file_open_exception:
@@ -2848,8 +2850,9 @@ class TranscriptTest(TestCase):
         self.assertEqual(video_transcript.language_code, language_code)
 
         if file_data:
-            self.assertTrue(transcript_url.startswith(settings.VIDEO_TRANSCRIPTS_SETTINGS['DIRECTORY_PREFIX']))
-            self.assertEqual(video_transcript.transcript.name, transcript_url)
+            self.assertTrue(transcript_url.lstrip('/').startswith(
+                settings.VIDEO_TRANSCRIPTS_SETTINGS['DIRECTORY_PREFIX']))
+            self.assertEqual(video_transcript.transcript.url, transcript_url)
             with open(video_transcript.transcript.name, encoding='utf8') as saved_transcript:
                 self.assertEqual(saved_transcript.read(), constants.TRANSCRIPT_DATA['overwatch'])
         else:
