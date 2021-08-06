@@ -5,28 +5,29 @@
 #    make upgrade
 #
 appdirs==1.4.4
-    # via
-    #   fs
-    #   virtualenv
-astroid==2.5.6
+    # via fs
+astroid==2.6.6
     # via
     #   pylint
     #   pylint-celery
 attrs==21.2.0
     # via pytest
-bleach==3.3.0
+backports.entry-points-selectable==1.1.0
+    # via virtualenv
+bleach==4.0.0
     # via readme-renderer
 boto==2.49.0
     # via -r requirements/base.in
 certifi==2021.5.30
     # via requests
-cffi==1.14.5
+cffi==1.14.6
     # via cryptography
 chardet==4.0.0
     # via
     #   diff-cover
     #   pysrt
-    #   requests
+charset-normalizer==2.0.4
+    # via requests
 click==8.0.1
     # via
     #   click-log
@@ -36,7 +37,7 @@ click==8.0.1
     #   pip-tools
 click-log==0.3.2
     # via edx-lint
-code-annotations==1.1.2
+code-annotations==1.2.0
     # via
     #   edx-lint
     #   edx-toggles
@@ -47,7 +48,7 @@ coverage==5.5
     #   -r requirements/test.in
     #   coveralls
     #   pytest-cov
-coveralls==3.1.0
+coveralls==3.2.0
     # via -r requirements/travis.in
 cryptography==3.4.7
     # via
@@ -56,7 +57,7 @@ cryptography==3.4.7
     #   secretstorage
 ddt==1.4.2
     # via -r requirements/test.in
-diff-cover==5.4.0
+diff-cover==6.2.1
     # via -r requirements/dev.in
 distlib==0.3.2
     # via virtualenv
@@ -85,7 +86,7 @@ django-model-utils==4.1.1
     # via -r requirements/base.in
 django-storages==1.11.1
     # via -r requirements/base.in
-django-waffle==2.2.0
+django-waffle==2.2.1
     # via
     #   edx-django-utils
     #   edx-drf-extensions
@@ -97,25 +98,23 @@ djangorestframework==3.12.4
     #   rest-condition
 docopt==0.6.2
     # via coveralls
-docutils==0.16
-    # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   readme-renderer
+docutils==0.17.1
+    # via readme-renderer
 drf-jwt==1.19.0
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   edx-drf-extensions
-edx-django-utils==4.1.0
+edx-django-utils==4.2.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
-edx-drf-extensions==6.5.0
+edx-drf-extensions==6.6.0
     # via -r requirements/base.in
 edx-lint==5.0.0
     # via -r requirements/quality.in
-edx-opaque-keys==2.2.1
+edx-opaque-keys==2.2.2
     # via edx-drf-extensions
-edx-toggles==4.1.0
+edx-toggles==4.2.0
     # via -r requirements/base.in
 filelock==3.0.12
     # via
@@ -125,9 +124,9 @@ fs==2.4.13
     # via -r requirements/test.in
 future==0.18.2
     # via pyjwkest
-idna==2.10
+idna==3.2
     # via requests
-importlib-metadata==4.6.0
+importlib-metadata==4.6.3
     # via
     #   keyring
     #   twine
@@ -135,11 +134,11 @@ inflect==5.3.0
     # via jinja2-pluralize
 iniconfig==1.1.1
     # via pytest
-isort==5.9.1
+isort==5.9.3
     # via
     #   -r requirements/quality.in
     #   pylint
-jeepney==0.6.0
+jeepney==0.7.1
     # via
     #   keyring
     #   secretstorage
@@ -162,9 +161,9 @@ mccabe==0.6.1
     # via pylint
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==6.4.3.160
+newrelic==6.8.0.163
     # via edx-django-utils
-packaging==20.9
+packaging==21.0
     # via
     #   bleach
     #   pytest
@@ -173,12 +172,14 @@ pact-python==1.3.9
     # via -r requirements/base.in
 pbr==5.6.0
     # via stevedore
-pep517==0.10.0
+pep517==0.11.0
     # via pip-tools
 pip-tools==6.2.0
     # via -r requirements/dev.in
-pkginfo==1.7.0
+pkginfo==1.7.1
     # via twine
+platformdirs==2.2.0
+    # via virtualenv
 pluggy==0.13.1
     # via
     #   diff-cover
@@ -210,7 +211,7 @@ pyjwt[crypto]==1.7.1
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   drf-jwt
-pylint==2.8.3
+pylint==2.9.6
     # via
     #   edx-lint
     #   pylint-celery
@@ -224,7 +225,7 @@ pylint-plugin-utils==0.6
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==3.11.4
+pymongo==3.12.0
     # via edx-opaque-keys
 pyparsing==2.4.7
     # via packaging
@@ -238,7 +239,7 @@ pytest-cov==2.12.1
     # via -r requirements/test.in
 pytest-django==4.4.0
     # via -r requirements/test.in
-python-dateutil==2.8.1
+python-dateutil==2.8.2
     # via edx-drf-extensions
 python-slugify==5.0.2
     # via code-annotations
@@ -250,7 +251,7 @@ pyyaml==5.4.1
     # via code-annotations
 readme-renderer==29.0
     # via twine
-requests==2.25.1
+requests==2.26.0
     # via
     #   coveralls
     #   edx-drf-extensions
@@ -297,26 +298,27 @@ text-unidecode==1.3
     # via python-slugify
 toml==0.10.2
     # via
-    #   pep517
     #   pylint
     #   pytest
     #   pytest-cov
     #   tox
-tox==3.23.1
+tomli==1.2.1
+    # via pep517
+tox==3.24.1
     # via
     #   -r requirements/travis.in
     #   tox-battery
 tox-battery==0.6.1
     # via -r requirements/travis.in
-tqdm==4.61.1
+tqdm==4.62.0
     # via twine
-twine==3.4.1
+twine==3.4.2
     # via -r requirements/quality.in
 urllib3==1.26.6
     # via
     #   requests
     #   responses
-virtualenv==20.4.7
+virtualenv==20.7.0
     # via tox
 webencodings==0.5.1
     # via bleach
@@ -324,7 +326,7 @@ wheel==0.36.2
     # via pip-tools
 wrapt==1.12.1
     # via astroid
-zipp==3.4.1
+zipp==3.5.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
