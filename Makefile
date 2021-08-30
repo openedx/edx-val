@@ -36,7 +36,7 @@ export CUSTOM_COMPILE_COMMAND = make upgrade
 upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	pip install -q pip-tools
 	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/pip.txt requirements/pip.in
-	pip-compile --rebuild --upgrade -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/travis.in
+	pip-compile --rebuild --upgrade -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/ci.in
 	pip-compile --rebuild --upgrade -o requirements/quality.txt requirements/base.in requirements/quality.in requirements/test.in
 	pip-compile --rebuild --upgrade -o requirements/test.txt requirements/base.in requirements/test.in
 	pip-compile --rebuild --upgrade -o requirements/ci.txt requirements/ci.in

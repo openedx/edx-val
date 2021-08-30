@@ -75,7 +75,7 @@ class TranscriptSerializer(serializers.ModelSerializer):
         """
         return transcript.url()
 
-    def validate(self, data):  # pylint: disable=arguments-differ
+    def validate(self, data):
         """
         Validates the transcript data.
         """
@@ -98,7 +98,7 @@ class CourseSerializer(serializers.RelatedField):
     """
     Field for CourseVideo
     """
-    def to_representation(self, course_video):  # pylint: disable=arguments-differ
+    def to_representation(self, course_video):
         """
         Returns a serializable representation of a CourseVideo instance.
         """
@@ -152,7 +152,7 @@ class VideoSerializer(serializers.ModelSerializer):
         """
         return obj.get_absolute_url()
 
-    def validate(self, data):  # pylint: disable=arguments-differ
+    def validate(self, data):
         """
         Check that the video data is valid.
         """
