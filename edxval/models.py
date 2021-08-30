@@ -173,7 +173,7 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
         Return image url for a course video image or None if no image.
         """
         if hasattr(self, 'video_image'):
-            return self.video_image.image_url()  # pylint: disable=no-member
+            return self.video_image.image_url()
 
         return None
 
