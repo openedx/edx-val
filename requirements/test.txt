@@ -111,7 +111,7 @@ newrelic==6.8.1.164
 packaging==21.0
     # via pytest
 pact-python==1.4.2
-    # via -r requirements/base.in
+    # via -r requirements/test.in
 pbr==5.6.0
     # via stevedore
 pluggy==0.13.1
@@ -146,7 +146,7 @@ pytest-cov==2.12.1
     # via -r requirements/test.in
 pytest-django==4.4.0
     # via -r requirements/test.in
-pytest==6.2.4
+pytest==6.2.5
     # via
     #   pytest-cov
     #   pytest-django
@@ -195,7 +195,7 @@ toml==0.10.2
     # via
     #   pytest
     #   pytest-cov
-typing-extensions==3.10.0.1
+typing-extensions==3.10.0.2
     # via pydantic
 urllib3==1.26.6
     # via
