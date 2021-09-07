@@ -150,7 +150,7 @@ packaging==21.0
     # via
     #   bleach
     #   pytest
-pact-python==1.4.2
+pact-python==1.4.3
     # via -r requirements/test.in
 pbr==5.6.0
     # via stevedore
