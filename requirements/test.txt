@@ -164,7 +164,7 @@ requests==2.26.0
     #   pact-python
     #   pyjwkest
     #   responses
-responses==0.13.4
+responses==0.14.0
     # via -r requirements/test.in
 rest-condition==1.0.3
     # via edx-drf-extensions
@@ -178,7 +178,7 @@ six==1.16.0
     #   pyjwkest
     #   python-dateutil
     #   responses
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via django
 starlette==0.14.2
     # via fastapi
