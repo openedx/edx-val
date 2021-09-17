@@ -18,7 +18,7 @@ cffi==1.14.6
     # via cryptography
 chardet==4.0.0
     # via pysrt
-charset-normalizer==2.0.4
+charset-normalizer==2.0.5
     # via requests
 click==8.0.1
     # via
@@ -106,7 +106,7 @@ markupsafe==2.0.1
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==6.8.1.164
+newrelic==6.10.0.165
     # via edx-django-utils
 packaging==21.0
     # via pytest

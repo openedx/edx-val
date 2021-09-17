@@ -8,7 +8,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.4.1
     # via uvicorn
-astroid==2.7.3
+astroid==2.8.0
     # via
     #   pylint
     #   pylint-celery
@@ -28,7 +28,7 @@ chardet==4.0.0
     # via
     #   diff-cover
     #   pysrt
-charset-normalizer==2.0.4
+charset-normalizer==2.0.5
     # via requests
 click==8.0.1
     # via
@@ -60,7 +60,7 @@ cryptography==3.4.8
     #   secretstorage
 ddt==1.4.2
     # via -r requirements/test.in
-diff-cover==6.3.5
+diff-cover==6.4.0
     # via -r requirements/dev.in
 distlib==0.3.2
     # via virtualenv
@@ -169,7 +169,7 @@ mccabe==0.6.1
     # via pylint
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==6.8.1.164
+newrelic==6.10.0.165
     # via edx-django-utils
 packaging==21.0
     # via
@@ -190,7 +190,7 @@ platformdirs==2.3.0
     # via
     #   pylint
     #   virtualenv
-pluggy==0.13.1
+pluggy==1.0.0
     # via
     #   diff-cover
     #   pytest
@@ -223,7 +223,7 @@ pyjwt[crypto]==1.7.1
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   drf-jwt
-pylint==2.10.2
+pylint==2.11.1
     # via
     #   edx-lint
     #   pylint-celery
@@ -318,7 +318,7 @@ toml==0.10.2
     #   tox
 tomli==1.2.1
     # via pep517
-tox==3.24.3
+tox==3.24.4
     # via
     #   -r requirements/ci.in
     #   tox-battery
@@ -329,7 +329,10 @@ tqdm==4.62.2
 twine==3.4.2
     # via -r requirements/quality.in
 typing-extensions==3.10.0.2
-    # via pydantic
+    # via
+    #   astroid
+    #   pydantic
+    #   pylint
 urllib3==1.26.6
     # via
     #   pact-python
@@ -337,7 +340,7 @@ urllib3==1.26.6
     #   responses
 uvicorn==0.15.0
     # via pact-python
-virtualenv==20.7.2
+virtualenv==20.8.0
     # via tox
 webencodings==0.5.1
     # via bleach
