@@ -2,6 +2,7 @@
 Provider state views needed by pact to setup Provider state for pact verification.
 """
 import json
+import logging
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +15,8 @@ from edxval.pacts.utils import (
     setup_successful_video_details_state,
     setup_unsuccessful_video_transcripts_state,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
@@ -33,6 +36,6 @@ def provider_state(request):
     state = request_body.get('state')
     clear_database()
     if state in state_setup_mapping:
-        print('Setting up provider state for state value: {}'.format(state))
+        logger.info('Setting up provider state for state value: {}'.format(state))
         state_setup_mapping[state]()
     return JsonResponse({'result': state})

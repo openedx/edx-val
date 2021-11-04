@@ -35,7 +35,7 @@ urlpatterns = [
     ),
 ]
 
-if getattr(settings, 'TEST_ONLY_URLS', None):
+if getattr(settings, 'PROVIDER_STATES_SETUP_VIEW_URL', None):
     from edxval.pacts.views import provider_state
     urlpatterns.append(url(
         r'^pact/provider_states/$',
