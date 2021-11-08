@@ -19,7 +19,12 @@ class ProviderVerificationServer(LiveServerTestCase):
 
     PACT_CONFIG = {
         'broker_url': settings.PACT_BROKER_BASE_URL,
-        'publish_version': '1',
+        'consumer_version_selectors': [
+            {'tag': 'production', 'latest': True},
+            {"tag": "master", "latest": True},
+        ],
+        'publish_version': settings.PUBLISH_VERSION,
+        'provider_tags': settings.PUBLISH_TAGS,
         'publish_verification_results': settings.PUBLISH_VERIFICATION_RESULTS,
         'headers': ['Pact-Authentication: AllowAny', ],
     }

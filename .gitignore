@@ -60,6 +60,7 @@ openassessment/xblock/static/js/fixtures/*.html
 
 # logging
 logs/*/*.log*
+log
 
 # Vagrant
 .vagrant
