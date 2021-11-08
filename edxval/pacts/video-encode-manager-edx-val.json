@@ -1,9 +1,9 @@
 {
   "consumer": {
-    "name": "VEM"
+    "name": "video-encode-manager"
   },
   "provider": {
-    "name": "VAL"
+    "name": "edx-val"
   },
   "interactions": [
     {
@@ -137,32 +137,32 @@
               "file_size": 1,
               "bitrate": 1,
               "profile": "hls",
-              "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-14T12:19:47.883503"
+              "created": "2020-01-01T00:00:00",
+              "modified": "2020-01-01T00:00:00"
             },
             {
               "url": "string",
               "file_size": 1,
               "bitrate": 1,
               "profile": "hls",
-              "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-14T12:19:47.883503"
+              "created": "2020-01-01T00:00:00",
+              "modified": "2020-01-01T00:00:00"
             },
             {
               "url": "string",
               "file_size": 1,
               "bitrate": 1,
               "profile": "hls",
-              "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-14T12:19:47.883503"
+              "created": "2020-01-01T00:00:00",
+              "modified": "2020-01-01T00:00:00"
             },
             {
               "url": "string",
               "file_size": 1,
               "bitrate": 1,
               "profile": "hls",
-              "created": "2021-01-01T00:00:00",
-              "modified": "2021-04-14T12:19:47.883503"
+              "created": "2020-01-01T00:00:00",
+              "modified": "2020-01-01T00:00:00"
             }
           ],
           "courses": [
@@ -196,6 +196,14 @@
           "$.body.encoded_videos[*].profile": {
             "match": "regex",
             "regex": "hls|mp3|desktop_mp4|mobile_low"
+          },
+          "$.body.encoded_videos[*].created": {
+            "match": "regex",
+            "regex": "\\d+-\\d+-\\d+T\\d+:\\d+:\\d+"
+          },
+          "$.body.encoded_videos[*].modified": {
+            "match": "regex",
+            "regex": "\\d+-\\d+-\\d+T\\d+:\\d+:\\d+"
           },
           "$.body.client_video_id": {
             "match": "regex",
