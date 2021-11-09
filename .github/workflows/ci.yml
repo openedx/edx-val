@@ -72,4 +72,4 @@ jobs:
         export PUBLISH_VERSION=`git rev-parse --short HEAD`
         export PUBLISH_TAGS=${{ github.head_ref }}
         export PUBLISH_VERIFICATION_RESULTS=true
-        pytest edxval/pacts/verify_pact.py --ds=edxval.settings.pact
+        pytest -s edxval/pacts/verify_pact.py --ds=edxval.settings.pact
