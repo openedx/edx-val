@@ -50,6 +50,7 @@ class ProviderVerificationServer(LiveServerTestCase):
             output, _ = self.verifier.verify_with_broker(
                 **self.PACT_CONFIG,
                 verbose=False,
+                enable_pending=True,
                 provider_states_setup_url=f"{self.live_server_url}{reverse('provider-state-view')}",
             )
         else:
