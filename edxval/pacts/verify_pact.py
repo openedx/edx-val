@@ -24,7 +24,7 @@ class ProviderVerificationServer(LiveServerTestCase):
             {"tag": "master", "latest": True},
         ],
         'publish_version': settings.PUBLISH_VERSION,
-        'provider_tags': settings.PUBLISH_TAGS,
+        'provider_tags': [settings.PUBLISH_TAGS, settings.GIT_ENV],
         'publish_verification_results': settings.PUBLISH_VERIFICATION_RESULTS,
         'headers': ['Pact-Authentication: AllowAny', ],
     }

@@ -13,6 +13,6 @@ PROVIDER_STATES_SETUP_VIEW_URL = True
 PACT_BROKER_BASE_URL = os.environ.get('PACT_BROKER_BASE_URL', 'http://localhost:9292')
 PUBLISH_VERSION = os.environ.get('PUBLISH_VERSION', '1')
 PUBLISH_TAGS = os.environ.get('PUBLISH_TAGS', 'master')
-PUBLISH_TAGS = [PUBLISH_TAGS, 'production' if PUBLISH_TAGS == 'master' else 'development']
+GIT_ENV = os.environ.get('GIT_ENV')
 
 MIDDLEWARE = MIDDLEWARE + ('edxval.pacts.middleware.AuthenticationMiddleware',)

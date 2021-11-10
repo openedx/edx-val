@@ -67,9 +67,17 @@ jobs:
 
     - name: Verify Pacts
       run: |
+        export IS_MERGED=${{ github.event.pull_request.merged }}
         export PACT_BROKER_BASE_URL='https://edx.pactflow.io'
         export PACT_BROKER_TOKEN=${{ secrets.PACT_FLOW_ACCESS_TOKEN }}
         export PUBLISH_VERSION=`git rev-parse --short HEAD`
-        export PUBLISH_TAGS=${{ github.head_ref }}
+        if [ $IS_MERGED == false ]
+        then
+          export PUBLISH_TAGS=$GITHUB_HEAD_REF
+          export GIT_ENV='development'
+        else
+          export PUBLISH_TAGS=${GITHUB_REF:11}
+          export GIT_ENV='production'
+        fi
         export PUBLISH_VERIFICATION_RESULTS=true
         pytest -s edxval/pacts/verify_pact.py --ds=edxval.settings.pact
