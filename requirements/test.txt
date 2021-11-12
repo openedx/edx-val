@@ -29,7 +29,7 @@ click==8.0.3
     #   uvicorn
 code-annotations==1.2.0
     # via edx-toggles
-coverage[toml]==6.1.1
+coverage[toml]==6.1.2
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -96,7 +96,7 @@ idna==3.3
     #   requests
 iniconfig==1.1.1
     # via pytest
-jinja2==3.0.2
+jinja2==3.0.3
     # via code-annotations
 lxml==4.6.4
     # via -r requirements/base.in
@@ -104,7 +104,7 @@ markupsafe==2.0.1
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==7.2.3.170
+newrelic==7.2.4.171
     # via edx-django-utils
 packaging==21.2
     # via pytest
