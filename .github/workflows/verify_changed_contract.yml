@@ -1,0 +1,43 @@
+name: Verify contract changed by a consumer
+
+on:
+  repository_dispatch:
+    types:
+      - contract_changed
+
+env:
+  CHANGED_PACT_URL: ${{ github.event.client_payload.pact_url }}
+  GIT_ENV: Production
+  PACT_BROKER_BASE_URL: https://edx.pactflow.io
+  PACT_BROKER_TOKEN: ${{ secrets.PACT_FLOW_ACCESS_TOKEN }}
+  PUBLISH_VERIFICATION_RESULTS: true
+  VERIFY_WITH_BROKER: false
+
+jobs:
+  changed-contract-verification:
+    name: Pact Provider Verification for a changed contract
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install pip
+      run: pip install -r requirements/pip.txt
+
+    - name: Install Dependencies
+      run: |
+        pip install -r requirements/ci.txt
+        pip install -r requirements/test.txt
+
+    - name: Verify Changed Contract
+      run: |
+        export PUBLISH_VERSION=`git rev-parse --short HEAD`
+        export PUBLISH_TAGS=${GITHUB_REF:11}
+        export GIT_ENV='production'
+        pytest -s edxval/pacts/verify_pact.py --ds=edxval.settings.pact
