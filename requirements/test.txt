@@ -9,7 +9,9 @@ anyio==3.3.4
 appdirs==1.4.4
     # via fs
 asgiref==3.4.1
-    # via uvicorn
+    # via
+    #   django
+    #   uvicorn
 attrs==21.2.0
     # via pytest
 boto==2.49.0
@@ -84,7 +86,7 @@ edx-toggles==4.2.0
     # via -r requirements/base.in
 fastapi==0.70.0
     # via pact-python
-fs==2.4.13
+fs==2.4.14
     # via -r requirements/test.in
 future==0.18.2
     # via pyjwkest
@@ -106,11 +108,11 @@ mock==4.0.3
     # via -r requirements/test.in
 newrelic==7.2.4.171
     # via edx-django-utils
-packaging==21.2
+packaging==21.3
     # via pytest
 pact-python==1.4.5
     # via -r requirements/test.in
-pbr==5.7.0
+pbr==5.8.0
     # via stevedore
 pluggy==1.0.0
     # via pytest
@@ -134,7 +136,7 @@ pyjwt[crypto]==2.3.0
     #   edx-drf-extensions
 pymongo==3.12.1
     # via edx-opaque-keys
-pyparsing==2.4.7
+pyparsing==3.0.6
     # via packaging
 pysrt==1.1.2
     # via -r requirements/base.in
@@ -162,7 +164,7 @@ requests==2.26.0
     #   pact-python
     #   pyjwkest
     #   responses
-responses==0.15.0
+responses==0.16.0
     # via -r requirements/test.in
 semantic-version==2.8.5
     # via edx-drf-extensions
@@ -191,7 +193,7 @@ toml==0.10.2
     # via pytest
 tomli==1.2.2
     # via coverage
-typing-extensions==3.10.0.2
+typing-extensions==4.0.0
     # via pydantic
 urllib3==1.26.7
     # via
