@@ -9,8 +9,10 @@ anyio==3.3.4
 appdirs==1.4.4
     # via fs
 asgiref==3.4.1
-    # via uvicorn
-astroid==2.8.4
+    # via
+    #   django
+    #   uvicorn
+astroid==2.8.5
     # via
     #   pylint
     #   pylint-celery
@@ -66,7 +68,7 @@ diff-cover==6.4.2
     # via -r requirements/dev.in
 distlib==0.3.3
     # via virtualenv
-django==2.2.24
+django==3.2.9
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -118,11 +120,11 @@ edx-toggles==4.2.0
     # via -r requirements/base.in
 fastapi==0.70.0
     # via pact-python
-filelock==3.3.2
+filelock==3.4.0
     # via
     #   tox
     #   virtualenv
-fs==2.4.13
+fs==2.4.14
     # via -r requirements/test.in
 future==0.18.2
     # via pyjwkest
@@ -169,20 +171,20 @@ mock==4.0.3
     # via -r requirements/test.in
 newrelic==7.2.4.171
     # via edx-django-utils
-packaging==21.2
+packaging==21.3
     # via
     #   bleach
     #   pytest
     #   tox
 pact-python==1.4.5
     # via -r requirements/test.in
-pbr==5.7.0
+pbr==5.8.0
     # via stevedore
 pep517==0.12.0
     # via pip-tools
 pip-tools==6.4.0
     # via -r requirements/dev.in
-pkginfo==1.7.1
+pkginfo==1.8.0
     # via twine
 platformdirs==2.4.0
     # via
@@ -237,7 +239,7 @@ pylint-plugin-utils==0.6
     #   pylint-django
 pymongo==3.12.1
     # via edx-opaque-keys
-pyparsing==2.4.7
+pyparsing==3.0.6
     # via packaging
 pysrt==1.1.2
     # via -r requirements/base.in
@@ -272,7 +274,7 @@ requests==2.26.0
     #   twine
 requests-toolbelt==0.9.1
     # via twine
-responses==0.15.0
+responses==0.16.0
     # via -r requirements/test.in
 rfc3986==1.5.0
     # via twine
@@ -294,7 +296,7 @@ six==1.16.0
     #   virtualenv
 sniffio==1.2.0
     # via anyio
-snowballstemmer==2.1.0
+snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.4.2
     # via django
@@ -326,7 +328,7 @@ tqdm==4.62.3
     # via twine
 twine==3.6.0
     # via -r requirements/quality.in
-typing-extensions==3.10.0.2
+typing-extensions==4.0.0
     # via
     #   astroid
     #   pydantic
