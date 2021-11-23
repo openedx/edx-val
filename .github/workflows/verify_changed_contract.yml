@@ -8,7 +8,6 @@ on:
 env:
   CHANGED_PACT_URL: ${{ github.event.client_payload.pact_url }}
   GIT_ENV: Production
-  PACT_BROKER_BASE_URL: https://edx.pactflow.io
   PACT_BROKER_TOKEN: ${{ secrets.PACT_FLOW_ACCESS_TOKEN }}
   PUBLISH_VERIFICATION_RESULTS: true
   VERIFY_WITH_BROKER: false
