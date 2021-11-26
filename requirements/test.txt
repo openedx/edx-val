@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-anyio==3.3.4
+anyio==3.4.0
     # via starlette
 appdirs==1.4.4
     # via fs
@@ -22,7 +22,7 @@ cffi==1.15.0
     # via cryptography
 chardet==4.0.0
     # via pysrt
-charset-normalizer==2.0.7
+charset-normalizer==2.0.8
     # via requests
 click==8.0.3
     # via
@@ -35,7 +35,7 @@ coverage[toml]==6.1.2
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==35.0.0
+cryptography==36.0.0
     # via
     #   django-fernet-fields
     #   pyjwt

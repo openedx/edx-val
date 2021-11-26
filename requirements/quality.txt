@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-anyio==3.3.4
+anyio==3.4.0
     # via starlette
 appdirs==1.4.4
     # via fs
@@ -12,7 +12,7 @@ asgiref==3.4.1
     # via
     #   django
     #   uvicorn
-astroid==2.8.5
+astroid==2.9.0
     # via
     #   pylint
     #   pylint-celery
@@ -28,7 +28,7 @@ cffi==1.15.0
     # via cryptography
 chardet==4.0.0
     # via pysrt
-charset-normalizer==2.0.7
+charset-normalizer==2.0.8
     # via requests
 click==8.0.3
     # via
@@ -49,7 +49,7 @@ coverage[toml]==6.1.2
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==35.0.0
+cryptography==36.0.0
     # via
     #   django-fernet-fields
     #   pyjwt
@@ -88,7 +88,7 @@ djangorestframework==3.12.4
     # via
     #   drf-jwt
     #   edx-drf-extensions
-docutils==0.18
+docutils==0.18.1
     # via readme-renderer
 drf-jwt==1.19.1
     # via edx-drf-extensions
@@ -132,7 +132,7 @@ jeepney==0.7.1
     #   secretstorage
 jinja2==3.0.3
     # via code-annotations
-keyring==23.2.1
+keyring==23.3.0
     # via twine
 lazy-object-proxy==1.6.0
     # via astroid
@@ -154,7 +154,7 @@ pact-python==1.4.5
     # via -r requirements/test.in
 pbr==5.8.0
     # via stevedore
-pkginfo==1.8.0
+pkginfo==1.8.1
     # via twine
 platformdirs==2.4.0
     # via pylint
@@ -184,7 +184,7 @@ pyjwt[crypto]==2.3.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.11.1
+pylint==2.12.1
     # via
     #   edx-lint
     #   pylint-celery
