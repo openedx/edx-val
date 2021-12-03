@@ -31,7 +31,7 @@ click==8.0.3
     #   uvicorn
 code-annotations==1.2.0
     # via edx-toggles
-coverage[toml]==6.1.2
+coverage[toml]==6.2
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -134,7 +134,7 @@ pyjwt[crypto]==2.3.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==3.12.1
+pymongo==4.0
     # via edx-opaque-keys
 pyparsing==3.0.6
     # via packaging
@@ -146,7 +146,7 @@ pytest==6.2.5
     #   pytest-django
 pytest-cov==3.0.0
     # via -r requirements/test.in
-pytest-django==4.4.0
+pytest-django==4.5.1
     # via -r requirements/test.in
 python-dateutil==2.8.2
     # via edx-drf-extensions
@@ -193,7 +193,7 @@ toml==0.10.2
     # via pytest
 tomli==1.2.2
     # via coverage
-typing-extensions==4.0.0
+typing-extensions==4.0.1
     # via pydantic
 urllib3==1.26.7
     # via
