@@ -378,11 +378,15 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
     }
 
     file_format = metadata.get('file_format')
-    if file_format and file_format not in list(dict(TranscriptFormat.CHOICES).keys()):
+    if file_format and file_format not in list(
+            dict(TranscriptFormat.CHOICES).keys()  # pylint: disable=consider-iterating-dictionary
+    ):
         raise InvalidTranscriptFormat(f'{file_format} transcript format is not supported')
 
     provider = metadata.get('provider')
-    if provider and provider not in list(dict(TranscriptProviderType.CHOICES).keys()):
+    if provider and provider not in list(
+            dict(TranscriptProviderType.CHOICES).keys()  # pylint: disable=consider-iterating-dictionary
+    ):
         raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
 
     try:
