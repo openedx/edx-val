@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-anyio==3.4.0
+anyio==3.5.0
     # via starlette
 appdirs==1.4.4
     # via fs
@@ -12,14 +12,12 @@ asgiref==3.4.1
     # via
     #   django
     #   uvicorn
-astroid==2.9.0
+astroid==2.9.3
     # via
     #   pylint
     #   pylint-celery
-attrs==21.2.0
+attrs==21.4.0
     # via pytest
-backports.entry-points-selectable==1.1.1
-    # via virtualenv
 bleach==4.1.0
     # via readme-renderer
 boto==2.49.0
@@ -32,7 +30,7 @@ chardet==4.0.0
     # via
     #   diff-cover
     #   pysrt
-charset-normalizer==2.0.8
+charset-normalizer==2.0.10
     # via requests
 click==8.0.3
     # via
@@ -57,18 +55,18 @@ coverage[toml]==6.2
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements/ci.in
-cryptography==36.0.0
+cryptography==36.0.1
     # via
     #   django-fernet-fields
     #   pyjwt
     #   secretstorage
 ddt==1.4.4
     # via -r requirements/test.in
-diff-cover==6.4.3
+diff-cover==6.4.4
     # via -r requirements/dev.in
-distlib==0.3.3
+distlib==0.3.4
     # via virtualenv
-django==3.2.9
+django==3.2.11
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -91,12 +89,12 @@ django-model-utils==4.2.0
     # via -r requirements/base.in
 django-storages==1.12.3
     # via -r requirements/base.in
-django-waffle==2.2.1
+django-waffle==2.3.0
     # via
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.12.4
+djangorestframework==3.13.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
@@ -104,9 +102,9 @@ docopt==0.6.2
     # via coveralls
 docutils==0.18.1
     # via readme-renderer
-drf-jwt==1.19.1
+drf-jwt==1.19.2
     # via edx-drf-extensions
-edx-django-utils==4.4.0
+edx-django-utils==4.4.1
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -118,9 +116,9 @@ edx-opaque-keys==2.2.2
     # via edx-drf-extensions
 edx-toggles==4.2.0
     # via -r requirements/base.in
-fastapi==0.70.0
+fastapi==0.71.0
     # via pact-python
-filelock==3.4.0
+filelock==3.4.2
     # via
     #   tox
     #   virtualenv
@@ -134,7 +132,7 @@ idna==3.3
     # via
     #   anyio
     #   requests
-importlib-metadata==4.8.2
+importlib-metadata==4.10.0
     # via
     #   keyring
     #   twine
@@ -152,11 +150,11 @@ jinja2==3.0.3
     # via
     #   code-annotations
     #   diff-cover
-keyring==23.4.0
+keyring==23.5.0
     # via twine
-lazy-object-proxy==1.6.0
+lazy-object-proxy==1.7.1
     # via astroid
-lxml==4.6.4
+lxml==4.7.1
     # via -r requirements/base.in
 markupsafe==2.0.1
     # via jinja2
@@ -171,7 +169,7 @@ packaging==21.3
     #   bleach
     #   pytest
     #   tox
-pact-python==1.4.5
+pact-python==1.4.6
     # via -r requirements/test.in
 pbr==5.8.0
     # via stevedore
@@ -181,7 +179,7 @@ pip-tools==6.4.0
     # via -r requirements/dev.in
 pkginfo==1.8.2
     # via twine
-platformdirs==2.4.0
+platformdirs==2.4.1
     # via
     #   pylint
     #   virtualenv
@@ -190,7 +188,7 @@ pluggy==1.0.0
     #   diff-cover
     #   pytest
     #   tox
-psutil==5.8.0
+psutil==5.9.0
     # via
     #   edx-django-utils
     #   pact-python
@@ -202,13 +200,13 @@ pycodestyle==2.8.0
     # via -r requirements/quality.in
 pycparser==2.21
     # via cffi
-pycryptodomex==3.11.0
+pycryptodomex==3.12.0
     # via pyjwkest
-pydantic==1.8.2
+pydantic==1.9.0
     # via fastapi
 pydocstyle==6.1.1
     # via -r requirements/quality.in
-pygments==2.10.0
+pygments==2.11.2
     # via
     #   diff-cover
     #   readme-renderer
@@ -218,7 +216,7 @@ pyjwt[crypto]==2.3.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.12.1
+pylint==2.12.2
     # via
     #   edx-lint
     #   pylint-celery
@@ -226,13 +224,13 @@ pylint==2.12.1
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via edx-lint
-pylint-django==2.4.4
+pylint-django==2.5.0
     # via edx-lint
-pylint-plugin-utils==0.6
+pylint-plugin-utils==0.7
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.0
+pymongo==4.0.1
     # via edx-opaque-keys
 pyparsing==3.0.6
     # via packaging
@@ -244,7 +242,7 @@ pytest==6.2.5
     #   pytest-django
 pytest-cov==3.0.0
     # via -r requirements/test.in
-pytest-django==4.5.1
+pytest-django==4.5.2
     # via -r requirements/test.in
 python-dateutil==2.8.2
     # via edx-drf-extensions
@@ -253,12 +251,13 @@ python-slugify==5.0.2
 pytz==2021.3
     # via
     #   django
+    #   djangorestframework
     #   fs
 pyyaml==6.0
     # via code-annotations
-readme-renderer==30.0
+readme-renderer==32.0
     # via twine
-requests==2.26.0
+requests==2.27.1
     # via
     #   coveralls
     #   edx-drf-extensions
@@ -269,9 +268,9 @@ requests==2.26.0
     #   twine
 requests-toolbelt==0.9.1
     # via twine
-responses==0.16.0
+responses==0.17.0
     # via -r requirements/test.in
-rfc3986==1.5.0
+rfc3986==2.0.0
     # via twine
 secretstorage==3.3.1
     # via keyring
@@ -295,7 +294,7 @@ snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.4.2
     # via django
-starlette==0.16.0
+starlette==0.17.1
     # via fastapi
 stevedore==3.5.0
     # via
@@ -309,11 +308,11 @@ toml==0.10.2
     #   pylint
     #   pytest
     #   tox
-tomli==1.2.2
+tomli==2.0.0
     # via
     #   coverage
     #   pep517
-tox==3.24.4
+tox==3.24.5
     # via
     #   -r requirements/ci.in
     #   tox-battery
@@ -321,29 +320,29 @@ tox-battery==0.6.1
     # via -r requirements/ci.in
 tqdm==4.62.3
     # via twine
-twine==3.7.0
+twine==3.7.1
     # via -r requirements/quality.in
 typing-extensions==4.0.1
     # via
     #   astroid
     #   pydantic
     #   pylint
-urllib3==1.26.7
+urllib3==1.26.8
     # via
     #   pact-python
     #   requests
     #   responses
-uvicorn==0.15.0
+uvicorn==0.16.0
     # via pact-python
-virtualenv==20.10.0
+virtualenv==20.13.0
     # via tox
 webencodings==0.5.1
     # via bleach
-wheel==0.37.0
+wheel==0.37.1
     # via pip-tools
 wrapt==1.13.3
     # via astroid
-zipp==3.6.0
+zipp==3.7.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
