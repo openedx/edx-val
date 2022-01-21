@@ -2,7 +2,6 @@
 The internal API for VAL.
 """
 
-
 import logging
 from enum import Enum
 from uuid import uuid4
@@ -378,11 +377,11 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
     }
 
     file_format = metadata.get('file_format')
-    if file_format and file_format not in list(dict(TranscriptFormat.CHOICES).keys()):
+    if file_format and file_format not in list(dict(TranscriptFormat.CHOICES)):
         raise InvalidTranscriptFormat(f'{file_format} transcript format is not supported')
 
     provider = metadata.get('provider')
-    if provider and provider not in list(dict(TranscriptProviderType.CHOICES).keys()):
+    if provider and provider not in list(dict(TranscriptProviderType.CHOICES)):
         raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
 
     try:
@@ -541,9 +540,9 @@ def _get_video(edx_video_id):
     try:
         encoded_videos = EncodedVideo.objects.select_related("profile")
         return Video.objects \
-                    .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
-                    .prefetch_related("courses") \
-                    .get(edx_video_id=edx_video_id)
+            .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
+            .prefetch_related("courses") \
+            .get(edx_video_id=edx_video_id)
     except Video.DoesNotExist as no_video_error:
         error_message = f"Video not found for edx_video_id: {edx_video_id}"
         raise ValVideoNotFoundError(error_message) from no_video_error
@@ -991,7 +990,9 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     # See https://openedx.atlassian.net/browse/TNL-7338
     if hasattr(resource_fs, '_sub_dir'):
         try:
-            static_file_dir = combine(resource_fs._sub_dir.split('/')[1], static_dir)  # pylint: disable=protected-access
+            static_file_dir = combine(
+                resource_fs._sub_dir.split('/')[1], static_dir  # pylint: disable=protected-access
+            )
         except KeyError:
             logger.exception(
                 "VAL Transcript Export: Error creating static directory path for video {} in file system {}".format(
