@@ -30,7 +30,7 @@ chardet==4.0.0
     # via
     #   diff-cover
     #   pysrt
-charset-normalizer==2.0.10
+charset-normalizer==2.0.11
     # via requests
 click==8.0.3
     # via
@@ -48,7 +48,7 @@ code-annotations==1.2.0
     #   edx-toggles
 colorama==0.4.4
     # via twine
-coverage[toml]==6.3
+coverage[toml]==6.3.1
     # via
     #   -r requirements/test.in
     #   coveralls
@@ -59,14 +59,13 @@ cryptography==36.0.1
     # via
     #   django-fernet-fields
     #   pyjwt
-    #   secretstorage
 ddt==1.4.4
     # via -r requirements/test.in
 diff-cover==6.4.4
     # via -r requirements/dev.in
 distlib==0.3.4
     # via virtualenv
-django==3.2.11
+django==3.2.12
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -104,7 +103,7 @@ docutils==0.18.1
     # via readme-renderer
 drf-jwt==1.19.2
     # via edx-drf-extensions
-edx-django-utils==4.4.2
+edx-django-utils==4.5.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -112,9 +111,9 @@ edx-drf-extensions==8.0.1
     # via -r requirements/base.in
 edx-lint==5.2.1
     # via -r requirements/quality.in
-edx-opaque-keys==2.2.2
+edx-opaque-keys==2.3.0
     # via edx-drf-extensions
-edx-toggles==4.2.0
+edx-toggles==4.3.1
     # via -r requirements/base.in
 fastapi==0.73.0
     # via pact-python
@@ -142,10 +141,6 @@ isort==5.10.1
     # via
     #   -r requirements/quality.in
     #   pylint
-jeepney==0.7.1
-    # via
-    #   keyring
-    #   secretstorage
 jinja2==3.0.3
     # via
     #   code-annotations
@@ -200,7 +195,7 @@ pycodestyle==2.8.0
     # via -r requirements/quality.in
 pycparser==2.21
     # via cffi
-pycryptodomex==3.13.0
+pycryptodomex==3.14.0
     # via pyjwkest
 pydantic==1.9.0
     # via fastapi
@@ -230,7 +225,7 @@ pylint-plugin-utils==0.7
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.0.1
+pymongo==3.12.3
     # via edx-opaque-keys
 pyparsing==3.0.7
     # via packaging
@@ -272,8 +267,6 @@ responses==0.17.0
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
-secretstorage==3.3.1
-    # via keyring
 semantic-version==2.8.5
     # via edx-drf-extensions
 six==1.16.0
@@ -332,7 +325,7 @@ urllib3==1.26.8
     #   pact-python
     #   requests
     #   responses
-uvicorn==0.17.0.post1
+uvicorn==0.17.1
     # via pact-python
 virtualenv==20.13.0
     # via tox

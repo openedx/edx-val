@@ -22,7 +22,7 @@ cffi==1.15.0
     # via cryptography
 chardet==4.0.0
     # via pysrt
-charset-normalizer==2.0.10
+charset-normalizer==2.0.11
     # via requests
 click==8.0.3
     # via
@@ -31,7 +31,7 @@ click==8.0.3
     #   uvicorn
 code-annotations==1.2.0
     # via edx-toggles
-coverage[toml]==6.3
+coverage[toml]==6.3.1
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -74,15 +74,15 @@ djangorestframework==3.13.1
     #   edx-drf-extensions
 drf-jwt==1.19.2
     # via edx-drf-extensions
-edx-django-utils==4.4.2
+edx-django-utils==4.5.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
 edx-drf-extensions==8.0.1
     # via -r requirements/base.in
-edx-opaque-keys==2.2.2
+edx-opaque-keys==2.3.0
     # via edx-drf-extensions
-edx-toggles==4.2.0
+edx-toggles==4.3.1
     # via -r requirements/base.in
 fastapi==0.73.0
     # via pact-python
@@ -124,7 +124,7 @@ py==1.11.0
     # via pytest
 pycparser==2.21
     # via cffi
-pycryptodomex==3.13.0
+pycryptodomex==3.14.0
     # via pyjwkest
 pydantic==1.9.0
     # via fastapi
@@ -134,7 +134,7 @@ pyjwt[crypto]==2.3.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.0.1
+pymongo==3.12.3
     # via edx-opaque-keys
 pyparsing==3.0.7
     # via packaging
@@ -201,7 +201,7 @@ urllib3==1.26.8
     #   pact-python
     #   requests
     #   responses
-uvicorn==0.17.0.post1
+uvicorn==0.17.1
     # via pact-python
 
 # The following packages are considered to be unsafe in a requirements file:
