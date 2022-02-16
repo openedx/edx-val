@@ -994,9 +994,8 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
             static_file_dir = combine(resource_fs._sub_dir.split('/')[1], static_dir)  # pylint: disable=protected-access
         except KeyError:
             logger.exception(
-                "VAL Transcript Export: Error creating static directory path for video {} in file system {}".format(
-                    video_id, resource_fs
-                )
+                "VAL Transcript Export: Error creating static directory path for video %s in file system %s",
+                video_id, resource_fs
             )
 
     transcript_files_map = {}

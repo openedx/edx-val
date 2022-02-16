@@ -78,6 +78,7 @@ class SortedVideoTestMixin:
     """
     Test Mixin for testing api functions that sort the returned videos.
     """
+
     def _check_sort(self, api_func, sort_field, expected_ids_for_asc):
         """
         Assert that sorting by given field returns videos in the expected
@@ -295,6 +296,7 @@ class GetVideoInfoTest(TestCase):
     """
     Tests for our `get_video_info` and `is_video_available` methods in api.py
     """
+
     def setUp(self):
         """
         Creates EncodedVideo objects in database
@@ -1038,6 +1040,7 @@ class ExportTest(TestCase):
     """
     Tests export_to_xml method.
     """
+
     def setUp(self):
         super().setUp()
         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
@@ -1260,7 +1263,7 @@ class ExportTest(TestCase):
         )
 
         # Also verify the content of created transcript file.
-        for language_code in transcript_files.keys():  # pylint: disable=consider-iterating-dictionary
+        for language_code in transcript_files.keys():
             expected_transcript_content = File(
                 open(combine(expected_transcript_path, transcript_files[language_code]), 'rb')
             ).read()
@@ -2624,6 +2627,7 @@ class TranscriptTest(TestCase):
     """
     Tests to check transcript related functions.
     """
+
     def setUp(self):
         """
         Creates video and video transcript objects.
@@ -3135,6 +3139,7 @@ class TranscriptPreferencesTest(TestCase):
     """
     TranscriptPreferences API Tests
     """
+
     def setUp(self):
         """
         Tests setup
@@ -3234,6 +3239,7 @@ class TranscripCredentialsStateTest(TestCase):
     """
     ThirdPartyTranscriptCredentialsState Tests
     """
+
     def setUp(self):
         """
         Tests setup

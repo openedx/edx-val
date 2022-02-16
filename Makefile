@@ -32,8 +32,14 @@ coverage: clean ## generate and view HTML coverage report
 	coverage report html
 	$(BROWSER) htmlcov/index.html
 
-export CUSTOM_COMPILE_COMMAND = make upgrade
-upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
+COMMON_CONSTRAINTS_TXT=requirements/common_constraints.txt
+.PHONY: $(COMMON_CONSTRAINTS_TXT)
+$(COMMON_CONSTRAINTS_TXT):
+	wget -O "$(@)" https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt || touch "$(@)"
+
+
+upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
+upgrade:  $(COMMON_CONSTRAINTS_TXT) ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	pip install -q pip-tools
 	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/pip.txt requirements/pip.in
 	pip-compile --rebuild --upgrade -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/ci.in
