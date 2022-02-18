@@ -4,15 +4,15 @@
 #
 #    make upgrade
 #
-anyio==3.4.0
+anyio==3.5.0
     # via starlette
 appdirs==1.4.4
     # via fs
-asgiref==3.4.1
+asgiref==3.5.0
     # via
     #   django
     #   uvicorn
-attrs==21.2.0
+attrs==21.4.0
     # via pytest
 boto==2.49.0
     # via -r requirements/base.in
@@ -22,20 +22,20 @@ cffi==1.15.0
     # via cryptography
 chardet==4.0.0
     # via pysrt
-charset-normalizer==2.0.8
+charset-normalizer==2.0.12
     # via requests
 click==8.0.3
     # via
     #   code-annotations
     #   pact-python
     #   uvicorn
-code-annotations==1.2.0
+code-annotations==1.3.0
     # via edx-toggles
-coverage[toml]==6.2
+coverage[toml]==6.3.1
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==36.0.0
+cryptography==36.0.1
     # via
     #   django-fernet-fields
     #   pyjwt
@@ -63,34 +63,34 @@ django-model-utils==4.2.0
     # via -r requirements/base.in
 django-storages==1.12.3
     # via -r requirements/base.in
-django-waffle==2.2.1
+django-waffle==2.3.0
     # via
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.12.4
+djangorestframework==3.13.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-drf-jwt==1.19.1
+drf-jwt==1.19.2
     # via edx-drf-extensions
-edx-django-utils==4.4.0
+edx-django-utils==4.5.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
 edx-drf-extensions==8.0.1
     # via -r requirements/base.in
-edx-opaque-keys==2.2.2
+edx-opaque-keys==2.3.0
     # via edx-drf-extensions
-edx-toggles==4.2.0
+edx-toggles==4.3.1
     # via -r requirements/base.in
-fastapi==0.70.0
+fastapi==0.74.0
     # via pact-python
-fs==2.4.14
+fs==2.4.15
     # via -r requirements/test.in
 future==0.18.2
     # via pyjwkest
-h11==0.12.0
+h11==0.13.0
     # via uvicorn
 idna==3.3
     # via
@@ -100,23 +100,23 @@ iniconfig==1.1.1
     # via pytest
 jinja2==3.0.3
     # via code-annotations
-lxml==4.6.4
+lxml==4.8.0
     # via -r requirements/base.in
 markupsafe==2.0.1
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==7.2.4.171
+newrelic==7.4.0.172
     # via edx-django-utils
 packaging==21.3
     # via pytest
-pact-python==1.4.5
+pact-python==1.5.0
     # via -r requirements/test.in
-pbr==5.8.0
+pbr==5.8.1
     # via stevedore
 pluggy==1.0.0
     # via pytest
-psutil==5.8.0
+psutil==5.9.0
     # via
     #   edx-django-utils
     #   pact-python
@@ -124,9 +124,9 @@ py==1.11.0
     # via pytest
 pycparser==2.21
     # via cffi
-pycryptodomex==3.11.0
+pycryptodomex==3.14.1
     # via pyjwkest
-pydantic==1.8.2
+pydantic==1.9.0
     # via fastapi
 pyjwkest==1.4.2
     # via edx-drf-extensions
@@ -134,39 +134,40 @@ pyjwt[crypto]==2.3.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.0
+pymongo==3.12.3
     # via edx-opaque-keys
-pyparsing==3.0.6
+pyparsing==3.0.7
     # via packaging
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==6.2.5
+pytest==7.0.1
     # via
     #   pytest-cov
     #   pytest-django
 pytest-cov==3.0.0
     # via -r requirements/test.in
-pytest-django==4.5.1
+pytest-django==4.5.2
     # via -r requirements/test.in
 python-dateutil==2.8.2
     # via edx-drf-extensions
-python-slugify==5.0.2
+python-slugify==6.0.1
     # via code-annotations
 pytz==2021.3
     # via
     #   django
+    #   djangorestframework
     #   fs
 pyyaml==6.0
     # via code-annotations
-requests==2.26.0
+requests==2.27.1
     # via
     #   edx-drf-extensions
     #   pact-python
     #   pyjwkest
     #   responses
-responses==0.16.0
+responses==0.18.0
     # via -r requirements/test.in
-semantic-version==2.8.5
+semantic-version==2.9.0
     # via edx-drf-extensions
 six==1.16.0
     # via
@@ -175,12 +176,11 @@ six==1.16.0
     #   pact-python
     #   pyjwkest
     #   python-dateutil
-    #   responses
 sniffio==1.2.0
     # via anyio
 sqlparse==0.4.2
     # via django
-starlette==0.16.0
+starlette==0.17.1
     # via fastapi
 stevedore==3.5.0
     # via
@@ -189,18 +189,18 @@ stevedore==3.5.0
     #   edx-opaque-keys
 text-unidecode==1.3
     # via python-slugify
-toml==0.10.2
-    # via pytest
-tomli==1.2.2
-    # via coverage
-typing-extensions==4.0.1
+tomli==2.0.1
+    # via
+    #   coverage
+    #   pytest
+typing-extensions==4.1.1
     # via pydantic
-urllib3==1.26.7
+urllib3==1.26.8
     # via
     #   pact-python
     #   requests
     #   responses
-uvicorn==0.15.0
+uvicorn==0.17.5
     # via pact-python
 
 # The following packages are considered to be unsafe in a requirements file:
