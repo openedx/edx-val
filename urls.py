@@ -1,13 +1,13 @@
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, path
 
 urlpatterns = [
     # Django Admin
-    url(r'^admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
 
     # Allow Django Rest Framework Auth login
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
     # edx-val
-    url(r'^edxval/', include('edxval.urls'))
+    path('edxval/', include('edxval.urls'))
 ]

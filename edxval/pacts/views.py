@@ -36,6 +36,6 @@ def provider_state(request):
     state = request_body.get('state')
     clear_database()
     if state in state_setup_mapping:
-        logger.info('Setting up provider state for state value: {}'.format(state))
+        logger.info('Setting up provider state for state value: %s', state)
         state_setup_mapping[state]()
     return JsonResponse({'result': state})
