@@ -49,6 +49,7 @@ ddt==1.4.4
     #   django-storages
     #   djangorestframework
     #   drf-jwt
+    #   edx-django-release-util
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
@@ -73,6 +74,8 @@ djfernet==0.8.1
     # via -r requirements/base.in
 drf-jwt==1.19.2
     # via edx-drf-extensions
+edx-django-release-util==1.2.0
+    # via -r requirements/base.in
 edx-django-utils==4.5.0
     # via
     #   edx-drf-extensions
@@ -105,7 +108,7 @@ markupsafe==2.1.0
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==7.4.0.172
+newrelic==7.6.0.173
     # via edx-django-utils
 packaging==21.3
     # via pytest
@@ -149,7 +152,7 @@ pytest-django==4.5.2
     # via -r requirements/test.in
 python-dateutil==2.8.2
     # via edx-drf-extensions
-python-slugify==6.1.0
+python-slugify==6.1.1
     # via code-annotations
 pytz==2021.3
     # via
@@ -157,7 +160,9 @@ pytz==2021.3
     #   djangorestframework
     #   fs
 pyyaml==6.0
-    # via code-annotations
+    # via
+    #   code-annotations
+    #   edx-django-release-util
 requests==2.27.1
     # via
     #   edx-drf-extensions
@@ -170,6 +175,7 @@ semantic-version==2.9.0
     # via edx-drf-extensions
 six==1.16.0
     # via
+    #   edx-django-release-util
     #   edx-drf-extensions
     #   fs
     #   pact-python

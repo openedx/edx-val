@@ -8,6 +8,7 @@ djfernet
 django-model-utils
 django-storages
 edx-drf-extensions
+edx-django-release-util
 edx-toggles>=2.0.0
 lxml
 pysrt
