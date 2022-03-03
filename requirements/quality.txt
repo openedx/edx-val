@@ -53,6 +53,7 @@ cryptography==36.0.1
     # via
     #   djfernet
     #   pyjwt
+    #   secretstorage
 ddt==1.4.4
     # via -r requirements/test.in
 django==3.2.12
@@ -127,6 +128,10 @@ isort==5.10.1
     # via
     #   -r requirements/quality.in
     #   pylint
+jeepney==0.7.1
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.0.3
     # via code-annotations
 keyring==23.5.0
@@ -151,6 +156,8 @@ pact-python==1.5.0
     # via -r requirements/test.in
 pbr==5.8.1
     # via stevedore
+pillow==9.0.1
+    # via -r requirements/base.in
 pkginfo==1.8.2
     # via twine
 platformdirs==2.5.1
@@ -238,6 +245,8 @@ responses==0.18.0
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
+secretstorage==3.3.1
+    # via keyring
 semantic-version==2.9.0
     # via edx-drf-extensions
 six==1.16.0

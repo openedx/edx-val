@@ -116,6 +116,8 @@ pact-python==1.5.0
     # via -r requirements/test.in
 pbr==5.8.1
     # via stevedore
+pillow==9.0.1
+    # via -r requirements/base.in
 pluggy==1.0.0
     # via pytest
 psutil==5.9.0
