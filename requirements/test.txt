@@ -105,7 +105,7 @@ markupsafe==2.1.0
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==7.4.0.172
+newrelic==7.6.0.173
     # via edx-django-utils
 packaging==21.3
     # via pytest
@@ -149,7 +149,7 @@ pytest-django==4.5.2
     # via -r requirements/test.in
 python-dateutil==2.8.2
     # via edx-drf-extensions
-python-slugify==6.1.0
+python-slugify==6.1.1
     # via code-annotations
 pytz==2021.3
     # via
