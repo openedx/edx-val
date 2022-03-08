@@ -65,6 +65,7 @@ django==3.2.12
     #   django-storages
     #   djangorestframework
     #   drf-jwt
+    #   edx-django-release-util
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
@@ -91,6 +92,8 @@ docutils==0.18.1
     # via readme-renderer
 drf-jwt==1.19.2
     # via edx-drf-extensions
+edx-django-release-util==1.2.0
+    # via -r requirements/base.in
 edx-django-utils==4.5.0
     # via
     #   edx-drf-extensions
@@ -153,6 +156,8 @@ pact-python==1.5.0
     # via -r requirements/test.in
 pbr==5.8.1
     # via stevedore
+pillow==9.0.1
+    # via -r requirements/base.in
 pkginfo==1.8.2
     # via twine
 platformdirs==2.5.1
@@ -221,7 +226,9 @@ pytz==2021.3
     #   djangorestframework
     #   fs
 pyyaml==6.0
-    # via code-annotations
+    # via
+    #   code-annotations
+    #   edx-django-release-util
 readme-renderer==32.0
     # via twine
 requests==2.27.1
@@ -245,6 +252,7 @@ semantic-version==2.9.0
 six==1.16.0
     # via
     #   bleach
+    #   edx-django-release-util
     #   edx-drf-extensions
     #   edx-lint
     #   fs

@@ -8,6 +8,8 @@ djfernet
 django-model-utils
 django-storages
 edx-drf-extensions
+edx-django-release-util             # for reserved keywords linter
+pillow                              # for reserved keywords linter
 edx-toggles>=2.0.0
 lxml
 pysrt

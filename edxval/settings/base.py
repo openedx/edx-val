@@ -116,6 +116,7 @@ INSTALLED_APPS = (
 
     # Third Party
     'rest_framework',
+    'release_util',
     'storages',
     'waffle',
 
