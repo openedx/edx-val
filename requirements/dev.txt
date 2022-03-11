@@ -118,7 +118,7 @@ edx-opaque-keys==2.3.0
     # via edx-drf-extensions
 edx-toggles==4.3.1
     # via -r requirements/base.in
-fastapi==0.74.1
+fastapi==0.75.0
     # via pact-python
 filelock==3.6.0
     # via
@@ -171,7 +171,7 @@ packaging==21.3
     #   bleach
     #   pytest
     #   tox
-pact-python==1.5.0
+pact-python==1.5.1
     # via -r requirements/test.in
 pbr==5.8.1
     # via stevedore
@@ -261,7 +261,7 @@ pyyaml==6.0
     # via
     #   code-annotations
     #   edx-django-release-util
-readme-renderer==32.0
+readme-renderer==33.0
     # via twine
 requests==2.27.1
     # via
@@ -274,7 +274,7 @@ requests==2.27.1
     #   twine
 requests-toolbelt==0.9.1
     # via twine
-responses==0.18.0
+responses==0.19.0
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
@@ -341,7 +341,7 @@ urllib3==1.26.8
     #   twine
 uvicorn==0.17.5
     # via pact-python
-virtualenv==20.13.2
+virtualenv==20.13.3
     # via tox
 webencodings==0.5.1
     # via bleach
