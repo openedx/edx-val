@@ -86,7 +86,7 @@ edx-opaque-keys==2.3.0
     # via edx-drf-extensions
 edx-toggles==4.3.1
     # via -r requirements/base.in
-fastapi==0.75.0
+fastapi==0.75.1
     # via pact-python
 fs==2.4.15
     # via -r requirements/test.in
@@ -108,7 +108,7 @@ markupsafe==2.1.1
     # via jinja2
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==7.8.0.174
+newrelic==7.10.0.175
     # via edx-django-utils
 packaging==21.3
     # via pytest
@@ -116,7 +116,7 @@ pact-python==1.5.2
     # via -r requirements/test.in
 pbr==5.8.1
     # via stevedore
-pillow==9.0.1
+pillow==9.1.0
     # via -r requirements/base.in
 pluggy==1.0.0
     # via pytest
