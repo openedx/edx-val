@@ -58,7 +58,7 @@ ddt==1.4.4
     # via -r requirements/test.in
 dill==0.3.4
     # via pylint
-django==3.2.12
+django==3.2.13
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -206,7 +206,7 @@ pylint-plugin-utils==0.7
     #   pylint-django
 pymongo==3.12.3
     # via edx-opaque-keys
-pyparsing==3.0.7
+pyparsing==3.0.8
     # via packaging
 pysrt==1.1.2
     # via -r requirements/base.in
