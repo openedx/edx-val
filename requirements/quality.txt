@@ -12,7 +12,7 @@ asgiref==3.5.0
     # via
     #   django
     #   uvicorn
-astroid==2.11.2
+astroid==2.11.3
     # via
     #   pylint
     #   pylint-celery
@@ -108,7 +108,7 @@ edx-opaque-keys==2.3.0
     # via edx-drf-extensions
 edx-toggles==4.3.1
     # via -r requirements/base.in
-fastapi==0.75.1
+fastapi==0.75.2
     # via pact-python
 fs==2.4.15
     # via -r requirements/test.in
@@ -160,7 +160,7 @@ pillow==9.1.0
     # via -r requirements/base.in
 pkginfo==1.8.2
     # via twine
-platformdirs==2.5.1
+platformdirs==2.5.2
     # via pylint
 pluggy==1.0.0
     # via pytest
@@ -190,7 +190,7 @@ pyjwt[crypto]==2.3.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.13.5
+pylint==2.13.7
     # via
     #   edx-lint
     #   pylint-celery
@@ -231,7 +231,7 @@ pyyaml==6.0
     # via
     #   code-annotations
     #   edx-django-release-util
-readme-renderer==34.0
+readme-renderer==35.0
     # via twine
 requests==2.27.1
     # via
@@ -249,7 +249,7 @@ rfc3986==2.0.0
     # via twine
 rich==12.2.0
     # via twine
-secretstorage==3.3.1
+secretstorage==3.3.2
     # via keyring
 semantic-version==2.9.0
     # via edx-drf-extensions
@@ -285,7 +285,7 @@ tomli==2.0.1
     #   pytest
 twine==4.0.0
     # via -r requirements/quality.in
-typing-extensions==4.1.1
+typing-extensions==4.2.0
     # via
     #   astroid
     #   pydantic
