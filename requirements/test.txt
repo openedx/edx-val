@@ -86,7 +86,7 @@ edx-opaque-keys==2.3.0
     # via edx-drf-extensions
 edx-toggles==4.3.1
     # via -r requirements/base.in
-fastapi==0.75.1
+fastapi==0.75.2
     # via pact-python
 fs==2.4.15
     # via -r requirements/test.in
@@ -200,7 +200,7 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-typing-extensions==4.1.1
+typing-extensions==4.2.0
     # via pydantic
 urllib3==1.26.9
     # via
