@@ -24,7 +24,7 @@ chardet==4.0.0
     # via pysrt
 charset-normalizer==2.0.12
     # via requests
-click==8.1.2
+click==8.1.3
     # via
     #   code-annotations
     #   pact-python
@@ -35,7 +35,7 @@ coverage[toml]==6.3.2
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==36.0.2
+cryptography==37.0.1
     # via
     #   djfernet
     #   pyjwt
@@ -100,7 +100,7 @@ idna==3.3
     #   requests
 iniconfig==1.1.1
     # via pytest
-jinja2==3.1.1
+jinja2==3.1.2
     # via code-annotations
 lxml==4.8.0
     # via -r requirements/base.in
@@ -144,7 +144,7 @@ pyparsing==3.0.8
     # via packaging
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==7.1.1
+pytest==7.1.2
     # via
     #   pytest-cov
     #   pytest-django
@@ -154,7 +154,7 @@ pytest-django==4.5.2
     # via -r requirements/test.in
 python-dateutil==2.8.2
     # via edx-drf-extensions
-python-slugify==6.1.1
+python-slugify==6.1.2
     # via code-annotations
 pytz==2022.1
     # via
