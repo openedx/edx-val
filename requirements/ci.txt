@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-certifi==2021.10.8
+certifi==2022.5.18.1
     # via requests
 charset-normalizer==2.0.12
     # via requests
@@ -16,7 +16,7 @@ distlib==0.3.4
     # via virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.6.0
+filelock==3.7.0
     # via
     #   tox
     #   virtualenv
