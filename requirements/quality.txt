@@ -12,7 +12,7 @@ asgiref==3.5.2
     # via
     #   django
     #   uvicorn
-astroid==2.11.5
+astroid==2.11.6
     # via
     #   pylint
     #   pylint-celery
@@ -22,7 +22,7 @@ bleach==5.0.0
     # via readme-renderer
 boto==2.49.0
     # via -r requirements/base.in
-certifi==2022.5.18.1
+certifi==2022.6.15
     # via requests
 cffi==1.15.0
     # via
@@ -105,7 +105,7 @@ edx-django-utils==5.0.0
     #   edx-toggles
 edx-drf-extensions==8.0.1
     # via -r requirements/base.in
-edx-lint==5.2.3
+edx-lint==5.2.4
     # via -r requirements/quality.in
 edx-opaque-keys==2.3.0
     # via edx-drf-extensions
@@ -193,7 +193,7 @@ pyjwt[crypto]==2.4.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.14.1
+pylint==2.14.2
     # via
     #   edx-lint
     #   pylint-celery
