@@ -3,4 +3,3 @@
 -c constraints.txt
 
 diff-cover                # Changeset diff test coverage
-pip-tools                 # Requirements file management

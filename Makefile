@@ -37,11 +37,14 @@ COMMON_CONSTRAINTS_TXT=requirements/common_constraints.txt
 $(COMMON_CONSTRAINTS_TXT):
 	wget -O "$(@)" https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt || touch "$(@)"
 
-
 upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
-upgrade:  $(COMMON_CONSTRAINTS_TXT) ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
-	pip install -q pip-tools
+upgrade: $(COMMON_CONSTRAINTS_TXT)
+	## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
+	pip install -qr requirements/pip-tools.txt
 	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/pip.txt requirements/pip.in
+	pip-compile --rebuild --upgrade -o requirements/pip-tools.txt requirements/pip-tools.in
+	pip install -qr requirements/pip.txt
+	pip install -qr requirements/pip-tools.txt
 	pip-compile --rebuild --upgrade -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/ci.in
 	pip-compile --rebuild --upgrade -o requirements/quality.txt requirements/base.in requirements/quality.in requirements/test.in
 	pip-compile --rebuild --upgrade -o requirements/test.txt requirements/base.in requirements/test.in
