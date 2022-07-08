@@ -55,7 +55,7 @@ coverage[toml]==6.4.1
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements/ci.in
-cryptography==37.0.2
+cryptography==37.0.4
     # via
     #   djfernet
     #   pyjwt
@@ -68,7 +68,7 @@ dill==0.3.5.1
     # via pylint
 distlib==0.3.4
     # via virtualenv
-django==3.2.13
+django==3.2.14
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -102,7 +102,7 @@ djfernet==0.8.1
     # via -r requirements/base.in
 docopt==0.6.2
     # via coveralls
-docutils==0.18.1
+docutils==0.19
     # via readme-renderer
 drf-jwt==1.19.2
     # via edx-drf-extensions
@@ -158,7 +158,7 @@ keyring==23.6.0
     # via twine
 lazy-object-proxy==1.7.1
     # via astroid
-lxml==4.9.0
+lxml==4.9.1
     # via -r requirements/base.in
 markupsafe==2.1.1
     # via jinja2
@@ -176,7 +176,7 @@ pact-python==1.5.2
     # via -r requirements/test.in
 pbr==5.9.0
     # via stevedore
-pillow==9.1.1
+pillow==9.2.0
     # via -r requirements/base.in
 pkginfo==1.8.3
     # via twine
@@ -317,7 +317,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.11.0
+tomlkit==0.11.1
     # via pylint
 tox==3.25.1
     # via
@@ -327,14 +327,14 @@ tox-battery==0.6.1
     # via -r requirements/ci.in
 twine==4.0.1
     # via -r requirements/quality.in
-typing-extensions==4.2.0
+typing-extensions==4.3.0
     # via
     #   astroid
     #   pydantic
     #   pylint
     #   rich
     #   starlette
-urllib3==1.26.9
+urllib3==1.26.10
     # via
     #   pact-python
     #   requests
