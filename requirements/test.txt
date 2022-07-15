@@ -32,7 +32,7 @@ click==8.1.3
     #   uvicorn
 code-annotations==1.3.0
     # via edx-toggles
-coverage[toml]==6.4.1
+coverage[toml]==6.4.2
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -87,7 +87,7 @@ edx-opaque-keys==2.3.0
     # via edx-drf-extensions
 edx-toggles==5.0.0
     # via -r requirements/base.in
-fastapi==0.78.0
+fastapi==0.79.0
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
@@ -191,7 +191,7 @@ sqlparse==0.4.2
     # via django
 starlette==0.19.1
     # via fastapi
-stevedore==3.5.0
+stevedore==4.0.0
     # via
     #   code-annotations
     #   edx-django-utils
