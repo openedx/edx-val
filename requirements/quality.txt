@@ -80,7 +80,7 @@ django-model-utils==4.2.0
     # via -r requirements/base.in
 django-storages==1.12.3
     # via -r requirements/base.in
-django-waffle==2.5.0
+django-waffle==2.6.0
     # via
     #   edx-django-utils
     #   edx-drf-extensions
@@ -149,7 +149,7 @@ mccabe==0.7.0
     # via pylint
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==7.14.0.177
+newrelic==7.16.0.178
     # via edx-django-utils
 packaging==21.3
     # via pytest
@@ -191,7 +191,7 @@ pyjwt[crypto]==2.4.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.14.4
+pylint==2.14.5
     # via
     #   edx-lint
     #   pylint-celery
