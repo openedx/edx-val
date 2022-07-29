@@ -14,7 +14,7 @@ astroid==2.11.7
     # via
     #   pylint
     #   pylint-celery
-attrs==21.4.0
+attrs==22.1.0
     # via pytest
 bleach==5.0.1
     # via readme-renderer
@@ -296,7 +296,7 @@ typing-extensions==4.3.0
     #   pylint
     #   rich
     #   starlette
-urllib3==1.26.10
+urllib3==1.26.11
     # via
     #   pact-python
     #   requests
