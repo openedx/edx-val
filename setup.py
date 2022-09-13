@@ -74,7 +74,7 @@ setup(
     name='edxval',
     version=VERSION,
     author='edX',
-    url='http://github.com/edx/edx-val',
+    url='http://github.com/openedx/edx-val',
     description='edx-val',
     long_description='edx-val',
     long_description_content_type='text/x-rst',
