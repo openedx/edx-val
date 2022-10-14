@@ -10,7 +10,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.5.2
     # via django
-astroid==2.12.10
+astroid==2.12.11
     # via
     #   pylint
     #   pylint-celery
@@ -108,7 +108,7 @@ drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.2.0
     # via -r requirements/base.in
-edx-django-utils==5.1.0
+edx-django-utils==5.2.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -170,7 +170,7 @@ mock==4.0.3
     # via -r requirements/test.in
 more-itertools==8.14.0
     # via jaraco-classes
-newrelic==8.2.0.181
+newrelic==8.2.1
     # via edx-django-utils
 packaging==21.3
     # via
@@ -222,7 +222,7 @@ pyjwt[crypto]==2.5.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.15.3
+pylint==2.15.4
     # via
     #   edx-lint
     #   pylint-celery
@@ -275,9 +275,9 @@ requests==2.28.1
     #   requests-toolbelt
     #   responses
     #   twine
-requests-toolbelt==0.9.1
+requests-toolbelt==0.10.0
     # via twine
-responses==0.21.0
+responses==0.22.0
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
@@ -306,13 +306,15 @@ sqlparse==0.4.3
     # via django
 starlette==0.20.4
     # via fastapi
-stevedore==4.0.0
+stevedore==4.0.1
     # via
     #   code-annotations
     #   edx-django-utils
     #   edx-opaque-keys
 text-unidecode==1.3
     # via python-slugify
+toml==0.10.2
+    # via responses
 tomli==2.0.1
     # via
     #   coverage
@@ -331,6 +333,8 @@ twine==4.0.1
     # via -r requirements/quality.in
 types-cryptography==3.3.23
     # via pyjwt
+types-toml==0.10.8
+    # via responses
 typing-extensions==4.4.0
     # via
     #   astroid
@@ -352,7 +356,7 @@ webencodings==0.5.1
     # via bleach
 wrapt==1.14.1
     # via astroid
-zipp==3.8.1
+zipp==3.9.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
