@@ -9,11 +9,12 @@ on:
          description: 'Target branch to create requirements PR against'
          required: true
          default: 'master'
+
 jobs:
    call-upgrade-python-requirements-workflow:
     with:
        branch: ${{ github.event.inputs.branch }}
-       team_reviewers: "Incident Management"
+       team_reviewers: "@openedx/incident-management"
        email_address: incident-management@edx.org
        send_success_notification: false
     secrets:
