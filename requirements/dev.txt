@@ -57,7 +57,6 @@ cryptography==39.0.1
     # via
     #   djfernet
     #   pyjwt
-    #   secretstorage
 ddt==1.6.0
     # via -r requirements/test.in
 diff-cover==7.4.0
@@ -150,10 +149,6 @@ isort==5.12.0
     #   pylint
 jaraco-classes==3.2.3
     # via keyring
-jeepney==0.8.0
-    # via
-    #   keyring
-    #   secretstorage
 jinja2==3.1.2
     # via
     #   code-annotations
@@ -285,8 +280,6 @@ rfc3986==2.0.0
     # via twine
 rich==13.3.1
     # via twine
-secretstorage==3.3.3
-    # via keyring
 semantic-version==2.10.0
     # via edx-drf-extensions
 six==1.16.0
