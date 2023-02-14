@@ -285,7 +285,7 @@ disable =
 	feature-toggle-needs-doc,
 	illegal-waffle-usage,
 	
-	logging-fstring-interpolation,,unicode-format-string, consider-using-with, consider-using-dict-items, django-not-configured, consider-iterating-dictionary, arguments-renamed, no-name-in-module, c-extension-no-member
+	logging-fstring-interpolation,,unicode-format-string, consider-using-with, consider-using-dict-items, django-not-configured, consider-iterating-dictionary, arguments-renamed, no-name-in-module, c-extension-no-member, use-dict-literal
 
 [REPORTS]
 output-format = text
@@ -382,4 +382,4 @@ int-import-graph =
 [EXCEPTIONS]
 overgeneral-exceptions = Exception
 
-# b84747d1620f05d306c71bf893a10fc6de04e2e3
+# e4144201a3f25df503e5cbb5cc51147c12a2d137
