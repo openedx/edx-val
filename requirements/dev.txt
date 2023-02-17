@@ -10,7 +10,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.6.0
     # via django
-astroid==2.14.1
+astroid==2.14.2
     # via
     #   pylint
     #   pylint-celery
@@ -57,6 +57,7 @@ cryptography==39.0.1
     # via
     #   djfernet
     #   pyjwt
+    #   secretstorage
 ddt==1.6.0
     # via -r requirements/test.in
 diff-cover==7.4.0
@@ -65,7 +66,7 @@ dill==0.3.6
     # via pylint
 distlib==0.3.6
     # via virtualenv
-django==3.2.17
+django==3.2.18
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -111,7 +112,7 @@ edx-django-utils==5.2.0
     #   edx-toggles
 edx-drf-extensions==8.4.1
     # via -r requirements/base.in
-edx-lint==5.3.0
+edx-lint==5.3.2
     # via -r requirements/quality.in
 edx-opaque-keys==2.3.0
     # via edx-drf-extensions
@@ -119,7 +120,7 @@ edx-toggles==5.0.0
     # via -r requirements/base.in
 exceptiongroup==1.1.0
     # via pytest
-fastapi==0.90.1
+fastapi==0.92.0
     # via pact-python
 filelock==3.9.0
     # via
@@ -149,6 +150,10 @@ isort==5.12.0
     #   pylint
 jaraco-classes==3.2.3
     # via keyring
+jeepney==0.8.0
+    # via
+    #   keyring
+    #   secretstorage
 jinja2==3.1.2
     # via
     #   code-annotations
@@ -171,7 +176,7 @@ mock==5.0.1
     # via -r requirements/test.in
 more-itertools==9.0.0
     # via jaraco-classes
-newrelic==8.6.0
+newrelic==8.7.0
     # via edx-django-utils
 packaging==23.0
     # via
@@ -206,7 +211,7 @@ pycparser==2.21
     # via cffi
 pycryptodomex==3.17
     # via pyjwkest
-pydantic==1.10.4
+pydantic==1.10.5
     # via fastapi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
@@ -221,7 +226,7 @@ pyjwt[crypto]==2.6.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.16.1
+pylint==2.16.2
     # via
     #   edx-lint
     #   pylint-celery
@@ -280,6 +285,8 @@ rfc3986==2.0.0
     # via twine
 rich==13.3.1
     # via twine
+secretstorage==3.3.3
+    # via keyring
 semantic-version==2.10.0
     # via edx-drf-extensions
 six==1.16.0
@@ -299,9 +306,9 @@ snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.4.3
     # via django
-starlette==0.23.1
+starlette==0.25.0
     # via fastapi
-stevedore==4.1.1
+stevedore==5.0.0
     # via
     #   code-annotations
     #   edx-django-utils
@@ -327,9 +334,9 @@ tox-battery==0.6.1
     # via -r requirements/ci.in
 twine==4.0.2
     # via -r requirements/quality.in
-types-toml==0.10.8.3
+types-toml==0.10.8.4
     # via responses
-typing-extensions==4.4.0
+typing-extensions==4.5.0
     # via
     #   astroid
     #   pydantic

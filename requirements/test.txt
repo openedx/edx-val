@@ -89,7 +89,7 @@ edx-toggles==5.0.0
     # via -r requirements/base.in
 exceptiongroup==1.1.0
     # via pytest
-fastapi==0.90.1
+fastapi==0.92.0
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
@@ -111,7 +111,7 @@ markupsafe==2.1.2
     # via jinja2
 mock==5.0.1
     # via -r requirements/test.in
-newrelic==8.6.0
+newrelic==8.7.0
     # via edx-django-utils
 packaging==23.0
     # via pytest
@@ -131,7 +131,7 @@ pycparser==2.21
     # via cffi
 pycryptodomex==3.17
     # via pyjwkest
-pydantic==1.10.4
+pydantic==1.10.5
     # via fastapi
 pyjwkest==1.4.2
     # via edx-drf-extensions
@@ -187,9 +187,9 @@ sniffio==1.3.0
     # via anyio
 sqlparse==0.4.3
     # via django
-starlette==0.23.1
+starlette==0.25.0
     # via fastapi
-stevedore==4.1.1
+stevedore==5.0.0
     # via
     #   code-annotations
     #   edx-django-utils
@@ -202,9 +202,9 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-types-toml==0.10.8.3
+types-toml==0.10.8.4
     # via responses
-typing-extensions==4.4.0
+typing-extensions==4.5.0
     # via
     #   pydantic
     #   starlette
