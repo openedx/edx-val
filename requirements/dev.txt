@@ -12,7 +12,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.6.0
     # via django
-astroid==2.14.2
+astroid==2.15.1
     # via
     #   pylint
     #   pylint-celery
@@ -35,7 +35,7 @@ chardet==5.1.0
     # via
     #   diff-cover
     #   pysrt
-charset-normalizer==3.0.1
+charset-normalizer==3.1.0
     # via requests
 click==8.1.3
     # via
@@ -58,7 +58,7 @@ coverage[toml]==6.5.0
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements/ci.in
-cryptography==39.0.1
+cryptography==40.0.1
     # via
     #   djfernet
     #   pyjwt
@@ -111,23 +111,23 @@ drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.2.0
     # via -r requirements/base.in
-edx-django-utils==5.2.0
+edx-django-utils==5.3.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
 edx-drf-extensions==8.4.1
     # via -r requirements/base.in
-edx-lint==5.3.2
+edx-lint==5.3.4
     # via -r requirements/quality.in
 edx-opaque-keys==2.3.0
     # via edx-drf-extensions
 edx-toggles==5.0.0
     # via -r requirements/base.in
-exceptiongroup==1.1.0
+exceptiongroup==1.1.1
     # via pytest
-fastapi==0.92.0
+fastapi==0.95.0
     # via pact-python
-filelock==3.9.0
+filelock==3.10.7
     # via
     #   tox
     #   virtualenv
@@ -148,7 +148,7 @@ idna==3.4
     #   anyio
     #   requests
     #   rfc3986
-importlib-metadata==6.0.0
+importlib-metadata==6.1.0
     # via
     #   keyring
     #   twine
@@ -186,9 +186,9 @@ mdurl==0.1.2
     # via markdown-it-py
 mock==5.0.1
     # via -r requirements/test.in
-more-itertools==9.0.0
+more-itertools==9.1.0
     # via jaraco-classes
-newrelic==8.7.0
+newrelic==8.8.0
     # via edx-django-utils
 packaging==23.0
     # via
@@ -202,7 +202,7 @@ pillow==9.4.0
     # via -r requirements/base.in
 pkginfo==1.9.6
     # via twine
-platformdirs==3.0.0
+platformdirs==3.2.0
     # via
     #   pylint
     #   virtualenv
@@ -223,7 +223,7 @@ pycparser==2.21
     # via cffi
 pycryptodomex==3.17
     # via pyjwkest
-pydantic==1.10.5
+pydantic==1.10.7
     # via fastapi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
@@ -238,7 +238,7 @@ pyjwt[crypto]==2.6.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.16.2
+pylint==2.17.1
     # via
     #   edx-lint
     #   pylint-celery
@@ -258,7 +258,7 @@ pynacl==1.5.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==7.2.1
+pytest==7.2.2
     # via
     #   pytest-cov
     #   pytest-django
@@ -268,9 +268,9 @@ pytest-django==4.5.2
     # via -r requirements/test.in
 python-dateutil==2.8.2
     # via edx-drf-extensions
-python-slugify==8.0.0
+python-slugify==8.0.1
     # via code-annotations
-pytz==2022.7.1
+pytz==2023.3
     # via
     #   django
     #   djangorestframework
@@ -278,6 +278,7 @@ pyyaml==6.0
     # via
     #   code-annotations
     #   edx-django-release-util
+    #   responses
 readme-renderer==37.3
     # via twine
 requests==2.28.2
@@ -291,13 +292,13 @@ requests==2.28.2
     #   twine
 requests-toolbelt==0.10.1
     # via twine
-responses==0.22.0
+responses==0.23.1
     # via -r requirements/test.in
 rfc3986[idna2008]==1.5.0
     # via
     #   httpx
     #   twine
-rich==13.3.1
+rich==13.3.3
     # via twine
 secretstorage==3.3.3
     # via keyring
@@ -323,7 +324,7 @@ snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.4.3
     # via django
-starlette==0.25.0
+starlette==0.26.1
     # via fastapi
 stevedore==5.0.0
     # via
@@ -332,15 +333,13 @@ stevedore==5.0.0
     #   edx-opaque-keys
 text-unidecode==1.3
     # via python-slugify
-toml==0.10.2
-    # via responses
 tomli==2.0.1
     # via
     #   coverage
     #   pylint
     #   pytest
     #   tox
-tomlkit==0.11.6
+tomlkit==0.11.7
     # via pylint
 tox==3.28.0
     # via
@@ -351,7 +350,7 @@ tox-battery==0.6.1
     # via -r requirements/ci.in
 twine==4.0.2
     # via -r requirements/quality.in
-types-toml==0.10.8.5
+types-pyyaml==6.0.12.9
     # via responses
 typing-extensions==4.5.0
     # via
@@ -360,21 +359,21 @@ typing-extensions==4.5.0
     #   pylint
     #   rich
     #   starlette
-urllib3==1.26.14
+urllib3==1.26.15
     # via
     #   pact-python
     #   requests
     #   responses
     #   twine
-uvicorn==0.20.0
+uvicorn==0.21.1
     # via pact-python
-virtualenv==20.19.0
+virtualenv==20.21.0
     # via tox
 webencodings==0.5.1
     # via bleach
-wrapt==1.14.1
+wrapt==1.15.0
     # via astroid
-zipp==3.14.0
+zipp==3.15.0
     # via
     #   importlib-metadata
     #   importlib-resources
