@@ -12,7 +12,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.6.0
     # via django
-astroid==2.15.2
+astroid==2.15.4
     # via
     #   pylint
     #   pylint-celery
@@ -47,11 +47,11 @@ code-annotations==1.3.0
     # via
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.2.3
+coverage[toml]==7.2.5
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==40.0.1
+cryptography==40.0.2
     # via
     #   djfernet
     #   pyjwt
@@ -60,7 +60,7 @@ ddt==1.6.0
     # via -r requirements/test.in
 dill==0.3.6
     # via pylint
-django==3.2.18
+django==3.2.19
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -102,7 +102,7 @@ edx-django-utils==5.4.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
-edx-drf-extensions==8.6.0
+edx-drf-extensions==8.7.0
     # via -r requirements/base.in
 edx-lint==5.3.4
     # via -r requirements/quality.in
@@ -131,7 +131,7 @@ idna==3.4
     #   anyio
     #   requests
     #   rfc3986
-importlib-metadata==6.3.0
+importlib-metadata==6.6.0
     # via
     #   keyring
     #   twine
@@ -165,7 +165,7 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-mock==5.0.1
+mock==5.0.2
     # via -r requirements/test.in
 more-itertools==9.1.0
     # via jaraco-classes
@@ -181,11 +181,11 @@ pillow==9.5.0
     # via -r requirements/base.in
 pkginfo==1.9.6
     # via twine
-platformdirs==3.2.0
+platformdirs==3.5.0
     # via pylint
 pluggy==1.0.0
     # via pytest
-psutil==5.9.4
+psutil==5.9.5
     # via
     #   edx-django-utils
     #   pact-python
@@ -199,7 +199,7 @@ pydantic==1.10.7
     # via fastapi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
-pygments==2.15.0
+pygments==2.15.1
     # via
     #   readme-renderer
     #   rich
@@ -209,7 +209,7 @@ pyjwt[crypto]==2.6.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==2.17.2
+pylint==2.17.3
     # via
     #   edx-lint
     #   pylint-celery
@@ -229,7 +229,7 @@ pynacl==1.5.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==7.3.0
+pytest==7.3.1
     # via
     #   pytest-cov
     #   pytest-django
@@ -252,7 +252,7 @@ pyyaml==6.0
     #   responses
 readme-renderer==37.3
     # via twine
-requests==2.28.2
+requests==2.30.0
     # via
     #   edx-drf-extensions
     #   pact-python
@@ -260,7 +260,7 @@ requests==2.28.2
     #   requests-toolbelt
     #   responses
     #   twine
-requests-toolbelt==0.10.1
+requests-toolbelt==1.0.0
     # via twine
 responses==0.23.1
     # via -r requirements/test.in
@@ -268,7 +268,7 @@ rfc3986[idna2008]==1.5.0
     # via
     #   httpx
     #   twine
-rich==13.3.4
+rich==13.3.5
     # via twine
 secretstorage==3.3.3
     # via keyring
@@ -291,7 +291,7 @@ sniffio==1.3.0
     #   httpx
 snowballstemmer==2.2.0
     # via pydocstyle
-sqlparse==0.4.3
+sqlparse==0.4.4
     # via django
 starlette==0.26.1
     # via fastapi
@@ -307,7 +307,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.11.7
+tomlkit==0.11.8
     # via pylint
 twine==4.0.2
     # via -r requirements/quality.in
@@ -320,13 +320,13 @@ typing-extensions==4.5.0
     #   pylint
     #   rich
     #   starlette
-urllib3==1.26.15
+urllib3==2.0.2
     # via
     #   pact-python
     #   requests
     #   responses
     #   twine
-uvicorn==0.21.1
+uvicorn==0.22.0
     # via pact-python
 webencodings==0.5.1
     # via bleach
