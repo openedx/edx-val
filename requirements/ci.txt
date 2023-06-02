@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-certifi==2022.12.7
+certifi==2023.5.7
     # via requests
 charset-normalizer==3.1.0
     # via requests
@@ -16,7 +16,7 @@ distlib==0.3.6
     # via virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.11.0
+filelock==3.12.0
     # via
     #   tox
     #   virtualenv
@@ -24,13 +24,13 @@ idna==3.4
     # via requests
 packaging==23.1
     # via tox
-platformdirs==3.2.0
+platformdirs==3.5.1
     # via virtualenv
 pluggy==1.0.0
     # via tox
 py==1.11.0
     # via tox
-requests==2.28.2
+requests==2.31.0
     # via coveralls
 six==1.16.0
     # via tox
@@ -43,7 +43,7 @@ tox==3.28.0
     #   tox-battery
 tox-battery==0.6.1
     # via -r requirements/ci.in
-urllib3==1.26.15
+urllib3==2.0.2
     # via requests
-virtualenv==20.21.0
+virtualenv==20.23.0
     # via tox
