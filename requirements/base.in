@@ -2,7 +2,6 @@
 
 -c constraints.txt
 
-boto
 Django
 djfernet
 django-model-utils
