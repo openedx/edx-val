@@ -92,7 +92,7 @@ exceptiongroup==1.1.1
     # via
     #   anyio
     #   pytest
-fastapi==0.95.2
+fastapi==0.96.0
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
@@ -115,7 +115,7 @@ jinja2==3.1.2
     # via code-annotations
 lxml==4.9.2
     # via -r requirements/base.in
-markupsafe==2.1.2
+markupsafe==2.1.3
     # via jinja2
 mock==5.0.2
     # via -r requirements/test.in
@@ -137,7 +137,7 @@ psutil==5.9.5
     #   pact-python
 pycparser==2.21
     # via cffi
-pydantic==1.10.8
+pydantic==1.10.9
     # via fastapi
 pyjwt[crypto]==2.7.0
     # via
@@ -215,7 +215,7 @@ typing-extensions==4.6.3
     #   asgiref
     #   pydantic
     #   starlette
-urllib3==2.0.2
+urllib3==2.0.3
     # via
     #   pact-python
     #   requests
