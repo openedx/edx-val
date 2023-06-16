@@ -112,7 +112,7 @@ exceptiongroup==1.1.1
     # via
     #   anyio
     #   pytest
-fastapi==0.95.2
+fastapi==0.97.0
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
@@ -155,9 +155,9 @@ lazy-object-proxy==1.9.0
     # via astroid
 lxml==4.9.2
     # via -r requirements/base.in
-markdown-it-py==2.2.0
+markdown-it-py==3.0.0
     # via rich
-markupsafe==2.1.2
+markupsafe==2.1.3
     # via jinja2
 mccabe==0.7.0
     # via pylint
@@ -179,7 +179,7 @@ pillow==9.5.0
     # via -r requirements/base.in
 pkginfo==1.9.6
     # via twine
-platformdirs==3.5.1
+platformdirs==3.5.3
     # via pylint
 pluggy==1.0.0
     # via pytest
@@ -191,7 +191,7 @@ pycodestyle==2.10.0
     # via -r requirements/quality.in
 pycparser==2.21
     # via cffi
-pydantic==1.10.8
+pydantic==1.10.9
     # via fastapi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
@@ -223,7 +223,7 @@ pynacl==1.5.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==7.3.1
+pytest==7.3.2
     # via
     #   pytest-cov
     #   pytest-django
@@ -261,7 +261,7 @@ rfc3986[idna2008]==1.5.0
     # via
     #   httpx
     #   twine
-rich==13.4.1
+rich==13.4.2
     # via twine
 secretstorage==3.3.3
     # via keyring
@@ -313,7 +313,7 @@ typing-extensions==4.6.3
     #   pylint
     #   rich
     #   starlette
-urllib3==2.0.2
+urllib3==2.0.3
     # via
     #   pact-python
     #   requests
