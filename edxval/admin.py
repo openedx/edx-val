@@ -68,10 +68,7 @@ class VideoImageAdmin(admin.ModelAdmin):
             course_id=obj.course_video.course_id,
             edx_video_id=obj.course_video.video.edx_video_id
         )
-
-
     model = VideoImage
-
     verbose_name = 'Video Image'
     verbose_name_plural = 'Video Images'
 
@@ -89,8 +86,6 @@ class CourseVideoAdmin(admin.ModelAdmin):
     def get_video_id(self, obj):
         """ get video id """
         return obj.video.edx_video_id
-
-
     model = CourseVideo
     verbose_name = 'Course Video'
     verbose_name_plural = 'Course Videos'
@@ -110,8 +105,6 @@ class VideoTranscriptAdmin(admin.ModelAdmin):
     def get_video(self, transcript):
         """ get video """
         return transcript.video.edx_video_id if getattr(transcript, 'video', False) else ''
-
-
     model = VideoTranscript
     verbose_name = 'Video Transcript'
     verbose_name_plural = 'Video Transcripts'
