@@ -133,5 +133,3 @@ class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
     model = ThirdPartyTranscriptCredentialsState
     verbose_name = 'Organization Transcript Credential State'
     verbose_name_plural = 'Organization Transcript Credentials State'
-
-
