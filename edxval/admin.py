@@ -17,6 +17,7 @@ from .models import (
 )
 
 
+@admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     """ Admin for profile """
     list_display = ('id', 'profile_name')
@@ -37,6 +38,7 @@ class CourseVideoInline(admin.TabularInline):
     verbose_name_plural = "Courses"
 
 
+@admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
     """ Admin for Video """
     list_display = (
@@ -49,12 +51,17 @@ class VideoAdmin(admin.ModelAdmin):
     inlines = [CourseVideoInline, EncodedVideoInline]
 
 
+@admin.register(VideoImage)
 class VideoImageAdmin(admin.ModelAdmin):
     """ Admin for VideoImage """
     raw_id_fields = ('course_video', )
     list_display = ('get_course_video', 'image', 'generated_images')
     search_fields = ('id', 'course_video__course_id', 'course_video__video__edx_video_id', 'generated_images')
 
+    @admin.display(
+        description='Course Video',
+        ordering='course_video',
+    )
     def get_course_video(self, obj):
         """ get course video """
         return '"{course_id}" -- "{edx_video_id}" '.format(
@@ -62,8 +69,6 @@ class VideoImageAdmin(admin.ModelAdmin):
             edx_video_id=obj.course_video.video.edx_video_id
         )
 
-    get_course_video.admin_order_field = 'course_video'
-    get_course_video.short_description = 'Course Video'
 
     model = VideoImage
 
@@ -71,41 +76,48 @@ class VideoImageAdmin(admin.ModelAdmin):
     verbose_name_plural = 'Video Images'
 
 
+@admin.register(CourseVideo)
 class CourseVideoAdmin(admin.ModelAdmin):
     """ Admin for CourseVideo """
     list_display = ('course_id', 'get_video_id', 'is_hidden')
     search_fields = ('id', 'course_id', 'video__status', 'video__edx_video_id')
 
+    @admin.display(
+        description='edX Video Id',
+        ordering='video',
+    )
     def get_video_id(self, obj):
         """ get video id """
         return obj.video.edx_video_id
 
-    get_video_id.admin_order_field = 'video'
-    get_video_id.short_description = 'edX Video Id'
 
     model = CourseVideo
     verbose_name = 'Course Video'
     verbose_name_plural = 'Course Videos'
 
 
+@admin.register(VideoTranscript)
 class VideoTranscriptAdmin(admin.ModelAdmin):
     """ Admin for VideoTranscript """
     raw_id_fields = ('video',)
     list_display = ('get_video', 'language_code', 'provider', 'file_format')
     search_fields = ('id', 'video__edx_video_id', 'language_code')
 
+    @admin.display(
+        description='Video',
+        ordering='video',
+    )
     def get_video(self, transcript):
         """ get video """
         return transcript.video.edx_video_id if getattr(transcript, 'video', False) else ''
 
-    get_video.admin_order_field = 'video'
-    get_video.short_description = 'Video'
 
     model = VideoTranscript
     verbose_name = 'Video Transcript'
     verbose_name_plural = 'Video Transcripts'
 
 
+@admin.register(TranscriptPreference)
 class TranscriptPreferenceAdmin(admin.ModelAdmin):
     """ Admin for TranscriptPreference """
     list_display = ('course_id', 'provider', 'video_source_language', 'preferred_languages')
@@ -113,6 +125,7 @@ class TranscriptPreferenceAdmin(admin.ModelAdmin):
     model = TranscriptPreference
 
 
+@admin.register(ThirdPartyTranscriptCredentialsState)
 class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
     """ Admin for ThirdPartyTranscriptCredentialsState  """
     list_display = ('org', 'provider', 'has_creds', 'created', 'modified')
@@ -122,10 +135,3 @@ class ThirdPartyTranscriptCredentialsStateAdmin(admin.ModelAdmin):
     verbose_name_plural = 'Organization Transcript Credentials State'
 
 
-admin.site.register(Profile, ProfileAdmin)
-admin.site.register(Video, VideoAdmin)
-admin.site.register(VideoTranscript, VideoTranscriptAdmin)
-admin.site.register(TranscriptPreference, TranscriptPreferenceAdmin)
-admin.site.register(VideoImage, VideoImageAdmin)
-admin.site.register(CourseVideo, CourseVideoAdmin)
-admin.site.register(ThirdPartyTranscriptCredentialsState, ThirdPartyTranscriptCredentialsStateAdmin)
