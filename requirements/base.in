@@ -3,7 +3,6 @@
 -c constraints.txt
 
 Django
-djfernet
 django-model-utils
 django-storages
 edx-drf-extensions

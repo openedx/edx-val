@@ -97,7 +97,6 @@ djangorestframework==3.14.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-djfernet==0.8.1
     # via -r requirements/base.in
 docopt==0.6.2
     # via coveralls
