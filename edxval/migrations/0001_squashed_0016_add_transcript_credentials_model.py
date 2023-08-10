@@ -6,7 +6,6 @@ import django.db.migrations.operations.special
 import django.db.models.deletion
 import django.utils.timezone
 import edxval.models
-import fernet_fields.fields
 import model_utils.fields
 
 
@@ -170,8 +169,6 @@ class Migration(migrations.Migration):
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('org', models.CharField(help_text='This value must match the value of organization in studio/edx-platform.', max_length=50, verbose_name='Organization')),
                 ('provider', models.CharField(choices=[('Custom', 'Custom'), ('3PlayMedia', '3PlayMedia'), ('Cielo24', 'Cielo24')], max_length=50, verbose_name='Transcript provider')),
-                ('api_key', fernet_fields.fields.EncryptedTextField(max_length=255, verbose_name='API key')),
-                ('api_secret', fernet_fields.fields.EncryptedTextField(max_length=255, verbose_name='API secret')),
             ],
             options={
                 'verbose_name_plural': 'Transcript Credentials',
