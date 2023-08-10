@@ -6,7 +6,6 @@ import django.db.migrations.operations.special
 import django.db.models.deletion
 import django.utils.timezone
 import edxval.models
-import fernet_fields.fields
 import model_utils.fields
 
 
