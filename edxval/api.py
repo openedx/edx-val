@@ -733,6 +733,51 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
     )
 
 
+def get_transcript_details_for_course(course_id):
+    """
+    Gets all the transcript for a course and bundles up data.
+
+    Args:
+        course_id (String)
+
+    Returns:
+        (dict): Returns all the edx_video_id's and related transcript details for a course
+        {
+        'edx_video_id': {
+            'lang_code': {
+                'provider': 'What the provider is',
+                'content': 'Content of the transcript',
+                'file_format': 'file format',
+                'url': 'location of the file',
+                'name': 'name of the file',
+                'size': size of the file
+            }
+        }
+    """
+    course_transcripts_data = {}
+
+    course_videos = CourseVideo.objects.filter(course_id=course_id).select_related('video')
+    for course_video in course_videos:
+
+        edx_video_id = course_video.video.edx_video_id
+        transcript_data = {}
+
+        video_transcripts = VideoTranscript.objects.filter(video=course_video.video)
+        for video_transcript in video_transcripts:
+            transcript_data[video_transcript.language_code] = {
+                'provider': video_transcript.provider,
+                'content': video_transcript.transcript.file.read(),
+                'file_format': video_transcript.file_format,
+                'url': video_transcript.transcript.url,
+                'name': video_transcript.transcript.name,
+                'size': video_transcript.transcript.size,
+            }
+
+        course_transcripts_data[edx_video_id] = transcript_data
+
+    return course_transcripts_data
+
+
 def remove_video_for_course(course_id, edx_video_id):
     """
     Soft deletes video for particular course.
