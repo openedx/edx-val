@@ -1108,12 +1108,7 @@ class CourseTranscriptsDetailViewTest(APIAuthTestCase):
     """
     CourseTranscriptsDetailView Tests.
     """
-    def setUp(self):
-        """
-        Tests setup.
-        """
-        self.base_url = 'course-transcripts'
-        super().setUp()
+    base_url = 'course-transcripts'
 
     def test_successful_response(self):
         """
