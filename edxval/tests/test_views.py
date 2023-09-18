@@ -4,6 +4,7 @@ Tests for Video Abstraction Layer views
 
 
 import json
+from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
@@ -1101,3 +1102,28 @@ class HLSMissingVideoViewTest(APIAuthTestCase):
         self.assertEqual(actual_encoded_video.url, expected_data['encode_data']['url'])
         self.assertEqual(actual_encoded_video.file_size, expected_data['encode_data']['file_size'])
         self.assertEqual(actual_encoded_video.bitrate, expected_data['encode_data']['bitrate'])
+
+
+class CourseTranscriptsDetailViewTest(APIAuthTestCase):
+    """
+    CourseTranscriptsDetailView Tests.
+    """
+    base_url = 'course-transcripts'
+
+    def test_successful_response(self):
+        """
+        Test succesful response from view
+        """
+        with patch(
+            'edxval.views.get_transcript_details_for_course'
+        ) as mock_transcript_details:
+            # Simulate a return value when the function is called.
+            mock_transcript_details.return_value = {}
+            course_id = 'course-v1:edx+1+2023_05'
+            url = reverse(self.base_url, args=[course_id])
+            response = self.client.get(url)
+
+            # Verify the function was called once with course_id
+            mock_transcript_details.assert_called_once_with(course_id)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)

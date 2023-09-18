@@ -2684,6 +2684,12 @@ class TranscriptTest(TestCase):
         self.v2_transcript1 = video_and_transcripts['transcripts']['de']
         self.v2_transcript2 = video_and_transcripts['transcripts']['zh']
 
+        # Add the videos to courses
+        self.course_id1 = 'test-course-1'
+        self.course_id2 = 'test-course-2'
+        CourseVideo.objects.create(video=self.video1, course_id=self.course_id1)
+        CourseVideo.objects.create(video=self.video2, course_id=self.course_id2)
+
         self.temp_dir = mkdtemp()
         self.addCleanup(shutil.rmtree, self.temp_dir)
 
@@ -3132,6 +3138,33 @@ class TranscriptTest(TestCase):
 
         # Verify no file is created.
         self.assertEqual(file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR), [])
+
+    def test_get_transcript_details_for_course(self):
+        """
+        Verify that `get_transcript_details_for_course` api function works as expected.
+        """
+
+        course_transcript = api.get_transcript_details_for_course(self.course_id1)
+
+        self.assertEqual(course_transcript['super-soaker']['en']['provider'], TranscriptProviderType.THREE_PLAY_MEDIA)
+        self.assertIn('content', course_transcript['super-soaker']['en'])
+        self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
+        self.assertIn('url', course_transcript['super-soaker']['en'])
+        self.assertIn('name', course_transcript['super-soaker']['en'])
+        self.assertIn('size', course_transcript['super-soaker']['en'])
+
+        self.assertEqual(course_transcript['super-soaker']['fr']['provider'], TranscriptProviderType.CIELO24)
+        self.assertIn('content', course_transcript['super-soaker']['fr'])
+        self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
+        self.assertIn('url', course_transcript['super-soaker']['fr'])
+        self.assertIn('name', course_transcript['super-soaker']['fr'])
+        self.assertIn('size', course_transcript['super-soaker']['fr'])
+
+    def test_get_transcript_details_for_course_no_course_videos(self):
+
+        course_transcript = api.get_transcript_details_for_course('this-is-not-a-course-id')
+
+        self.assertEqual(len(course_transcript), 0)
 
 
 @ddt

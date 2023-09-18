@@ -19,6 +19,9 @@ urlpatterns = [
     path('videos/missing-hls/', views.HLSMissingVideoView.as_view(),
          name='hls-missing-video'
          ),
+    path('videos/course-transcripts/<str:course_id>/', views.CourseTranscriptsDetailView.as_view(),
+         name='course-transcripts'
+         ),
     path('videos/video-transcripts/create/', views.VideoTranscriptView.as_view(),
          name='create-video-transcript'
          ),
