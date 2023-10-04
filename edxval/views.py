@@ -14,7 +14,7 @@ from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from edxval.api import create_or_update_video_transcript, get_transcript_details_for_course
+from edxval.api import create_or_update_video_transcript, get_transcript_details_for_course, get_video_ids_for_course
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -190,6 +190,23 @@ class CourseTranscriptsDetailView(APIView):
 
         course_data = get_transcript_details_for_course(course_id)
         return Response(status=status.HTTP_200_OK, data=course_data)
+
+
+class CourseVideoIDsView(APIView):
+    """
+    A view to get video ids related to a course_id.
+    """
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
+
+    def get(self, _, course_id):
+        """
+        Returns all video_ids for a course when given a course_id.
+        """
+        if not course_id:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'course_id param required'})
+
+        video_ids = get_video_ids_for_course(course_id)
+        return Response(status=status.HTTP_200_OK, data=video_ids)
 
 
 class VideoStatusView(APIView):

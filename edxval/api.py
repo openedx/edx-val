@@ -777,6 +777,21 @@ def get_transcript_details_for_course(course_id):
 
     return course_transcripts_data
 
+def get_video_ids_for_course(course_id):
+    """
+    Gets video_ids for a course.
+
+    Args:
+        course_id (String)
+
+    Returns:
+        (list): Returns all the edx_video_id's for a course
+    """
+
+    course_videos = CourseVideo.objects.filter(course_id=course_id).select_related('video')
+    video_ids = [cv.video.edx_video_id for cv in course_videos]
+    return video_ids
+
 
 def remove_video_for_course(course_id, edx_video_id):
     """

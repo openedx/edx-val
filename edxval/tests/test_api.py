@@ -749,6 +749,18 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
             return videos
         self.check_sort_params_of_api(api_func)
 
+    def test_get_video_ids_for_course(self):
+
+        course_transcript = api.get_video_ids_for_course(self.course_id)
+
+        self.assertEqual(len(course_transcript), 1)
+
+    def test_get_video_ids_for_course_no_course_videos(self):
+
+        course_transcript = api.get_video_ids_for_course('this-is-not-a-course-id')
+
+        self.assertEqual(len(course_transcript), 0)
+
 
 @ddt
 class GetYouTubeProfileVideosTest(TestCase):
