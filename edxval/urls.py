@@ -28,6 +28,9 @@ urlpatterns = [
     path('videos/video-images/update/', views.VideoImagesView.as_view(),
          name='update-video-images'
          ),
+    path('videos/courses/<str:course_id>/video-ids', views.CourseVideoIDsView.as_view(),
+         name='course-video-ids'
+         ),
 ]
 
 if getattr(settings, 'PROVIDER_STATES_SETUP_VIEW_URL', None):

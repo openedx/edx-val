@@ -1127,3 +1127,28 @@ class CourseTranscriptsDetailViewTest(APIAuthTestCase):
             mock_transcript_details.assert_called_once_with(course_id)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class CourseVideoIDsViewTest(APIAuthTestCase):
+    """
+    CourseVideoIDsViewTest Tests.
+    """
+    base_url = 'course-transcripts'
+
+    def test_successful_response(self):
+        """
+        Test succesful response from view
+        """
+        with patch(
+            'edxval.views.get_video_ids_for_course'
+        ) as mock_video_ids:
+            # Simulate a return value when the function is called.
+            mock_video_ids.return_value = []
+            course_id = 'course-v1:edx+1+2023_05'
+            url = reverse('course-video-ids', args=[course_id])
+            response = self.client.get(url)
+
+            # Verify the function was called once with course_id
+            mock_video_ids.assert_called_once_with(course_id)
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
