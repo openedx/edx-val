@@ -28,7 +28,7 @@ urlpatterns = [
     path('videos/video-images/update/', views.VideoImagesView.as_view(),
          name='update-video-images'
          ),
-    path('videos/<str:course_id>/video_ids/', views.CourseVideoIDsView.as_view(),
+    path('videos/courses/<str:course_id>/video_ids', views.CourseVideoIDsView.as_view(),
          name='course-video-ids'
          ),
 ]

@@ -202,9 +202,6 @@ class CourseVideoIDsView(APIView):
         """
         Returns all video_ids for a course when given a course_id.
         """
-        if not course_id:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'course_id param required'})
-
         video_ids = get_video_ids_for_course(course_id)
         return Response(status=status.HTTP_200_OK, data=video_ids)
 
