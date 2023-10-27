@@ -40,7 +40,7 @@ coverage[toml]==7.3.2
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==41.0.4
+cryptography==41.0.5
     # via pyjwt
 ddt==1.6.0
     # via -r requirements/test.in
@@ -152,7 +152,7 @@ pynacl==1.5.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==7.4.2
+pytest==7.4.3
     # via
     #   pytest-cov
     #   pytest-django

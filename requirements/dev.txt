@@ -55,7 +55,7 @@ coverage[toml]==6.5.0
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements/ci.in
-cryptography==41.0.4
+cryptography==41.0.5
     # via
     #   pyjwt
     #   secretstorage
@@ -112,7 +112,7 @@ edx-django-utils==5.7.0
     #   edx-toggles
 edx-drf-extensions==8.12.0
     # via -r requirements/base.in
-edx-lint==5.3.4
+edx-lint==5.3.6
     # via -r requirements/quality.in
 edx-opaque-keys==2.5.1
     # via edx-drf-extensions
@@ -240,7 +240,7 @@ pylint==3.0.2
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via edx-lint
-pylint-django==2.5.4
+pylint-django==2.5.5
     # via edx-lint
 pylint-plugin-utils==0.8.2
     # via
@@ -252,7 +252,7 @@ pynacl==1.5.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==7.4.2
+pytest==7.4.3
     # via
     #   pytest-cov
     #   pytest-django
@@ -357,7 +357,7 @@ urllib3==2.0.7
     #   twine
 uvicorn==0.23.2
     # via pact-python
-virtualenv==20.24.5
+virtualenv==20.24.6
     # via tox
 zipp==3.17.0
     # via
