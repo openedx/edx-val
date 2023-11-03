@@ -6,7 +6,7 @@
 #
 certifi==2023.7.22
     # via requests
-charset-normalizer==3.3.1
+charset-normalizer==3.3.2
     # via requests
 coverage==6.5.0
     # via coveralls
@@ -16,7 +16,7 @@ distlib==0.3.7
     # via virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.12.4
+filelock==3.13.1
     # via
     #   tox
     #   virtualenv
@@ -42,5 +42,5 @@ tox==3.28.0
     #   -r requirements/ci.in
 urllib3==2.0.7
     # via requests
-virtualenv==20.24.5
+virtualenv==20.24.6
     # via tox
