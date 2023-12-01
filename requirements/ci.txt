@@ -26,7 +26,7 @@ filelock==3.13.1
     # via
     #   tox
     #   virtualenv
-idna==3.4
+idna==3.6
     # via requests
 packaging==23.2
     # via
@@ -47,7 +47,7 @@ tomli==2.0.1
     # via
     #   pyproject-api
     #   tox
-tox==4.11.3
+tox==4.11.4
     # via -r requirements/ci.in
 urllib3==2.1.0
     # via requests

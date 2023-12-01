@@ -56,7 +56,7 @@ coverage[toml]==6.5.0
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements/ci.in
-cryptography==41.0.5
+cryptography==41.0.7
     # via
     #   pyjwt
     #   secretstorage
@@ -107,11 +107,11 @@ drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.3.0
     # via -r requirements/base.in
-edx-django-utils==5.8.0
+edx-django-utils==5.9.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
-edx-drf-extensions==8.13.1
+edx-drf-extensions==9.0.0
     # via -r requirements/base.in
 edx-lint==5.3.6
     # via -r requirements/quality.in
@@ -133,7 +133,7 @@ fs==2.4.16
     # via -r requirements/test.in
 h11==0.14.0
     # via uvicorn
-idna==3.4
+idna==3.6
     # via
     #   anyio
     #   requests
@@ -320,7 +320,7 @@ tomli==2.0.1
     #   tox
 tomlkit==0.12.3
     # via pylint
-tox==4.11.3
+tox==4.11.4
     # via -r requirements/ci.in
 twine==4.0.2
     # via -r requirements/quality.in
