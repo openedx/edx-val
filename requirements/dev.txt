@@ -58,7 +58,7 @@ cryptography==41.0.7
     # via
     #   pyjwt
     #   secretstorage
-ddt==1.7.0
+ddt==1.7.1
     # via -r requirements/test.in
 diff-cover==8.0.2
     # via -r requirements/dev.in
@@ -109,7 +109,7 @@ edx-django-utils==5.9.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
-edx-drf-extensions==9.0.1
+edx-drf-extensions==9.1.1
     # via -r requirements/base.in
 edx-lint==5.3.6
     # via -r requirements/quality.in
@@ -159,7 +159,7 @@ jinja2==3.1.2
     #   diff-cover
 keyring==24.3.0
     # via twine
-lxml==4.9.4
+lxml==5.0.0
     # via -r requirements/base.in
 markdown-it-py==3.0.0
     # via rich
@@ -186,7 +186,7 @@ pact-python==2.1.1
     # via -r requirements/test.in
 pbr==6.0.0
     # via stevedore
-pillow==10.1.0
+pillow==10.2.0
     # via -r requirements/base.in
 pkginfo==1.9.6
     # via twine
@@ -246,7 +246,7 @@ pyproject-api==1.6.1
     # via tox
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==7.4.3
+pytest==7.4.4
     # via
     #   pytest-cov
     #   pytest-django
