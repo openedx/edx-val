@@ -84,7 +84,7 @@ django-crum==0.7.9
     # via
     #   edx-django-utils
     #   edx-toggles
-django-model-utils==4.3.1
+django-model-utils==4.4.0
     # via -r requirements/base.in
 django-storages==1.14.2
     # via -r requirements/base.in
@@ -277,7 +277,7 @@ requests==2.31.0
     #   twine
 requests-toolbelt==1.0.0
     # via twine
-responses==0.24.1
+responses==0.25.0
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
@@ -319,7 +319,7 @@ tomlkit==0.12.3
     # via pylint
 tox==4.12.1
     # via -r requirements/ci.in
-twine==4.0.2
+twine==5.0.0
     # via -r requirements/quality.in
 typing-extensions==4.9.0
     # via
@@ -340,7 +340,7 @@ urllib3==2.2.0
     #   requests
     #   responses
     #   twine
-uvicorn==0.27.0.post1
+uvicorn==0.27.1
     # via pact-python
 virtualenv==20.25.0
     # via tox
