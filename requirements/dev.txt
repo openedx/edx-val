@@ -6,7 +6,7 @@
 #
 annotated-types==0.6.0
     # via pydantic
-anyio==4.2.0
+anyio==4.3.0
     # via starlette
 appdirs==1.4.4
     # via fs
@@ -54,7 +54,7 @@ coverage[toml]==6.5.0
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements/ci.in
-cryptography==42.0.2
+cryptography==42.0.4
     # via
     #   pyjwt
     #   secretstorage
@@ -173,7 +173,7 @@ mock==5.1.0
     # via -r requirements/test.in
 more-itertools==10.2.0
     # via jaraco-classes
-newrelic==9.6.0
+newrelic==9.7.0
     # via edx-django-utils
 nh3==0.2.15
     # via readme-renderer
@@ -223,7 +223,6 @@ pyjwt[crypto]==2.8.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-    #   pyjwt
 pylint==3.0.3
     # via
     #   edx-lint
@@ -246,7 +245,7 @@ pyproject-api==1.6.1
     # via tox
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==8.0.0
+pytest==8.0.1
     # via
     #   pytest-cov
     #   pytest-django
@@ -301,7 +300,7 @@ sqlparse==0.4.4
     # via django
 starlette==0.36.3
     # via fastapi
-stevedore==5.1.0
+stevedore==5.2.0
     # via
     #   code-annotations
     #   edx-django-utils
@@ -317,7 +316,7 @@ tomli==2.0.1
     #   tox
 tomlkit==0.12.3
     # via pylint
-tox==4.12.1
+tox==4.13.0
     # via -r requirements/ci.in
 twine==5.0.0
     # via -r requirements/quality.in
@@ -335,14 +334,14 @@ typing-extensions==4.9.0
     #   rich
     #   starlette
     #   uvicorn
-urllib3==2.2.0
+urllib3==2.2.1
     # via
     #   requests
     #   responses
     #   twine
 uvicorn==0.27.1
     # via pact-python
-virtualenv==20.25.0
+virtualenv==20.25.1
     # via tox
 zipp==3.17.0
     # via
