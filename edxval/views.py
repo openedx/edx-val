@@ -283,7 +283,7 @@ class VideoImagesView(APIView):
 
         try:
             validate_generated_images(generated_images, LIST_MAX_ITEMS)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={'message': str(e)}
