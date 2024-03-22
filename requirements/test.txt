@@ -10,10 +10,12 @@ anyio==4.3.0
     # via starlette
 appdirs==1.4.4
     # via fs
-asgiref==3.7.2
+asgiref==3.8.0
     # via django
 backports-zoneinfo==0.2.1
-    # via django
+    # via
+    #   django
+    #   djangorestframework
 certifi==2024.2.2
     # via requests
 cffi==1.16.0
@@ -67,7 +69,7 @@ django-waffle==4.1.0
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.14.0
+djangorestframework==3.15.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
@@ -154,8 +156,6 @@ pytest-django==4.8.0
     # via -r requirements/test.in
 python-slugify==8.0.4
     # via code-annotations
-pytz==2024.1
-    # via djangorestframework
 pyyaml==6.0.1
     # via
     #   code-annotations
@@ -208,7 +208,7 @@ urllib3==2.2.1
     # via
     #   requests
     #   responses
-uvicorn==0.28.0
+uvicorn==0.29.0
     # via pact-python
 yarl==1.9.4
     # via pact-python
