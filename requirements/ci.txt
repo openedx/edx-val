@@ -22,7 +22,7 @@ distlib==0.3.8
     # via virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.13.1
+filelock==3.13.3
     # via
     #   tox
     #   virtualenv
@@ -46,7 +46,7 @@ tomli==2.0.1
     # via
     #   pyproject-api
     #   tox
-tox==4.14.1
+tox==4.14.2
     # via -r requirements/ci.in
 urllib3==2.2.1
     # via requests
