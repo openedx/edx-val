@@ -18,8 +18,9 @@ astroid==3.1.0
     #   pylint-celery
 backports-tarfile==1.1.0
     # via jaraco-context
-backports-zoneinfo==0.2.1
+backports-zoneinfo==0.2.1 ; python_version < "3.9"
     # via
+    #   -c requirements/constraints.txt
     #   django
     #   djangorestframework
 certifi==2024.2.2

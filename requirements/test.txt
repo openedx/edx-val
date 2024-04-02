@@ -12,8 +12,9 @@ appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-backports-zoneinfo==0.2.1
+backports-zoneinfo==0.2.1 ; python_version < "3.9"
     # via
+    #   -c requirements/constraints.txt
     #   django
     #   djangorestframework
 certifi==2024.2.2
