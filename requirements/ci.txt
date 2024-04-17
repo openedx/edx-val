@@ -22,11 +22,11 @@ distlib==0.3.8
     # via virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.13.3
+filelock==3.13.4
     # via
     #   tox
     #   virtualenv
-idna==3.6
+idna==3.7
     # via requests
 packaging==24.0
     # via
