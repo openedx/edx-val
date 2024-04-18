@@ -42,7 +42,7 @@ click==8.1.7
     #   uvicorn
 click-log==0.4.0
     # via edx-lint
-code-annotations==1.7.0
+code-annotations==1.8.0
     # via
     #   edx-lint
     #   edx-toggles
@@ -105,7 +105,7 @@ edx-lint==5.3.6
     # via -r requirements/quality.in
 edx-opaque-keys==2.5.1
     # via edx-drf-extensions
-edx-toggles==5.1.1
+edx-toggles==5.2.0
     # via -r requirements/base.in
 exceptiongroup==1.2.0
     # via
@@ -117,7 +117,7 @@ fs==2.4.16
     # via -r requirements/test.in
 h11==0.14.0
     # via uvicorn
-idna==3.6
+idna==3.7
     # via
     #   anyio
     #   requests
@@ -137,7 +137,7 @@ isort==5.13.2
     #   pylint
 jaraco-classes==3.4.0
     # via keyring
-jaraco-context==4.3.0
+jaraco-context==5.3.0
     # via keyring
 jaraco-functools==4.0.0
     # via keyring
@@ -147,9 +147,9 @@ jeepney==0.8.0
     #   secretstorage
 jinja2==3.1.3
     # via code-annotations
-keyring==25.0.0
+keyring==25.1.0
     # via twine
-lxml==5.2.0
+lxml==5.2.1
     # via -r requirements/base.in
 markdown-it-py==3.0.0
     # via rich
@@ -173,7 +173,7 @@ nh3==0.2.17
     # via readme-renderer
 packaging==24.0
     # via pytest
-pact-python==2.1.3
+pact-python==2.2.0
     # via -r requirements/test.in
 pbr==6.0.0
     # via stevedore
@@ -193,9 +193,9 @@ pycodestyle==2.11.1
     # via -r requirements/quality.in
 pycparser==2.22
     # via cffi
-pydantic==2.6.4
+pydantic==2.7.0
     # via fastapi
-pydantic-core==2.16.3
+pydantic-core==2.18.1
     # via pydantic
 pydocstyle==6.3.0
     # via -r requirements/quality.in
@@ -293,7 +293,7 @@ tomlkit==0.12.4
     # via pylint
 twine==5.0.0
     # via -r requirements/quality.in
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via
     #   annotated-types
     #   anyio

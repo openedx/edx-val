@@ -34,7 +34,7 @@ click==8.1.7
     #   edx-django-utils
     #   pact-python
     #   uvicorn
-code-annotations==1.7.0
+code-annotations==1.8.0
     # via edx-toggles
 coverage[toml]==7.4.4
     # via
@@ -86,7 +86,7 @@ edx-drf-extensions==10.3.0
     # via -r requirements/base.in
 edx-opaque-keys==2.5.1
     # via edx-drf-extensions
-edx-toggles==5.1.1
+edx-toggles==5.2.0
     # via -r requirements/base.in
 exceptiongroup==1.2.0
     # via
@@ -98,7 +98,7 @@ fs==2.4.16
     # via -r requirements/test.in
 h11==0.14.0
     # via uvicorn
-idna==3.6
+idna==3.7
     # via
     #   anyio
     #   requests
@@ -107,7 +107,7 @@ iniconfig==2.0.0
     # via pytest
 jinja2==3.1.3
     # via code-annotations
-lxml==5.2.0
+lxml==5.2.1
     # via -r requirements/base.in
 markupsafe==2.1.5
     # via jinja2
@@ -119,7 +119,7 @@ newrelic==9.8.0
     # via edx-django-utils
 packaging==24.0
     # via pytest
-pact-python==2.1.3
+pact-python==2.2.0
     # via -r requirements/test.in
 pbr==6.0.0
     # via stevedore
@@ -133,9 +133,9 @@ psutil==5.9.8
     #   pact-python
 pycparser==2.22
     # via cffi
-pydantic==2.6.4
+pydantic==2.7.0
     # via fastapi
-pydantic-core==2.16.3
+pydantic-core==2.18.1
     # via pydantic
 pyjwt[crypto]==2.8.0
     # via
@@ -193,7 +193,7 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via
     #   annotated-types
     #   anyio
