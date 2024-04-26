@@ -36,7 +36,7 @@ click==8.1.7
     #   uvicorn
 code-annotations==1.8.0
     # via edx-toggles
-coverage[toml]==7.4.4
+coverage[toml]==7.5.0
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -74,6 +74,8 @@ djangorestframework==3.15.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
+dnspython==2.6.1
+    # via pymongo
 drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.4.0
@@ -84,7 +86,7 @@ edx-django-utils==5.12.0
     #   edx-toggles
 edx-drf-extensions==10.3.0
     # via -r requirements/base.in
-edx-opaque-keys==2.5.1
+edx-opaque-keys==2.9.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
@@ -125,7 +127,7 @@ pbr==6.0.0
     # via stevedore
 pillow==10.3.0
     # via -r requirements/base.in
-pluggy==1.4.0
+pluggy==1.5.0
     # via pytest
 psutil==5.9.8
     # via
@@ -133,15 +135,15 @@ psutil==5.9.8
     #   pact-python
 pycparser==2.22
     # via cffi
-pydantic==2.7.0
+pydantic==2.7.1
     # via fastapi
-pydantic-core==2.18.1
+pydantic-core==2.18.2
     # via pydantic
 pyjwt[crypto]==2.8.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==3.13.0
+pymongo==4.4.0
     # via edx-opaque-keys
 pynacl==1.5.0
     # via edx-django-utils
