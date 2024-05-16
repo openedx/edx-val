@@ -229,7 +229,7 @@ pyjwt[crypto]==2.8.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==3.2.0
+pylint==3.1.0
     # via
     #   edx-lint
     #   pylint-celery
