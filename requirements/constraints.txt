@@ -13,3 +13,6 @@
 
 # For python greater than or equal to 3.9 backports.zoneinfo is causing failures
 backports.zoneinfo;python_version<"3.9"
+
+# great version breaking quality test.
+pylint==3.1.0

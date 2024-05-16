@@ -15,7 +15,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-astroid==3.2.1
+astroid==3.1.0
     # via
     #   pylint
     #   pylint-celery
@@ -231,6 +231,7 @@ pyjwt[crypto]==2.8.0
     #   edx-drf-extensions
 pylint==3.1.0
     # via
+    #   -c requirements/constraints.txt
     #   edx-lint
     #   pylint-celery
     #   pylint-django
