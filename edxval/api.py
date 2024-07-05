@@ -1078,7 +1078,7 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
             continue
 
         SubElement(
-            transcripts_el,
+            transcripts_el,  # pylint: disable=possibly-used-before-assignment
             'transcript',
             {
                 'language_code': language_code,
