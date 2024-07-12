@@ -15,7 +15,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-astroid==3.2.2
+astroid==3.2.3
     # via
     #   pylint
     #   pylint-celery
@@ -55,7 +55,7 @@ code-annotations==1.8.0
     # via
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.5.4
+coverage[toml]==7.6.0
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -67,7 +67,7 @@ ddt==1.7.2
     # via -r requirements/test.in
 dill==0.3.8
     # via pylint
-django==4.2.13
+django==4.2.14
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -87,7 +87,7 @@ django-crum==0.7.9
     #   edx-toggles
 django-model-utils==4.5.1
     # via -r requirements/base.in
-django-storages==1.14.3
+django-storages==1.14.4
     # via -r requirements/base.in
 django-waffle==4.1.0
     # via
@@ -196,9 +196,9 @@ more-itertools==10.3.0
     #   jaraco-functools
 multidict==6.0.5
     # via yarl
-newrelic==9.11.0
+newrelic==9.12.0
     # via edx-django-utils
-nh3==0.2.17
+nh3==0.2.18
     # via readme-renderer
 orjson==3.10.6
     # via fastapi
@@ -331,7 +331,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.12.5
+tomlkit==0.13.0
     # via pylint
 twine==5.1.1
     # via -r requirements/quality.in

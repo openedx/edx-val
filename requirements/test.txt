@@ -43,7 +43,7 @@ click==8.1.7
     #   uvicorn
 code-annotations==1.8.0
     # via edx-toggles
-coverage[toml]==7.5.4
+coverage[toml]==7.6.0
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -70,7 +70,7 @@ django-crum==0.7.9
     #   edx-toggles
 django-model-utils==4.5.1
     # via -r requirements/base.in
-django-storages==1.14.3
+django-storages==1.14.4
     # via -r requirements/base.in
 django-waffle==4.1.0
     # via
@@ -146,7 +146,7 @@ mock==5.1.0
     # via -r requirements/test.in
 multidict==6.0.5
     # via yarl
-newrelic==9.11.0
+newrelic==9.12.0
     # via edx-django-utils
 orjson==3.10.6
     # via fastapi
