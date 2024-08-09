@@ -13,3 +13,7 @@
 
 # For python greater than or equal to 3.9 backports.zoneinfo is causing failures
 backports.zoneinfo;python_version<"3.9"
+
+# Python 3.8 is not supported by newer versions of docutils. Remove this pin once
+# python 3.8 is deprecated
+docutils==0.20.1
