@@ -20,7 +20,7 @@ backports-tarfile==1.2.0
     # via jaraco-context
 cachetools==5.5.0
     # via tox
-certifi==2024.7.4
+certifi==2024.8.30
     # via requests
 cffi==1.17.0
     # via
@@ -58,9 +58,7 @@ coverage[toml]==7.6.1
 coveralls==4.0.1
     # via -r requirements/ci.in
 cryptography==43.0.0
-    # via
-    #   pyjwt
-    #   secretstorage
+    # via pyjwt
 ddt==1.7.2
     # via -r requirements/test.in
 diff-cover==9.1.1
@@ -119,12 +117,14 @@ edx-django-utils==5.15.0
 edx-drf-extensions==10.3.0
     # via -r requirements/base.in
 edx-lint==5.3.7
-    # via -r requirements/quality.in
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/quality.in
 edx-opaque-keys==2.10.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.112.1
+fastapi==0.112.2
     # via pact-python
 filelock==3.15.4
     # via
@@ -134,7 +134,7 @@ fs==2.4.16
     # via -r requirements/test.in
 h11==0.14.0
     # via uvicorn
-idna==3.7
+idna==3.8
     # via
     #   anyio
     #   requests
@@ -155,10 +155,6 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.0.2
     # via keyring
-jeepney==0.8.0
-    # via
-    #   keyring
-    #   secretstorage
 jinja2==3.1.4
     # via
     #   code-annotations
@@ -194,7 +190,7 @@ packaging==24.1
     #   tox
 pact-python==2.2.1
     # via -r requirements/test.in
-pbr==6.0.0
+pbr==6.1.0
     # via stevedore
 pillow==10.4.0
     # via -r requirements/base.in
@@ -286,10 +282,8 @@ responses==0.25.3
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
-rich==13.7.1
+rich==13.8.0
     # via twine
-secretstorage==3.3.3
-    # via keyring
 semantic-version==2.10.0
     # via edx-drf-extensions
 six==1.16.0
@@ -336,7 +330,7 @@ virtualenv==20.26.3
     # via tox
 yarl==1.9.4
     # via pact-python
-zipp==3.20.0
+zipp==3.20.1
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
