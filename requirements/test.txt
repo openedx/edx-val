@@ -12,7 +12,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-certifi==2024.7.4
+certifi==2024.8.30
     # via requests
 cffi==1.17.0
     # via
@@ -85,13 +85,13 @@ edx-opaque-keys==2.10.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.112.1
+fastapi==0.112.2
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
 h11==0.14.0
     # via uvicorn
-idna==3.7
+idna==3.8
     # via
     #   anyio
     #   requests
@@ -114,7 +114,7 @@ packaging==24.1
     # via pytest
 pact-python==2.2.1
     # via -r requirements/test.in
-pbr==6.0.0
+pbr==6.1.0
     # via stevedore
 pillow==10.4.0
     # via -r requirements/base.in
