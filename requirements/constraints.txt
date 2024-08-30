@@ -17,3 +17,8 @@ backports.zoneinfo;python_version<"3.9"
 # Python 3.8 is not supported by newer versions of docutils. Remove this pin once
 # python 3.8 is deprecated
 docutils==0.20.1
+
+# 5.4.0 is breaking for Python 3.8 and 3.11 CI checks with error
+# importlib.resources' has no attribute 'files'
+# To be unpinned once edx-val moves to Python 3.12
+edx-lint==5.3.7

@@ -58,9 +58,7 @@ coverage[toml]==7.6.1
 coveralls==4.0.1
     # via -r requirements/ci.in
 cryptography==43.0.0
-    # via
-    #   pyjwt
-    #   secretstorage
+    # via pyjwt
 ddt==1.7.2
     # via -r requirements/test.in
 diff-cover==9.1.1
@@ -118,8 +116,10 @@ edx-django-utils==5.15.0
     #   edx-toggles
 edx-drf-extensions==10.3.0
     # via -r requirements/base.in
-edx-lint==5.4.0
-    # via -r requirements/quality.in
+edx-lint==5.3.7
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/quality.in
 edx-opaque-keys==2.10.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
@@ -155,10 +155,6 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.0.2
     # via keyring
-jeepney==0.8.0
-    # via
-    #   keyring
-    #   secretstorage
 jinja2==3.1.4
     # via
     #   code-annotations
@@ -288,8 +284,6 @@ rfc3986==2.0.0
     # via twine
 rich==13.8.0
     # via twine
-secretstorage==3.3.3
-    # via keyring
 semantic-version==2.10.0
     # via edx-drf-extensions
 six==1.16.0
