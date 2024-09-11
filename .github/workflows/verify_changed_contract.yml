@@ -15,7 +15,7 @@ env:
 jobs:
   changed-contract-verification:
     name: Pact Provider Verification for a changed contract
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
