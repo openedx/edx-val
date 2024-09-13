@@ -735,7 +735,7 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
 
 def get_transcript_details_for_course(course_id):
     """
-    Gets all the transcript for a course and bundles up data.
+    Get all the transcripts for a course and return details.
 
     Args:
         course_id (String)
@@ -746,7 +746,6 @@ def get_transcript_details_for_course(course_id):
         'edx_video_id': {
             'lang_code': {
                 'provider': 'What the provider is',
-                'content': 'Content of the transcript',
                 'file_format': 'file format',
                 'url': 'location of the file',
                 'name': 'name of the file',
@@ -766,7 +765,6 @@ def get_transcript_details_for_course(course_id):
         for video_transcript in video_transcripts:
             transcript_data[video_transcript.language_code] = {
                 'provider': video_transcript.provider,
-                'content': video_transcript.transcript.file.read(),
                 'file_format': video_transcript.file_format,
                 'url': video_transcript.transcript.url,
                 'name': video_transcript.transcript.name,
