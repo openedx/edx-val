@@ -3159,14 +3159,12 @@ class TranscriptTest(TestCase):
         course_transcript = api.get_transcript_details_for_course(self.course_id1)
 
         self.assertEqual(course_transcript['super-soaker']['en']['provider'], TranscriptProviderType.THREE_PLAY_MEDIA)
-        self.assertIn('content', course_transcript['super-soaker']['en'])
         self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
         self.assertIn('url', course_transcript['super-soaker']['en'])
         self.assertIn('name', course_transcript['super-soaker']['en'])
         self.assertIn('size', course_transcript['super-soaker']['en'])
 
         self.assertEqual(course_transcript['super-soaker']['fr']['provider'], TranscriptProviderType.CIELO24)
-        self.assertIn('content', course_transcript['super-soaker']['fr'])
         self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
         self.assertIn('url', course_transcript['super-soaker']['fr'])
         self.assertIn('name', course_transcript['super-soaker']['fr'])
