@@ -6,13 +6,13 @@
 #
 annotated-types==0.7.0
     # via pydantic
-anyio==4.5.0
+anyio==4.6.2.post1
     # via starlette
 appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-astroid==3.2.4
+astroid==3.3.5
     # via
     #   pylint
     #   pylint-celery
@@ -32,7 +32,7 @@ chardet==5.2.0
     #   diff-cover
     #   pysrt
     #   tox
-charset-normalizer==3.3.2
+charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via
@@ -50,7 +50,7 @@ code-annotations==1.8.0
     #   edx-toggles
 colorama==0.4.6
     # via tox
-coverage[toml]==7.6.1
+coverage[toml]==7.6.3
     # via
     #   -r requirements/test.in
     #   coveralls
@@ -65,9 +65,9 @@ ddt==1.7.2
     # via -r requirements/test.in
 diff-cover==9.2.0
     # via -r requirements/dev.in
-dill==0.3.8
+dill==0.3.9
     # via pylint
-distlib==0.3.8
+distlib==0.3.9
     # via virtualenv
 django==4.2.16
     # via
@@ -100,7 +100,7 @@ djangorestframework==3.15.2
     # via
     #   drf-jwt
     #   edx-drf-extensions
-dnspython==2.6.1
+dnspython==2.7.0
     # via pymongo
 docopt==0.6.2
     # via coveralls
@@ -112,7 +112,7 @@ drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.4.0
     # via -r requirements/base.in
-edx-django-utils==5.15.0
+edx-django-utils==7.0.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -126,7 +126,7 @@ edx-opaque-keys==2.11.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.115.0
+fastapi==0.115.2
     # via pact-python
 filelock==3.16.1
     # via
@@ -155,7 +155,7 @@ jaraco-classes==3.4.0
     # via keyring
 jaraco-context==6.0.1
     # via keyring
-jaraco-functools==4.0.2
+jaraco-functools==4.1.0
     # via keyring
 jeepney==0.8.0
     # via
@@ -165,13 +165,13 @@ jinja2==3.1.4
     # via
     #   code-annotations
     #   diff-cover
-keyring==25.4.0
+keyring==25.4.1
     # via twine
 lxml==5.3.0
     # via -r requirements/base.in
 markdown-it-py==3.0.0
     # via rich
-markupsafe==2.1.5
+markupsafe==3.0.1
     # via jinja2
 mccabe==0.7.0
     # via pylint
@@ -185,7 +185,7 @@ more-itertools==10.5.0
     #   jaraco-functools
 multidict==6.1.0
     # via yarl
-newrelic==9.13.0
+newrelic==10.2.0
     # via edx-django-utils
 nh3==0.2.18
     # via readme-renderer
@@ -194,11 +194,11 @@ packaging==24.1
     #   pyproject-api
     #   pytest
     #   tox
-pact-python==2.2.1
+pact-python==2.2.2
     # via -r requirements/test.in
 pbr==6.1.0
     # via stevedore
-pillow==10.4.0
+pillow==11.0.0
     # via -r requirements/base.in
 pkginfo==1.10.0
     # via twine
@@ -212,7 +212,9 @@ pluggy==1.5.0
     #   diff-cover
     #   pytest
     #   tox
-psutil==6.0.0
+propcache==0.2.0
+    # via yarl
+psutil==6.1.0
     # via
     #   edx-django-utils
     #   pact-python
@@ -235,7 +237,7 @@ pyjwt[crypto]==2.9.0
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==3.2.7
+pylint==3.3.1
     # via
     #   edx-lint
     #   pylint-celery
@@ -243,13 +245,13 @@ pylint==3.2.7
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via edx-lint
-pylint-django==2.5.5
+pylint-django==2.6.1
     # via edx-lint
 pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.9.1
+pymongo==4.10.1
     # via edx-opaque-keys
 pynacl==1.5.0
     # via edx-django-utils
@@ -288,7 +290,7 @@ responses==0.25.3
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
-rich==13.8.1
+rich==13.9.2
     # via twine
 secretstorage==3.3.3
     # via keyring
@@ -306,7 +308,7 @@ snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.5.1
     # via django
-starlette==0.38.5
+starlette==0.40.0
     # via fastapi
 stevedore==5.3.0
     # via
@@ -317,7 +319,7 @@ text-unidecode==1.3
     # via python-slugify
 tomlkit==0.13.2
     # via pylint
-tox==4.20.0
+tox==4.23.0
     # via -r requirements/ci.in
 twine==5.1.1
     # via -r requirements/quality.in
@@ -332,11 +334,11 @@ urllib3==2.2.3
     #   requests
     #   responses
     #   twine
-uvicorn==0.30.6
+uvicorn==0.32.0
     # via pact-python
-virtualenv==20.26.5
+virtualenv==20.27.0
     # via tox
-yarl==1.11.1
+yarl==1.15.4
     # via pact-python
 zipp==3.20.2
     # via importlib-metadata
