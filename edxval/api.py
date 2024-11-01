@@ -1088,7 +1088,9 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     return dict(xml=video_el, transcripts=transcript_files_map)
 
 
-def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=None, course_id=None):
+def import_from_xml(
+        xml, edx_video_id, resource_fs, static_dir, external_transcripts=None, course_id=None
+):  # pylint: disable=too-many-positional-arguments
     """
     Imports data from a video_asset element about the given video_id.
     If the edx_video_id already exists, then no changes are made. If an unknown
@@ -1205,7 +1207,9 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
     return edx_video_id
 
 
-def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, resource_fs, static_dir):
+def import_transcript_from_fs(
+        edx_video_id, language_code, file_name, provider, resource_fs, static_dir
+):  # pylint: disable=too-many-positional-arguments
     """
     Imports transcript file from file system and creates transcript record in DS.
 

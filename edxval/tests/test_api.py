@@ -2840,7 +2840,9 @@ class TranscriptTest(TestCase):
         },
     )
     @unpack
-    def test_create_or_update_video_transcript(self, file_data, file_name, file_format, language_code, provider):
+    def test_create_or_update_video_transcript(
+            self, file_data, file_name, file_format, language_code, provider
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_or_update_video_transcript` api function updates existing transcript as expected.
         """
@@ -2897,7 +2899,9 @@ class TranscriptTest(TestCase):
         },
     )
     @unpack
-    def test_create_or_update_video_exceptions(self, video_id, file_format, provider, exception, exception_message):
+    def test_create_or_update_video_exceptions(
+            self, video_id, file_format, provider, exception, exception_message
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_or_update_video_transcript` api function raise exceptions on invalid values.
         """
@@ -3015,7 +3019,9 @@ class TranscriptTest(TestCase):
         }
     )
     @unpack
-    def test_create_video_transcript_exceptions(self, video_id, language_code, file_format, provider, exception_msg):
+    def test_create_video_transcript_exceptions(
+            self, video_id, language_code, file_format, provider, exception_msg
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_video_transcript` api function raise exceptions on invalid values.
         """
