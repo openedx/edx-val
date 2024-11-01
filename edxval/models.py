@@ -485,7 +485,9 @@ class VideoTranscript(TimeStampedModel):
         return transcript
 
     @classmethod
-    def create(cls, video, language_code, file_format, content, provider):
+    def create(
+            cls, video, language_code, file_format, content, provider
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Create a Video Transcript.
 
