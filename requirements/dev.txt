@@ -44,13 +44,13 @@ click==8.1.7
     #   uvicorn
 click-log==0.4.0
     # via edx-lint
-code-annotations==1.8.0
+code-annotations==1.8.1
     # via
     #   edx-lint
     #   edx-toggles
 colorama==0.4.6
     # via tox
-coverage[toml]==7.6.4
+coverage[toml]==7.6.5
     # via
     #   -r requirements/test.in
     #   coveralls
@@ -124,7 +124,7 @@ edx-opaque-keys==2.11.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.115.4
+fastapi==0.115.5
     # via pact-python
 filelock==3.16.1
     # via
@@ -187,7 +187,7 @@ newrelic==10.2.0
     # via edx-django-utils
 nh3==0.2.18
     # via readme-renderer
-packaging==24.1
+packaging==24.2
     # via
     #   pyproject-api
     #   pytest
@@ -304,7 +304,7 @@ sniffio==1.3.1
     # via anyio
 snowballstemmer==2.2.0
     # via pydocstyle
-sqlparse==0.5.1
+sqlparse==0.5.2
     # via django
 starlette==0.41.2
     # via fastapi
@@ -338,7 +338,7 @@ virtualenv==20.27.1
     # via tox
 yarl==1.17.1
     # via pact-python
-zipp==3.20.2
+zipp==3.21.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
