@@ -29,9 +29,9 @@ click==8.1.7
     #   edx-django-utils
     #   pact-python
     #   uvicorn
-code-annotations==1.8.0
+code-annotations==1.8.1
     # via edx-toggles
-coverage[toml]==7.6.4
+coverage[toml]==7.6.5
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -85,7 +85,7 @@ edx-opaque-keys==2.11.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.115.4
+fastapi==0.115.5
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
@@ -110,7 +110,7 @@ multidict==6.1.0
     # via yarl
 newrelic==10.2.0
     # via edx-django-utils
-packaging==24.1
+packaging==24.2
     # via pytest
 pact-python==2.2.2
     # via -r requirements/test.in
@@ -173,7 +173,7 @@ six==1.16.0
     #   pact-python
 sniffio==1.3.1
     # via anyio
-sqlparse==0.5.1
+sqlparse==0.5.2
     # via django
 starlette==0.41.2
     # via fastapi
