@@ -456,8 +456,9 @@ class VideoTranscriptBulkDelete(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                     data={'message': f'Value for video "{video_id}" needs to be a list of language codes.'}
                 )
+            available_transcript_languages = get_available_transcript_languages(video_id=video_id)
             for language_code in language_codes:
-                if language_code not in get_available_transcript_languages(video_id=video_id):
+                if language_code not in available_transcript_languages:
                     missing_transcripts.append(f'Language "{language_code}" is not available for video "{video_id}".')
 
         if missing_transcripts:
