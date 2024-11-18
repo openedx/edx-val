@@ -31,6 +31,9 @@ urlpatterns = [
     path('videos/courses/<str:course_id>/video-ids', views.CourseVideoIDsView.as_view(),
          name='course-video-ids'
          ),
+    path('videos/video-transcripts/bulk-delete/', views.VideoTranscriptBulkDelete.as_view(),
+         name='bulk-delete-video-transcript'
+         ),
 ]
 
 if getattr(settings, 'PROVIDER_STATES_SETUP_VIEW_URL', None):

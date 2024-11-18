@@ -1152,3 +1152,123 @@ class CourseVideoIDsViewTest(APIAuthTestCase):
             mock_video_ids.assert_called_once_with(course_id)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+@ddt
+class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
+    """
+    Tests for transcript bulk deletion handler.
+    """
+    def setUp(self):
+        """
+        Tests setup.
+        """
+        self.url = reverse('bulk-delete-video-transcript')
+        self.video_1 = Video.objects.create(**constants.VIDEO_DICT_SIMPSONS)
+        self.transcript_data_es = constants.VIDEO_TRANSCRIPT_SIMPSON_ES
+        self.transcript_data_ko = constants.VIDEO_TRANSCRIPT_SIMPSON_KO
+        self.transcript_data_ru = constants.VIDEO_TRANSCRIPT_SIMPSON_RU
+        super().setUp()
+
+    @data(
+        (
+            {
+                'simpson-id': ['es', 'ko', 'ru']
+            },
+            ('Language "ko" is not available for video "simpson-id".\n'
+             'Language "ru" is not available for video "simpson-id".')
+        ),
+    )
+    @unpack
+    def test_transcript_bulk_delete_handler_wrong_payload_missing_transcript_for_video(
+        self,
+        request_payload,
+        expected_error_message
+    ):
+        """
+        Tests the transcript upload handler when the required attributes are missing.
+        """
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_es['language_code'],
+            file_format=self.transcript_data_es['file_format'],
+            provider=self.transcript_data_es['provider'],
+        )
+        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
+
+    @data(
+        (
+            {
+                'simpson-id': ['ko'],
+                'flintstone-id': ['ru'],
+            },
+            ('Language "ko" is not available for video "simpson-id".\n'
+             'Language "ru" is not available for video "flintstone-id".')
+        ),
+    )
+    @unpack
+    def test_transcript_bulk_delete_handler_wrong_payload_missing_transcript_for_videos(
+        self,
+        request_payload,
+        expected_error_message,
+    ):
+        """
+        Tests the transcript upload handler when the required attributes are missing.
+        """
+        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
+
+    @data(
+        (
+            {
+                'simpson-id': 'ru'
+            },
+            'Value for video "simpson-id" needs to be a list of language codes.'
+        ),
+    )
+    @unpack
+    def test_transcript_bulk_delete_handler_wrong_payload_not_a_list(self, request_payload, expected_error_message):
+        """
+        Tests the transcript upload handler when the required attributes are missing.
+        """
+        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
+
+    @data(
+        (
+            {
+                'simpson-id': ['es', 'ko', 'ru'],
+            },
+            '3 transcripts were successfully deleted.'
+        ),
+    )
+    @unpack
+    def test_transcript_bulk_delete_handler_success(self, request_payload, expected_message):
+        """
+        Tests the transcript upload handler when payload is accurate and deletion works.
+        """
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_es['language_code'],
+            file_format=self.transcript_data_es['file_format'],
+            provider=self.transcript_data_es['provider'],
+        )
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_ko['language_code'],
+            file_format=self.transcript_data_ko['file_format'],
+            provider=self.transcript_data_ko['provider'],
+        )
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_ru['language_code'],
+            file_format=self.transcript_data_ru['file_format'],
+            provider=self.transcript_data_ru['provider'],
+        )
+        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_message)

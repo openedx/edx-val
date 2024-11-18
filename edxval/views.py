@@ -14,7 +14,13 @@ from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from edxval.api import create_or_update_video_transcript, get_transcript_details_for_course, get_video_ids_for_course
+from edxval.api import (
+    create_or_update_video_transcript,
+    delete_video_transcript,
+    get_available_transcript_languages,
+    get_transcript_details_for_course,
+    get_video_ids_for_course,
+)
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -410,3 +416,64 @@ class HLSMissingVideoView(APIView):
         EncodedVideo.objects.create(video=video, profile=profile, **encode_data)
 
         return Response(status=status.HTTP_200_OK)
+
+
+class VideoTranscriptBulkDelete(APIView):
+    """
+    View to bulk delete video transcripts
+    """
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
+
+    # noinspection PyMethodMayBeStatic
+    def post(self, request):
+        """
+        View to delete a set of transcript files.
+
+        Arguments:
+            request: A WSGI request object
+
+        The request body should be a JSON object.
+        The JSON object should be a dictionary:
+        * Each key in the dictionary should be a video_id (a string representing the ID of the video).
+        * Each value in the dictionary should be a list of language_codes (a string representing the
+            language code of the transcript to be deleted).
+
+        Example:
+        {
+            "video_id_1": ["language_code_1", "language_code_2"],
+            "video_id_2": ["language_code_3", "language_code_4"]
+        }
+
+        Returns
+            - A 400 if any of the validation fails
+            - A 200 if all transcripts delete jobs are triggered successfully
+        """
+        data = request.data
+        missing_transcripts = []
+        for video_id, language_codes in data.items():
+            if not isinstance(language_codes, list):
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={'message': f'Value for video "{video_id}" needs to be a list of language codes.'}
+                )
+            for language_code in language_codes:
+                if language_code not in get_available_transcript_languages(video_id=video_id):
+                    missing_transcripts.append(f'Language "{language_code}" is not available for video "{video_id}".')
+
+        if missing_transcripts:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': '\n'.join(missing_transcripts)}
+            )
+
+        deleted = 0
+
+        for video_id, language_codes in data.items():
+            for language_code in language_codes:
+                delete_video_transcript(video_id=video_id, language_code=language_code)
+                deleted += 1
+
+        return Response(
+            status=status.HTTP_200_OK,
+            data={'message': f'{deleted} transcripts were successfully deleted.'}
+        )
