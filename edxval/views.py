@@ -447,7 +447,11 @@ class VideoTranscriptBulkDelete(APIView):
             - A 400 if any of the validation fails
             - A 200 if all transcripts delete jobs are triggered successfully
         """
-        serializer = TranscriptBulkDeleteSerializer(data=request.data)
+        serializer = TranscriptBulkDeleteSerializer(
+            data=request.data,
+            # Dependencty injection to avoid cylcic import
+            get_available_transcript_languages=get_available_transcript_languages
+        )
         if not serializer.is_valid():
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,

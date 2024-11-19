@@ -263,15 +263,18 @@ class TranscriptBulkDeleteSerializer(serializers.Serializer):
     """
     Serializer for TranscriptBulkDelete
     """
-    def validate(self, data):
-        from edxval.api import get_available_transcript_languages  # Local import to avoid circular import issues
+    def __init__(self, *args, **kwargs):
+        self.get_available_transcript_languages = kwargs.pop('get_available_transcript_languages')
+        super().__init__(*args, **kwargs)
+
+    def validate(self, data):  # pylint: disable=unused-argument
         missing_transcripts = []
         for video_id, language_codes in self.initial_data.items():
             if not isinstance(language_codes, list):
                 raise serializers.ValidationError(
                     f'Value for video "{video_id}" needs to be a list of language codes.'
                 )
-            available_transcript_languages = get_available_transcript_languages(video_id=video_id)
+            available_transcript_languages = self.get_available_transcript_languages(video_id=video_id)
             for language_code in language_codes:
                 if language_code not in available_transcript_languages:
                     missing_transcripts.append(f'Language "{language_code}" is not available for video "{video_id}".')
@@ -280,3 +283,15 @@ class TranscriptBulkDeleteSerializer(serializers.Serializer):
             raise serializers.ValidationError('\n'.join(missing_transcripts))
 
         return self.initial_data
+
+    def create(self, validated_data):
+        """
+        Create and return a new `TranscriptBulkDelete` instance, given the validated data.
+        """
+        return validated_data
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `TranscriptBulkDelete` instance, given the validated data.
+        """
+        # Not needed for this serializer
