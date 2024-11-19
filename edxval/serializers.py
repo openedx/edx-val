@@ -257,3 +257,26 @@ class TranscriptPreferenceSerializer(serializers.ModelSerializer):
         Returns python list for preferred_languages model field.
         """
         return transcript_preference.preferred_languages
+
+
+class TranscriptBulkDeleteSerializer(serializers.Serializer):
+    """
+    Serializer for TranscriptBulkDelete
+    """
+    def validate(self, data):
+        from edxval.api import get_available_transcript_languages  # Local import to avoid circular import issues
+        missing_transcripts = []
+        for video_id, language_codes in self.initial_data.items():
+            if not isinstance(language_codes, list):
+                raise serializers.ValidationError(
+                    f'Value for video "{video_id}" needs to be a list of language codes.'
+                )
+            available_transcript_languages = get_available_transcript_languages(video_id=video_id)
+            for language_code in language_codes:
+                if language_code not in available_transcript_languages:
+                    missing_transcripts.append(f'Language "{language_code}" is not available for video "{video_id}".')
+
+        if missing_transcripts:
+            raise serializers.ValidationError('\n'.join(missing_transcripts))
+
+        return self.initial_data

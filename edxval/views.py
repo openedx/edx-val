@@ -31,7 +31,7 @@ from edxval.models import (
     VideoImage,
     VideoTranscript,
 )
-from edxval.serializers import VideoSerializer
+from edxval.serializers import TranscriptBulkDeleteSerializer, VideoSerializer
 from edxval.utils import TranscriptFormat, validate_generated_images
 
 LOGGER = logging.getLogger(__name__)
@@ -424,7 +424,6 @@ class VideoTranscriptBulkDelete(APIView):
     """
     authentication_classes = (JwtAuthentication, SessionAuthentication)
 
-    # noinspection PyMethodMayBeStatic
     def post(self, request):
         """
         View to delete a set of transcript files.
@@ -448,28 +447,16 @@ class VideoTranscriptBulkDelete(APIView):
             - A 400 if any of the validation fails
             - A 200 if all transcripts delete jobs are triggered successfully
         """
-        data = request.data
-        missing_transcripts = []
-        for video_id, language_codes in data.items():
-            if not isinstance(language_codes, list):
-                return Response(
-                    status=status.HTTP_400_BAD_REQUEST,
-                    data={'message': f'Value for video "{video_id}" needs to be a list of language codes.'}
-                )
-            available_transcript_languages = get_available_transcript_languages(video_id=video_id)
-            for language_code in language_codes:
-                if language_code not in available_transcript_languages:
-                    missing_transcripts.append(f'Language "{language_code}" is not available for video "{video_id}".')
-
-        if missing_transcripts:
+        serializer = TranscriptBulkDeleteSerializer(data=request.data)
+        if not serializer.is_valid():
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'message': '\n'.join(missing_transcripts)}
+                data={'message': serializer.errors['non_field_errors'][0]}
             )
 
         deleted = 0
-
-        for video_id, language_codes in data.items():
+        validated_data = serializer.validated_data
+        for video_id, language_codes in validated_data.items():
             for language_code in language_codes:
                 delete_video_transcript(video_id=video_id, language_code=language_code)
                 deleted += 1
