@@ -8,9 +8,10 @@ import logging
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+from edx_rest_framework_extensions.permissions import IsStaff
 from rest_framework import generics, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -423,6 +424,7 @@ class VideoTranscriptBulkDelete(APIView):
     View to bulk delete video transcripts
     """
     authentication_classes = (JwtAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated, IsStaff)
 
     def post(self, request):
         """

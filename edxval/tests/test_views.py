@@ -8,7 +8,9 @@ from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
+from edx_rest_framework_extensions.permissions import IsStaff
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptProviderType, Video, VideoTranscript
 from edxval.serializers import TranscriptSerializer
@@ -1164,11 +1166,28 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
         Tests setup.
         """
         self.url = reverse('bulk-delete-video-transcript')
+        self.patcher = patch.object(IsAuthenticated, "has_permission", return_value=True)
+        self.patcher = patch.object(IsStaff, "has_permission", return_value=True)
+        self.patcher.start()
+
         self.video_1 = Video.objects.create(**constants.VIDEO_DICT_SIMPSONS)
         self.transcript_data_es = constants.VIDEO_TRANSCRIPT_SIMPSON_ES
         self.transcript_data_ko = constants.VIDEO_TRANSCRIPT_SIMPSON_KO
         self.transcript_data_ru = constants.VIDEO_TRANSCRIPT_SIMPSON_RU
         super().setUp()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_transcript_bulk_delete_fail_authorized(self):
+        with patch.object(IsAuthenticated, "has_permission", return_value=False):
+            response = self.client.post(self.url, {}, format="json")
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_transcript_bulk_delete_fail_no_staff(self):
+        with patch.object(IsStaff, "has_permission", return_value=False):
+            response = self.client.post(self.url, {}, format="json")
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @data(
         (
@@ -1195,7 +1214,7 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
             provider=self.transcript_data_es['provider'],
         )
         response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
 
     @data(
@@ -1218,7 +1237,7 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
         Tests the transcript upload handler when the required attributes are missing.
         """
         response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
 
     @data(
@@ -1235,7 +1254,7 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
         Tests the transcript upload handler when the required attributes are missing.
         """
         response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
 
     @data(
@@ -1270,5 +1289,5 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
             provider=self.transcript_data_ru['provider'],
         )
         response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_message)
