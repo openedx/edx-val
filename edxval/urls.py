@@ -25,14 +25,14 @@ urlpatterns = [
     path('videos/video-transcripts/create/', views.VideoTranscriptView.as_view(),
          name='create-video-transcript'
          ),
+    path('videos/video-transcripts/', views.VideoTranscriptView.as_view(),
+         name='video-transcripts'
+         ),
     path('videos/video-images/update/', views.VideoImagesView.as_view(),
          name='update-video-images'
          ),
     path('videos/courses/<str:course_id>/video-ids', views.CourseVideoIDsView.as_view(),
          name='course-video-ids'
-         ),
-    path('videos/video-transcripts/bulk-delete/', views.VideoTranscriptBulkDelete.as_view(),
-         name='bulk-delete-video-transcript'
          ),
 ]
 

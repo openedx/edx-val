@@ -1157,7 +1157,7 @@ class CourseVideoIDsViewTest(APIAuthTestCase):
 
 
 @ddt
-class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
+class VideoTranscriptDeleteTest(APIAuthTestCase):
     """
     Tests for transcript bulk deletion handler.
     """
@@ -1165,7 +1165,7 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
         """
         Tests setup.
         """
-        self.url = reverse('bulk-delete-video-transcript')
+        self.url = reverse('video-transcripts')
         self.patcher = patch.object(IsAuthenticated, "has_permission", return_value=True)
         self.patcher = patch.object(IsStaff, "has_permission", return_value=True)
         self.patcher.start()
@@ -1179,97 +1179,17 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
     def tearDown(self):
         self.patcher.stop()
 
-    def test_transcript_bulk_delete_fail_authorized(self):
+    def test_transcript_fail_authorized(self):
         with patch.object(IsAuthenticated, "has_permission", return_value=False):
-            response = self.client.post(self.url, {}, format="json")
+            response = self.client.delete(self.url)
             self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_transcript_bulk_delete_fail_no_staff(self):
+    def test_transcript_delete_fail_no_staff(self):
         with patch.object(IsStaff, "has_permission", return_value=False):
-            response = self.client.post(self.url, {}, format="json")
+            response = self.client.delete(self.url)
             self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @data(
-        (
-            {
-                'simpson-id': ['es', 'ko', 'ru']
-            },
-            ('Language "ko" is not available for video "simpson-id".\n'
-             'Language "ru" is not available for video "simpson-id".')
-        ),
-    )
-    @unpack
-    def test_transcript_bulk_delete_handler_wrong_payload_missing_transcript_for_video(
-        self,
-        request_payload,
-        expected_error_message
-    ):
-        """
-        Tests the transcript upload handler when the required attributes are missing.
-        """
-        VideoTranscript.objects.create(
-            video=self.video_1,
-            language_code=self.transcript_data_es['language_code'],
-            file_format=self.transcript_data_es['file_format'],
-            provider=self.transcript_data_es['provider'],
-        )
-        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
-
-    @data(
-        (
-            {
-                'simpson-id': ['ko'],
-                'flintstone-id': ['ru'],
-            },
-            ('Language "ko" is not available for video "simpson-id".\n'
-             'Language "ru" is not available for video "flintstone-id".')
-        ),
-    )
-    @unpack
-    def test_transcript_bulk_delete_handler_wrong_payload_missing_transcript_for_videos(
-        self,
-        request_payload,
-        expected_error_message,
-    ):
-        """
-        Tests the transcript upload handler when the required attributes are missing.
-        """
-        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
-
-    @data(
-        (
-            {
-                'simpson-id': 'ru'
-            },
-            'Value for video "simpson-id" needs to be a list of language codes.'
-        ),
-    )
-    @unpack
-    def test_transcript_bulk_delete_handler_wrong_payload_not_a_list(self, request_payload, expected_error_message):
-        """
-        Tests the transcript upload handler when the required attributes are missing.
-        """
-        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_error_message)
-
-    @data(
-        (
-            {
-                'simpson-id': ['es', 'ko', 'ru'],
-            },
-            '3 transcripts were successfully deleted.'
-        ),
-    )
-    @unpack
-    def test_transcript_bulk_delete_handler_success(self, request_payload, expected_message):
-        """
-        Tests the transcript upload handler when payload is accurate and deletion works.
-        """
+    def test_transcript_delete_success(self):
         VideoTranscript.objects.create(
             video=self.video_1,
             language_code=self.transcript_data_es['language_code'],
@@ -1288,6 +1208,16 @@ class VideoTranscriptBulkDeleteTest(APIAuthTestCase):
             file_format=self.transcript_data_ru['file_format'],
             provider=self.transcript_data_ru['provider'],
         )
-        response = self.client.post(self.url, data=json.dumps(request_payload), content_type='application/json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(json.loads(response.content.decode('utf-8'))['message'], expected_message)
+
+        response1 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=es')
+        self.assertEqual(response1.status_code, status.HTTP_204_NO_CONTENT)
+
+        response2 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=ko')
+        self.assertEqual(response2.status_code, status.HTTP_204_NO_CONTENT)
+
+        response3 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=ru')
+        self.assertEqual(response3.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_transcript_delete_fail_bad_request(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

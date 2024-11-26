@@ -18,7 +18,6 @@ from rest_framework.views import APIView
 from edxval.api import (
     create_or_update_video_transcript,
     delete_video_transcript,
-    get_available_transcript_languages,
     get_transcript_details_for_course,
     get_video_ids_for_course,
 )
@@ -32,7 +31,7 @@ from edxval.models import (
     VideoImage,
     VideoTranscript,
 )
-from edxval.serializers import TranscriptBulkDeleteSerializer, VideoSerializer
+from edxval.serializers import VideoSerializer
 from edxval.utils import TranscriptFormat, validate_generated_images
 
 LOGGER = logging.getLogger(__name__)
@@ -126,7 +125,11 @@ class VideoTranscriptView(APIView):
     """
     authentication_classes = (JwtAuthentication, SessionAuthentication)
 
-    # noinspection PyMethodMayBeStatic
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            return [IsAuthenticated(), IsStaff()]
+        return []
+
     def post(self, request):
         """
         Creates a video transcript instance with the given information.
@@ -180,6 +183,41 @@ class VideoTranscriptView(APIView):
             response = Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
         return response
+
+    def delete(self, request):
+        """
+        Delete a video transcript instance with the given information.
+
+        Arguments:
+            request: A WSGI request.
+        """
+        params = ('video_id', 'language_code')
+        missing = [param for param in params if param not in request.query_params]
+        if missing:
+            LOGGER.warning(
+                '[VAL] Required transcript params are missing. %s', ' and '.join(missing)
+            )
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=dict(message='{missing} must be specified.'.format(missing=' and '.join(missing)))
+            )
+
+        video_id = request.query_params.get('video_id')
+        language_code = request.query_params.get('language_code')
+
+        try:
+            delete_video_transcript(video_id=video_id, language_code=language_code)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={'message': str(e)}
+            )
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
 
 
 class CourseTranscriptsDetailView(APIView):
@@ -417,57 +455,3 @@ class HLSMissingVideoView(APIView):
         EncodedVideo.objects.create(video=video, profile=profile, **encode_data)
 
         return Response(status=status.HTTP_200_OK)
-
-
-class VideoTranscriptBulkDelete(APIView):
-    """
-    View to bulk delete video transcripts
-    """
-    authentication_classes = (JwtAuthentication, SessionAuthentication)
-    permission_classes = (IsAuthenticated, IsStaff)
-
-    def post(self, request):
-        """
-        View to delete a set of transcript files.
-
-        Arguments:
-            request: A WSGI request object
-
-        The request body should be a JSON object.
-        The JSON object should be a dictionary:
-        * Each key in the dictionary should be a video_id (a string representing the ID of the video).
-        * Each value in the dictionary should be a list of language_codes (a string representing the
-            language code of the transcript to be deleted).
-
-        Example:
-        {
-            "video_id_1": ["language_code_1", "language_code_2"],
-            "video_id_2": ["language_code_3", "language_code_4"]
-        }
-
-        Returns
-            - A 400 if any of the validation fails
-            - A 200 if all transcripts delete jobs are triggered successfully
-        """
-        serializer = TranscriptBulkDeleteSerializer(
-            data=request.data,
-            # Dependencty injection to avoid cylcic import
-            get_available_transcript_languages=get_available_transcript_languages
-        )
-        if not serializer.is_valid():
-            return Response(
-                status=status.HTTP_400_BAD_REQUEST,
-                data={'message': serializer.errors['non_field_errors'][0]}
-            )
-
-        deleted = 0
-        validated_data = serializer.validated_data
-        for video_id, language_codes in validated_data.items():
-            for language_code in language_codes:
-                delete_video_transcript(video_id=video_id, language_code=language_code)
-                deleted += 1
-
-        return Response(
-            status=status.HTTP_200_OK,
-            data={'message': f'{deleted} transcripts were successfully deleted.'}
-        )
