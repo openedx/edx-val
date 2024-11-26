@@ -218,8 +218,6 @@ class VideoTranscriptView(APIView):
         )
 
 
-
-
 class CourseTranscriptsDetailView(APIView):
     """
     A view to get the details for all the course transcripts related to a course_id.
