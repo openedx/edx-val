@@ -1296,1018 +1296,1018 @@ class ExportTest(TestCase):
             api.export_to_xml('unknown_video', self.file_system, constants.EXPORT_IMPORT_STATIC_DIR)
 
 
-@ddt
-class ImportTest(TestCase):
-    """
-    Tests import_from_xml
-    """
-
-    def setUp(self):
-        super().setUp()
-        self.image_name = 'image.jpg'
-        mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
-        Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
-        video = Video.objects.create(**constants.VIDEO_DICT_FISH)
-        EncodedVideo.objects.create(
-            video=video,
-            profile=mobile_profile,
-            **constants.ENCODED_VIDEO_DICT_MOBILE
-        )
-        CourseVideo.objects.create(video=video, course_id='existing_course_id')
-
-        self.transcript_data1 = dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id='little-star')
-        self.transcript_data2 = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video_id='little-star')
-        self.transcript_data3 = dict(self.transcript_data2, video_id='super-soaker')
-
-        self.temp_dir = mkdtemp()
-        self.file_system = OSFS(self.temp_dir)
-        self.file_system.makedir(constants.EXPORT_IMPORT_COURSE_DIR, recreate=True)
-        self.file_system.makedir(
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            recreate=True
-        )
-
-        self.addCleanup(shutil.rmtree, self.temp_dir)
-
-    def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None, video_transcripts=None):
-        """ Importing xml"""
-        import_xml = etree.Element(
-            "video_asset",
-            attrib={
-                key: str(video_dict[key])
-                for key in ["client_video_id", "duration"]
-            }
-        )
-
-        if image:
-            import_xml.attrib['image'] = image
-
-        for encoding_dict in (encoded_video_dicts or []):
-            etree.SubElement(
-                import_xml,
-                "encoded_video",
-                attrib={
-                    key: str(val)
-                    for key, val in encoding_dict.items()
-                }
-            )
-
-        if video_transcripts:
-            transcripts_el = etree.SubElement(import_xml, 'transcripts')
-            for video_transcript in video_transcripts:
-                file_format = video_transcript['file_format']
-                language_code = video_transcript['language_code']
-
-                etree.SubElement(
-                    transcripts_el,
-                    'transcript',
-                    {
-                        'language_code': language_code,
-                        'file_format': file_format,
-                        'provider': video_transcript['provider'],
-                    }
-                )
-
-                # Create transcript files
-                transcript_file_name = '{edx_video_id}-{language_code}.{file_format}'.format(
-                    edx_video_id=video_dict['edx_video_id'],
-                    language_code=language_code,
-                    file_format=file_format
-                )
-                utils.create_file_in_fs(
-                    video_transcript['file_data'],
-                    transcript_file_name,
-                    self.file_system,
-                    constants.EXPORT_IMPORT_STATIC_DIR
-                )
-
-        return import_xml
-
-    def assert_obj_matches_dict_for_keys(self, obj, dict_, keys):
-        """ asserting dicts """
-        for key in keys:
-            self.assertEqual(getattr(obj, key), dict_[key])
-
-    def assert_video_matches_dict(self, video, video_dict):
-        """ asserting dicts """
-        self.assert_obj_matches_dict_for_keys(
-            video,
-            video_dict,
-            ["client_video_id", "duration"]
-        )
-
-    def assert_encoded_video_matches_dict(self, encoded_video, encoded_video_dict):
-        """ asserting dicts """
-        self.assert_obj_matches_dict_for_keys(
-            encoded_video,
-            encoded_video_dict,
-            ["url", "file_size", "bitrate"]
-        )
-
-    def assert_invalid_import(self, xml, course_id=None):
-        """ asserting dicts """
-        edx_video_id = "test_edx_video_id"
-        with self.assertRaises(ValCannotCreateError):
-            api.import_from_xml(
-                xml,
-                edx_video_id,
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR,
-                {},
-                course_id
-            )
-        self.assertFalse(Video.objects.filter(edx_video_id=edx_video_id).exists())
-
-    def assert_transcripts(self, video_id, expected_transcripts):
-        """
-        Compare `received` with `expected` and assert if not equal.
-        """
-        # Verify total number of expected transcripts for a video.
-        video_transcripts = VideoTranscript.objects.filter(video__edx_video_id=video_id)
-        self.assertEqual(video_transcripts.count(), len(expected_transcripts))
-
-        # Verify data for each transcript.
-        for expected_transcript in expected_transcripts:
-            language_code = expected_transcript['language_code']
-
-            # Get the imported transcript and remove `url` key.
-            received_transcript = api.TranscriptSerializer(
-                VideoTranscript.objects.get(video__edx_video_id=video_id, language_code=language_code)
-            ).data
-
-            # Assert transcript content
-            received_transcript['file_data'] = api.get_video_transcript_data(
-                video_id, language_code
-            )['content'].decode('utf8')
-
-            # Omit not needed attrs.
-            expected_transcript = omit_attrs(expected_transcript, ['transcript'])
-            received_transcript = omit_attrs(received_transcript, ['url'])
-
-            self.assertDictEqual(received_transcript, expected_transcript)
-
-    def test_new_video_full(self):
-        new_course_id = 'new_course_id'
-
-        xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_STAR,
-            encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS],
-            image=self.image_name,
-            video_transcripts=[self.transcript_data1, self.transcript_data2]
-        )
-
-        # There must not be any transcript before import.
-        self.assert_transcripts(constants.VIDEO_DICT_STAR['edx_video_id'], [])
-
-        edx_video_id = api.import_from_xml(
-            xml,
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {},
-            new_course_id
-        )
-        self.assertEqual(edx_video_id, constants.VIDEO_DICT_STAR['edx_video_id'])
-
-        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
-        self.assert_video_matches_dict(video, constants.VIDEO_DICT_STAR)
-        self.assert_encoded_video_matches_dict(
-            video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
-            constants.ENCODED_VIDEO_DICT_STAR
-        )
-        self.assert_encoded_video_matches_dict(
-            video.encoded_videos.get(profile__profile_name=constants.PROFILE_HLS),
-            constants.ENCODED_VIDEO_DICT_FISH_HLS
-        )
-        course_video = video.courses.get(course_id=new_course_id)
-        self.assertTrue(course_video.video_image.image.name, self.image_name)
-
-        self.assert_transcripts(
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            [self.transcript_data1, self.transcript_data2]
-        )
-
-    def test_new_video_minimal(self):
-        edx_video_id = "test_edx_video_id"
-
-        xml = self.make_import_xml(
-            video_dict={
-                "client_video_id": "dummy",
-                "duration": "0",
-            }
-        )
-        api.import_from_xml(xml, edx_video_id, self.file_system, constants.EXPORT_IMPORT_STATIC_DIR)
-
-        video = Video.objects.get(edx_video_id=edx_video_id)
-        self.assertFalse(video.encoded_videos.all().exists())
-        self.assertFalse(video.courses.all().exists())
-
-    @data(
-        # import into another course, where the video already exists, but is not associated with the course.
-        {'course_id': 'new_course_id', 'language_code': 'fr'},
-        # re-import case, where the video and course association already exists.
-        {'course_id': 'existing_course_id', 'language_code': 'nl'}
-    )
-    @unpack
-    def test_existing_video(self, course_id, language_code):
-        transcript_data = dict(self.transcript_data3, language_code=language_code)
-        xml = self.make_import_xml(
-            video_dict={
-                'edx_video_id': constants.VIDEO_DICT_FISH['edx_video_id'],
-                'client_video_id': 'new_client_video_id',
-                'duration': 0,
-            },
-            encoded_video_dicts=[
-                constants.ENCODED_VIDEO_DICT_FISH_DESKTOP,
-                {
-                    'url': 'http://example.com/new_url',
-                    'file_size': 2733256,
-                    'bitrate': 1597804,
-                    'profile': 'mobile',
-                },
-            ],
-            image=self.image_name,
-            video_transcripts=[transcript_data]
-        )
-
-        # There must not be any transcript before import.
-        self.assert_transcripts(constants.VIDEO_DICT_FISH['edx_video_id'], [])
-
-        edx_video_id = api.import_from_xml(
-            xml,
-            constants.VIDEO_DICT_FISH['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {},
-            course_id
-        )
-        self.assertEqual(edx_video_id, constants.VIDEO_DICT_FISH['edx_video_id'])
-
-        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
-        self.assert_video_matches_dict(video, constants.VIDEO_DICT_FISH)
-        self.assert_encoded_video_matches_dict(
-            video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
-            constants.ENCODED_VIDEO_DICT_MOBILE
-        )
-        self.assertFalse(
-            video.encoded_videos.filter(profile__profile_name=constants.PROFILE_DESKTOP).exists()
-        )
-        self.assertTrue(video.courses.filter(course_id=course_id).exists())
-        course_video = video.courses.get(course_id=course_id)
-        self.assertTrue(course_video.video_image.image.name, self.image_name)
-
-        # Transcript is correctly imported when video already exists
-        self.assert_transcripts(
-            constants.VIDEO_DICT_FISH['edx_video_id'],
-            [transcript_data],
-        )
-
-    def test_existing_video_with_invalid_course_id(self):
-        xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
-        with self.assertRaises(ValCannotCreateError):
-            api.import_from_xml(
-                xml,
-                constants.VIDEO_DICT_FISH['edx_video_id'],
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR,
-                {},
-                course_id='x' * 300
-            )
-
-    def test_unknown_profile(self):
-        profile = "unknown_profile"
-        xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_STAR,
-            encoded_video_dicts=[
-                constants.ENCODED_VIDEO_DICT_STAR,
-                {
-                    "url": "http://example.com/dummy",
-                    "file_size": -1,  # Invalid data in an unknown profile is ignored
-                    "bitrate": 0,
-                    "profile": profile,
-                }
-            ]
-        )
-        api.import_from_xml(
-            xml,
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
-        self.assertFalse(video.encoded_videos.filter(profile__profile_name=profile).exists())
-
-    def test_invalid_tag(self):
-        xml = etree.Element(
-            "invalid_tag",
-            attrib={
-                "client_video_id": "dummy",
-                "duration": "0",
-            }
-        )
-        self.assert_invalid_import(xml)
-
-    def test_invalid_video_attr(self):
-        xml = self.make_import_xml(
-            video_dict={
-                "client_video_id": "dummy",
-                "duration": -1,
-            }
-        )
-        self.assert_invalid_import(xml)
-
-    def test_invalid_encoded_video_attr(self):
-        xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_FISH,
-            encoded_video_dicts=[{
-                "url": "http://example.com/dummy",
-                "file_size": -1,
-                "bitrate": 0,
-                "profile": "mobile"
-            }]
-        )
-        self.assert_invalid_import(xml)
-
-    def test_invalid_course_id(self):
-        """
-        Test the video xml import raises `ValCannotCreateError` on invalid course id.
-        """
-        xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_FISH,
-            encoded_video_dicts=[
-                constants.ENCODED_VIDEO_DICT_STAR,
-                constants.ENCODED_VIDEO_DICT_FISH_HLS
-            ]
-        )
-        self.assert_invalid_import(xml, "x" * 300)
-
-    def test_video_not_linked_to_course_if_no_encodes(self):
-        """
-        Test that an imported video is not linked to the corresponding course if it has no
-        playable encodings.
-        """
-        course_id = 'existing_course_id'
-        video_data = dict(constants.VIDEO_DICT_FISH, edx_video_id='video_with_no_encoding')
-
-        xml = self.make_import_xml(
-            video_dict=video_data,
-            encoded_video_dicts=[]
-        )
-
-        api.import_from_xml(
-            xml=xml,
-            course_id=course_id,
-            resource_fs=self.file_system,
-            edx_video_id=video_data['edx_video_id'],
-            static_dir=constants.EXPORT_IMPORT_STATIC_DIR,
-        )
-
-        # Assert that the video has been created and its status is external.
-        video = Video.objects.get(edx_video_id=video_data['edx_video_id'])
-        self.assertEqual(video.status, 'external')
-
-        # Assert that the created video is not linked to any course
-        with self.assertRaises(CourseVideo.DoesNotExist):
-            CourseVideo.objects.get(video=video)
-
-    def test_external_video_not_imported(self):
-        """
-        Verify that external videos are not imported into a course.
-        """
-        # Setup an external Video.
-        Video.objects.create(**constants.EXTERNAL_VIDEO_DICT_FISH)
-        xml = self.make_import_xml(video_dict=constants.EXTERNAL_VIDEO_DICT_FISH)
-        api.import_from_xml(
-            xml,
-            constants.EXTERNAL_VIDEO_DICT_FISH['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            course_id='test_course_id'
-        )
-        # Assert that the existing video is not imported into the course.
-        self.assertFalse(CourseVideo.objects.filter(
-            course_id='test_course_id',
-            video__edx_video_id=constants.EXTERNAL_VIDEO_DICT_FISH['edx_video_id']
-        ).exists())
-
-    def test_external_no_video_transcript(self):
-        """
-        Verify that transcript import for external video working as expected when there is no transcript.
-        """
-        api.import_from_xml(
-            etree.fromstring('<video_asset/>'),
-            '',
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-        self.assertEqual(
-            VideoTranscript.objects.count(),
-            0
-        )
-
-    @data(
-        ('external-transcript.srt', constants.VIDEO_TRANSCRIPT_CUSTOM_SRT),
-        ('external-transcript.sjson', constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON)
-    )
-    @unpack
-    def test_external_video_transcript(self, transcript_file_name, transcript_data):
-        """
-        Verify that transcript import for external video working as expected when there is transcript present.
-        """
-        # First create external transcript.
-        utils.create_file_in_fs(
-            transcript_data['file_data'],
-            transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        # Verify that one video is present before import.
-        self.assertEqual(Video.objects.count(), 1)
-
-        # Verify that no transript was present before import.
-        self.assertEqual(VideoTranscript.objects.count(), 0)
-
-        # Import xml with empty edx video id.
-        edx_video_id = api.import_from_xml(
-            etree.fromstring('<video_asset/>'),
-            '',
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {
-                'en': [transcript_file_name]
-            }
-        )
-
-        # Verify that a new video is created.
-        self.assertIsNotNone(edx_video_id)
-
-        # Verify transcript record is created with correct data.
-        self.assert_transcripts(
-            edx_video_id,
-            [dict(transcript_data, video_id=edx_video_id)]
-        )
-
-    def test_multiple_external_transcripts_different_langauges(self):
-        """
-        Verify that transcript import for external video working as expected when multiple transcripts are imported.
-        """
-        # First create external transcripts.
-        en_transcript_file_name = 'external-transcript-en.srt'
-        utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'],
-            en_transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        es_transcript_file_name = 'external-transcript-es.srt'
-        utils.create_file_in_fs(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'],
-            es_transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        # Verify that one video is present before import.
-        self.assertEqual(Video.objects.count(), 1)
-
-        # Verify that no transript was present before import.
-        self.assertEqual(VideoTranscript.objects.count(), 0)
-
-        # Import xml with empty edx video id.
-        edx_video_id = api.import_from_xml(
-            etree.fromstring('<video_asset/>'),
-            '',
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {
-                'en': [en_transcript_file_name],
-                'es': [es_transcript_file_name]
-            }
-        )
-
-        # Verify that new video is created.
-        self.assertIsNotNone(edx_video_id)
-
-        # Verify transcript records are created with correct data.
-        expected_transcripts = [
-            dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en'),
-            dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='es')
-        ]
-
-        self.assert_transcripts(
-            edx_video_id,
-            expected_transcripts
-        )
-
-    @data(
-        (
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
-            False,
-        ),
-        (
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            True,
-        ),
-    )
-    @unpack
-    def test_multiple_external_transcripts_for_language(
-        self,
-        sub_transcript_data,
-        ext_transcript_data,
-        expected_transcript_data,
-        enable_override_existing_transcripts,
-    ):
-        """
-        Verify that transcript import for external video working as expected when multiple transcripts present against
-        a language e.g. external english transcript is imported through sub and transcripts field.
-
-        There are two different cases here, based on whether **overriding existing transcripts is enabled**.
-
-        If overriding existing transcripts is **disabled**:
-            If a transcript was already uploaded/imported for a certain video, then importing that same video with
-            a new transcript does not overwrite it.
-            In this case:
-                1. Import `sub_transcript_file_name`
-                1. Import `ext_transcript_file_name`
-            Since both have the same video id, then `ext_transcript_file_name` would not be imported, so the transcript
-            would be the `sub_transcript_file_name`.
-
-        If overriding existing transcripts is **enabled**:
-            If a transcript was already uploaded/imported for a certain video, then importing the same video with a new
-            transcript will overwrite it, if and only if the content is different.
-            In this case,
-                1. Import `sub_transcript_file_name`
-                1. Import `ext_transcript_file_name`
-            Since both have the same video id, and `ext_transcript_file_name` has different content, it would get
-            imported, so the transcript would be the `ext_transcript_file_name`.
-        """
-        with override_waffle_flag(OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS, active=enable_override_existing_transcripts):
-            # First create external transcripts.
-            sub_transcript_file_name = 'external-transcript-sub.srt'
-            utils.create_file_in_fs(
-                sub_transcript_data['file_data'],
-                sub_transcript_file_name,
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR
-            )
-
-            ext_transcript_file_name = 'external-transcript-ext.sjson'
-            utils.create_file_in_fs(
-                ext_transcript_data['file_data'],
-                ext_transcript_file_name,
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR
-            )
-
-            # Verify that one video is present before import.
-            self.assertEqual(Video.objects.count(), 1)
-
-            # Verify that no transript was present before import.
-            self.assertEqual(VideoTranscript.objects.count(), 0)
-
-            # Import xml with empty edx video id.
-            # Please note that the ext_transcript would be imported after the sub_transcript
-            edx_video_id = api.import_from_xml(
-                etree.fromstring('<video_asset/>'),
-                '',
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR,
-                {
-                    'en': [sub_transcript_file_name, ext_transcript_file_name]
-                }
-            )
-
-            # Verify that new video is created.
-            self.assertIsNotNone(edx_video_id)
-
-            # Verify transcript record is created with correct data i.e sjson transcript.
-            expected_transcripts = [
-                dict(expected_transcript_data, video_id=edx_video_id, language_code='en')
-            ]
-
-            self.assert_transcripts(
-                edx_video_id,
-                expected_transcripts
-            )
-
-    @data(
-        (
-            constants.VIDEO_TRANSCRIPT_CIELO24,
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            constants.VIDEO_TRANSCRIPT_CIELO24,
-            False,
-        ),
-        (
-            constants.VIDEO_TRANSCRIPT_CIELO24,
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            True,
-        ),
-    )
-    @unpack
-    def test_external_internal_transcripts_conflict(
-        self,
-        internal_transcript_data,
-        external_transcript_data,
-        expected_transcript_data,
-        enable_override_existing_transcripts,
-    ):
-        """
-        Tests that when importing both external and internal (VAL) transcripts, which transcript is imported.
-
-        There are two different cases here, based on whether **overriding existing transcripts is enabled**.
-
-        If overriding existing transcripts is **disabled**:
-            If a transcript was already uploaded/imported for a certain video, then importing that same video with
-            a new transcript does not overwrite it. So in this case, since same video id, and internal transcripts
-            are imported first; meanwhile, the external transcript doesn't get imported.
-
-        If overriding existing transcripts is **enabled**:
-            If a transcript was already uploaded/imported for a certain video, then importing the same video with
-            a new transcript will overwrite it if the content is different. So, in this case, since same video id,
-            internal transcripts are imported first, and the external transcript has different content, it gets
-            imported, and the previous transcript gets overridden with the external one.
-        """
-        video_dict = constants.VIDEO_DICT_STAR
-
-        with override_waffle_flag(OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS, active=enable_override_existing_transcripts):
-            # First create external transcript in sjson format.
-            external_transcript_file_name = 'external-transcript-en.sjson'
-            utils.create_file_in_fs(
-                external_transcript_data['file_data'],
-                external_transcript_file_name,
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR
-            )
-
-            internal_transcript_import_xml = self.make_import_xml(
-                video_dict=video_dict,
-                video_transcripts=[internal_transcript_data]
-            )
-
-            # Verify that one video is present before import.
-            self.assertEqual(Video.objects.count(), 1)
-
-            # Verify that no transript was present before import.
-            self.assertEqual(VideoTranscript.objects.count(), 0)
-
-            # Note that we have an external en transcript as well as internal en transcript.
-            # Note that the external transcript, in this case, gets imported after the internal one.
-            edx_video_id = api.import_from_xml(
-                internal_transcript_import_xml,
-                video_dict['edx_video_id'],
-                self.file_system,
-                constants.EXPORT_IMPORT_STATIC_DIR,
-                {
-                    'en': [external_transcript_file_name]
-                }
-            )
-
-            # Verify that new video is created.
-            self.assertIsNotNone(edx_video_id)
-
-            # Verify transcript record is created with the external transcript data.
-            self.assert_transcripts(
-                video_dict['edx_video_id'],
-                [dict(expected_transcript_data, video_id=edx_video_id)]
-            )
-
-    def test_external_internal_transcripts_different_languages(self):
-        """
-        Tests that when importing both external and internal (VAL) transcripts for different langauges, all transcripts
-        are imported correctly.
-        """
-        edx_video_id = constants.VIDEO_DICT_STAR['edx_video_id']
-        # First create external es transcript.
-        es_transcript_file_name = 'external-transcript-es.sjson'
-        es_external_transcript = dict(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            video_id=edx_video_id,
-            language_code='es'
-        )
-        utils.create_file_in_fs(
-            es_external_transcript['file_data'],
-            es_transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        # Let's create en internal transcript.
-        import_xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_STAR,
-            video_transcripts=[self.transcript_data1]
-        )
-
-        # Verify that one video is present before import.
-        self.assertEqual(Video.objects.count(), 1)
-
-        # Verify that no transript was present before import.
-        self.assertEqual(VideoTranscript.objects.count(), 0)
-
-        # Note that we have an external 'es' language transcript as well as an internal 'es' language transcript.
-        edx_video_id = api.import_from_xml(
-            import_xml,
-            edx_video_id,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {
-                'es': [es_transcript_file_name]
-            }
-        )
-
-        # Verify all transcript records are created correctly.
-        self.assert_transcripts(
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            [self.transcript_data1, es_external_transcript]
-        )
-
-    @patch('edxval.api.logger')
-    def test_import_transcript_from_fs_resource_not_found(self, mock_logger):
-        """
-        Test that `import_transcript_from_fs` correctly logs if transcript file is not found in file system.
-        """
-        language_code = 'en'
-        edx_video_id = 'test-edx-video-id'
-        file_name = 'file-not-found.srt'
-        api.import_transcript_from_fs(
-            edx_video_id=edx_video_id,
-            language_code=language_code,
-            file_name=file_name,
-            provider=TranscriptProviderType.CUSTOM,
-            resource_fs=self.file_system,
-            static_dir=constants.EXPORT_IMPORT_STATIC_DIR
-        )
-        mock_logger.warning.assert_called_with(
-            '[edx-val] "%s" transcript "%s" for video "%s" is not found.',
-            language_code,
-            file_name,
-            edx_video_id
-        )
-
-    @patch('edxval.api.create_or_update_video_transcript')
-    @patch('edxval.api.get_transcript_format', Mock())
-    def test_import_transcript_from_fs_created_transcript_content_encoding(
-        self,
-        mock_create_or_update_video_transcript
-    ):
-        """
-        Test that `import_transcript_from_fs` correctly calls `create_video_transcript` with `utf-8` file content.
-        """
-        language_code = 'en'
-        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-
-        # First create utf-8 encoded transcript file in the file system.
-        # Make sure to include utf-8 characters to chardet recognizes it is utf-8 and not ascii
-        transcript_file_name = 'transcript.txt'
-        video_transcript = dict(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            video_id=edx_video_id,
-            file_data='Hello, edX greets you. random utf-8 characters: éâô'
-        )
-
-        utils.create_file_in_fs(
-            video_transcript['file_data'],
-            transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        api.import_transcript_from_fs(
-            edx_video_id=edx_video_id,
-            language_code=language_code,
-            file_name=transcript_file_name,
-            provider=TranscriptProviderType.CUSTOM,
-            resource_fs=self.file_system,
-            static_dir=constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        transcript_content = mock_create_or_update_video_transcript.call_args.kwargs['file_data']
-        content_encoding = chardet.detect(transcript_content.read())['encoding']
-
-        self.assertEqual(content_encoding, 'utf-8')
-
-    @patch('edxval.api.logger')
-    def test_import_transcript_from_fs_invalid_format(self, mock_logger):
-        """
-        Test that `import_transcript_from_fs` correctly logs if we get error while retrieving transcript file format.
-        """
-        language_code = 'en'
-        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-        # First create transcript file.
-        invalid_transcript_file_name = 'invalid-transcript.txt'
-        invalid_transcript = dict(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            video_id=edx_video_id,
-            file_data='This is an invalid transcript file data.'
-        )
-        utils.create_file_in_fs(
-            invalid_transcript['file_data'],
-            invalid_transcript_file_name,
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-
-        api.import_transcript_from_fs(
-            edx_video_id=edx_video_id,
-            language_code=language_code,
-            file_name=invalid_transcript_file_name,
-            provider=TranscriptProviderType.CUSTOM,
-            resource_fs=self.file_system,
-            static_dir=constants.EXPORT_IMPORT_STATIC_DIR
-        )
-        mock_logger.warning.assert_called_with(
-            '[edx-val] Error while getting transcript format for video=%s -- language_code=%s --file_name=%s',
-            edx_video_id,
-            language_code,
-            invalid_transcript_file_name
-        )
-
-    @patch('edxval.api.logger')
-    def test_import_transcript_from_fs_bad_content(self, mock_logger):
-        """
-        Test that `import_transcript_from_fs` correctly logs if we get error while decoding transcript content.
-        """
-        language_code = 'en'
-        edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
-
-        # First create non utf-8 encoded transcript file in the file system.
-        transcript_file_name = 'invalid-transcript.txt'
-        invalid_transcript = dict(
-            constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
-            video_id=edx_video_id,
-            file_data='Привіт, edX вітає вас.'
-        )
-
-        with self.file_system.open(combine(constants.EXPORT_IMPORT_STATIC_DIR, transcript_file_name), 'wb') as f:
-            f.write(invalid_transcript['file_data'].encode('cp1251'))
-
-        api.import_transcript_from_fs(
-            edx_video_id=edx_video_id,
-            language_code=language_code,
-            file_name=transcript_file_name,
-            provider=TranscriptProviderType.CUSTOM,
-            resource_fs=self.file_system,
-            static_dir=constants.EXPORT_IMPORT_STATIC_DIR
-        )
-        mock_logger.warning.assert_called_with(
-            '[edx-val] "%s" transcript "%s" for video "%s" contains a non-utf8 file content.',
-            language_code,
-            transcript_file_name,
-            edx_video_id
-        )
-
-    def test_import_existing_video_transcript(self):
-        """
-        Verify that transcript import for existing video with transcript attached is working as expected.
-        """
-        expected_video_transcripts = [self.transcript_data3]
-
-        import_xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_FISH,
-            video_transcripts=expected_video_transcripts
-        )
-
-        # Verify video is present before.
-        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
-        self.assertIsNotNone(video)
-
-        # Create internal video transcripts
-        transcript_data = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video=video)
-        transcript_data = omit_attrs(transcript_data, ['video_id', 'file_data'])
-        VideoTranscript.objects.create(**transcript_data)
-
-        # Verify that video has expected transcripts before import.
-        self.assert_transcripts(
-            constants.VIDEO_DICT_FISH['edx_video_id'],
-            expected_video_transcripts
-        )
-
-        api.import_from_xml(
-            import_xml,
-            constants.VIDEO_DICT_FISH['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {},
-            'test_course_id'
-        )
-
-        # Verify that video has expected transcripts after import.
-        self.assert_transcripts(
-            constants.VIDEO_DICT_FISH['edx_video_id'],
-            expected_video_transcripts
-        )
-
-    def test_import_transcript_attached_existing_video(self):
-        """
-        Verify that transcript import for existing video with no transcript attached is working as expected.
-        """
-        exported_video_transcripts = [
-            dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id=constants.VIDEO_DICT_FISH['edx_video_id']),
-            dict(constants.VIDEO_TRANSCRIPT_3PLAY, video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
-        ]
-
-        # Verify video is present before.
-        video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
-        self.assertIsNotNone(video)
-
-        import_xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_FISH,
-            video_transcripts=exported_video_transcripts
-        )
-
-        # There must not be any transcript before import.
-        self.assert_transcripts(constants.VIDEO_DICT_FISH['edx_video_id'], [])
-
-        api.import_from_xml(
-            import_xml,
-            constants.VIDEO_DICT_FISH['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {},
-            'test_course_id'
-        )
-
-        # Verify that transcripts record are created correctly.
-        self.assert_transcripts(
-            constants.VIDEO_DICT_FISH['edx_video_id'],
-            exported_video_transcripts,
-        )
-
-    def test_import_transcript_new_video(self):
-        """
-        Verify that transcript import for new video is working as expected when transcript is present in XML.
-        """
-        expected_video_transcripts = [self.transcript_data1, self.transcript_data2]
-
-        import_xml = self.make_import_xml(
-            video_dict=constants.VIDEO_DICT_STAR,
-            video_transcripts=expected_video_transcripts
-        )
-
-        # Verify video is not present before.
-        with self.assertRaises(Video.DoesNotExist):
-            Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
-
-        # There must not be any transcript before import.
-        self.assert_transcripts(constants.VIDEO_DICT_STAR['edx_video_id'], [])
-
-        api.import_from_xml(
-            import_xml,
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR,
-            {},
-            'test_course_id'
-        )
-
-        # Verify that transcript record is created with correct data.
-        self.assert_transcripts(
-            constants.VIDEO_DICT_STAR['edx_video_id'],
-            expected_video_transcripts
-        )
-
-    @patch('edxval.api.logger')
-    def test_video_transcript_missing_attribute(self, mock_logger):
-        """
-        Verify that video transcript import working as expected if transcript xml data is missing.
-        """
-        video_id = 'super-soaker'
-        transcript_xml = '<transcript file_format="srt" provider="Cielo24"/>'
-        xml = etree.fromstring("""
-            <video_asset>
-                <transcripts>
-                    {transcript_xml}
-                    <transcript language_code="de" file_format="sjson" provider="3PlayMedia"/>
-                </transcripts>
-            </video_asset>
-        """.format(transcript_xml=transcript_xml))
-
-        # There should be no video transcript before import
-        with self.assertRaises(VideoTranscript.DoesNotExist):
-            VideoTranscript.objects.get(video__edx_video_id=video_id)
-
-        # Create transcript files
-        utils.create_file_in_fs(
-            constants.TRANSCRIPT_DATA['wow'],
-            'super-soaker-de.sjson',
-            self.file_system,
-            constants.EXPORT_IMPORT_STATIC_DIR
-        )
-        api.create_transcript_objects(xml, video_id, self.file_system, constants.EXPORT_IMPORT_STATIC_DIR, {})
-
-        mock_logger.warning.assert_called_with(
-            "VAL: Required attributes are missing from xml, xml=[%s]",
-            transcript_xml.encode('utf8')
-        )
-
-        self.assert_transcripts(video_id, [self.transcript_data3])
+# @ddt
+# class ImportTest(TestCase):
+#     """
+#     Tests import_from_xml
+#     """
+
+#     def setUp(self):
+#         super().setUp()
+#         self.image_name = 'image.jpg'
+#         mobile_profile = Profile.objects.create(profile_name=constants.PROFILE_MOBILE)
+#         Profile.objects.create(profile_name=constants.PROFILE_DESKTOP)
+#         video = Video.objects.create(**constants.VIDEO_DICT_FISH)
+#         EncodedVideo.objects.create(
+#             video=video,
+#             profile=mobile_profile,
+#             **constants.ENCODED_VIDEO_DICT_MOBILE
+#         )
+#         CourseVideo.objects.create(video=video, course_id='existing_course_id')
+
+#         self.transcript_data1 = dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id='little-star')
+#         self.transcript_data2 = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video_id='little-star')
+#         self.transcript_data3 = dict(self.transcript_data2, video_id='super-soaker')
+
+#         self.temp_dir = mkdtemp()
+#         self.file_system = OSFS(self.temp_dir)
+#         self.file_system.makedir(constants.EXPORT_IMPORT_COURSE_DIR, recreate=True)
+#         self.file_system.makedir(
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             recreate=True
+#         )
+
+#         self.addCleanup(shutil.rmtree, self.temp_dir)
+
+#     def make_import_xml(self, video_dict, encoded_video_dicts=None, image=None, video_transcripts=None):
+#         """ Importing xml"""
+#         import_xml = etree.Element(
+#             "video_asset",
+#             attrib={
+#                 key: str(video_dict[key])
+#                 for key in ["client_video_id", "duration"]
+#             }
+#         )
+
+#         if image:
+#             import_xml.attrib['image'] = image
+
+#         for encoding_dict in (encoded_video_dicts or []):
+#             etree.SubElement(
+#                 import_xml,
+#                 "encoded_video",
+#                 attrib={
+#                     key: str(val)
+#                     for key, val in encoding_dict.items()
+#                 }
+#             )
+
+#         if video_transcripts:
+#             transcripts_el = etree.SubElement(import_xml, 'transcripts')
+#             for video_transcript in video_transcripts:
+#                 file_format = video_transcript['file_format']
+#                 language_code = video_transcript['language_code']
+
+#                 etree.SubElement(
+#                     transcripts_el,
+#                     'transcript',
+#                     {
+#                         'language_code': language_code,
+#                         'file_format': file_format,
+#                         'provider': video_transcript['provider'],
+#                     }
+#                 )
+
+#                 # Create transcript files
+#                 transcript_file_name = '{edx_video_id}-{language_code}.{file_format}'.format(
+#                     edx_video_id=video_dict['edx_video_id'],
+#                     language_code=language_code,
+#                     file_format=file_format
+#                 )
+#                 utils.create_file_in_fs(
+#                     video_transcript['file_data'],
+#                     transcript_file_name,
+#                     self.file_system,
+#                     constants.EXPORT_IMPORT_STATIC_DIR
+#                 )
+
+#         return import_xml
+
+#     def assert_obj_matches_dict_for_keys(self, obj, dict_, keys):
+#         """ asserting dicts """
+#         for key in keys:
+#             self.assertEqual(getattr(obj, key), dict_[key])
+
+#     def assert_video_matches_dict(self, video, video_dict):
+#         """ asserting dicts """
+#         self.assert_obj_matches_dict_for_keys(
+#             video,
+#             video_dict,
+#             ["client_video_id", "duration"]
+#         )
+
+#     def assert_encoded_video_matches_dict(self, encoded_video, encoded_video_dict):
+#         """ asserting dicts """
+#         self.assert_obj_matches_dict_for_keys(
+#             encoded_video,
+#             encoded_video_dict,
+#             ["url", "file_size", "bitrate"]
+#         )
+
+#     def assert_invalid_import(self, xml, course_id=None):
+#         """ asserting dicts """
+#         edx_video_id = "test_edx_video_id"
+#         with self.assertRaises(ValCannotCreateError):
+#             api.import_from_xml(
+#                 xml,
+#                 edx_video_id,
+#                 self.file_system,
+#                 constants.EXPORT_IMPORT_STATIC_DIR,
+#                 {},
+#                 course_id
+#             )
+#         self.assertFalse(Video.objects.filter(edx_video_id=edx_video_id).exists())
+
+#     def assert_transcripts(self, video_id, expected_transcripts):
+#         """
+#         Compare `received` with `expected` and assert if not equal.
+#         """
+#         # Verify total number of expected transcripts for a video.
+#         video_transcripts = VideoTranscript.objects.filter(video__edx_video_id=video_id)
+#         self.assertEqual(video_transcripts.count(), len(expected_transcripts))
+
+#         # Verify data for each transcript.
+#         for expected_transcript in expected_transcripts:
+#             language_code = expected_transcript['language_code']
+
+#             # Get the imported transcript and remove `url` key.
+#             received_transcript = api.TranscriptSerializer(
+#                 VideoTranscript.objects.get(video__edx_video_id=video_id, language_code=language_code)
+#             ).data
+
+#             # Assert transcript content
+#             received_transcript['file_data'] = api.get_video_transcript_data(
+#                 video_id, language_code
+#             )['content'].decode('utf8')
+
+#             # Omit not needed attrs.
+#             expected_transcript = omit_attrs(expected_transcript, ['transcript'])
+#             received_transcript = omit_attrs(received_transcript, ['url'])
+
+#             self.assertDictEqual(received_transcript, expected_transcript)
+
+#     def test_new_video_full(self):
+#         new_course_id = 'new_course_id'
+
+#         xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_STAR,
+#             encoded_video_dicts=[constants.ENCODED_VIDEO_DICT_STAR, constants.ENCODED_VIDEO_DICT_FISH_HLS],
+#             image=self.image_name,
+#             video_transcripts=[self.transcript_data1, self.transcript_data2]
+#         )
+
+#         # There must not be any transcript before import.
+#         self.assert_transcripts(constants.VIDEO_DICT_STAR['edx_video_id'], [])
+
+#         edx_video_id = api.import_from_xml(
+#             xml,
+#             constants.VIDEO_DICT_STAR['edx_video_id'],
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {},
+#             new_course_id
+#         )
+#         self.assertEqual(edx_video_id, constants.VIDEO_DICT_STAR['edx_video_id'])
+
+#         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
+#         self.assert_video_matches_dict(video, constants.VIDEO_DICT_STAR)
+#         self.assert_encoded_video_matches_dict(
+#             video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
+#             constants.ENCODED_VIDEO_DICT_STAR
+#         )
+#         self.assert_encoded_video_matches_dict(
+#             video.encoded_videos.get(profile__profile_name=constants.PROFILE_HLS),
+#             constants.ENCODED_VIDEO_DICT_FISH_HLS
+#         )
+#         course_video = video.courses.get(course_id=new_course_id)
+#         self.assertTrue(course_video.video_image.image.name, self.image_name)
+
+#         self.assert_transcripts(
+#             constants.VIDEO_DICT_STAR['edx_video_id'],
+#             [self.transcript_data1, self.transcript_data2]
+#         )
+
+#     def test_new_video_minimal(self):
+#         edx_video_id = "test_edx_video_id"
+
+#         xml = self.make_import_xml(
+#             video_dict={
+#                 "client_video_id": "dummy",
+#                 "duration": "0",
+#             }
+#         )
+#         api.import_from_xml(xml, edx_video_id, self.file_system, constants.EXPORT_IMPORT_STATIC_DIR)
+
+#         video = Video.objects.get(edx_video_id=edx_video_id)
+#         self.assertFalse(video.encoded_videos.all().exists())
+#         self.assertFalse(video.courses.all().exists())
+
+#     @data(
+#         # import into another course, where the video already exists, but is not associated with the course.
+#         {'course_id': 'new_course_id', 'language_code': 'fr'},
+#         # re-import case, where the video and course association already exists.
+#         {'course_id': 'existing_course_id', 'language_code': 'nl'}
+#     )
+#     @unpack
+#     def test_existing_video(self, course_id, language_code):
+#         transcript_data = dict(self.transcript_data3, language_code=language_code)
+#         xml = self.make_import_xml(
+#             video_dict={
+#                 'edx_video_id': constants.VIDEO_DICT_FISH['edx_video_id'],
+#                 'client_video_id': 'new_client_video_id',
+#                 'duration': 0,
+#             },
+#             encoded_video_dicts=[
+#                 constants.ENCODED_VIDEO_DICT_FISH_DESKTOP,
+#                 {
+#                     'url': 'http://example.com/new_url',
+#                     'file_size': 2733256,
+#                     'bitrate': 1597804,
+#                     'profile': 'mobile',
+#                 },
+#             ],
+#             image=self.image_name,
+#             video_transcripts=[transcript_data]
+#         )
+
+#         # There must not be any transcript before import.
+#         self.assert_transcripts(constants.VIDEO_DICT_FISH['edx_video_id'], [])
+
+#         edx_video_id = api.import_from_xml(
+#             xml,
+#             constants.VIDEO_DICT_FISH['edx_video_id'],
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {},
+#             course_id
+#         )
+#         self.assertEqual(edx_video_id, constants.VIDEO_DICT_FISH['edx_video_id'])
+
+#         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
+#         self.assert_video_matches_dict(video, constants.VIDEO_DICT_FISH)
+#         self.assert_encoded_video_matches_dict(
+#             video.encoded_videos.get(profile__profile_name=constants.PROFILE_MOBILE),
+#             constants.ENCODED_VIDEO_DICT_MOBILE
+#         )
+#         self.assertFalse(
+#             video.encoded_videos.filter(profile__profile_name=constants.PROFILE_DESKTOP).exists()
+#         )
+#         self.assertTrue(video.courses.filter(course_id=course_id).exists())
+#         course_video = video.courses.get(course_id=course_id)
+#         self.assertTrue(course_video.video_image.image.name, self.image_name)
+
+#         # Transcript is correctly imported when video already exists
+#         self.assert_transcripts(
+#             constants.VIDEO_DICT_FISH['edx_video_id'],
+#             [transcript_data],
+#         )
+
+#     def test_existing_video_with_invalid_course_id(self):
+#         xml = self.make_import_xml(video_dict=constants.VIDEO_DICT_FISH)
+#         with self.assertRaises(ValCannotCreateError):
+#             api.import_from_xml(
+#                 xml,
+#                 constants.VIDEO_DICT_FISH['edx_video_id'],
+#                 self.file_system,
+#                 constants.EXPORT_IMPORT_STATIC_DIR,
+#                 {},
+#                 course_id='x' * 300
+#             )
+
+#     def test_unknown_profile(self):
+#         profile = "unknown_profile"
+#         xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_STAR,
+#             encoded_video_dicts=[
+#                 constants.ENCODED_VIDEO_DICT_STAR,
+#                 {
+#                     "url": "http://example.com/dummy",
+#                     "file_size": -1,  # Invalid data in an unknown profile is ignored
+#                     "bitrate": 0,
+#                     "profile": profile,
+#                 }
+#             ]
+#         )
+#         api.import_from_xml(
+#             xml,
+#             constants.VIDEO_DICT_STAR['edx_video_id'],
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
+#         self.assertFalse(video.encoded_videos.filter(profile__profile_name=profile).exists())
+
+#     def test_invalid_tag(self):
+#         xml = etree.Element(
+#             "invalid_tag",
+#             attrib={
+#                 "client_video_id": "dummy",
+#                 "duration": "0",
+#             }
+#         )
+#         self.assert_invalid_import(xml)
+
+#     def test_invalid_video_attr(self):
+#         xml = self.make_import_xml(
+#             video_dict={
+#                 "client_video_id": "dummy",
+#                 "duration": -1,
+#             }
+#         )
+#         self.assert_invalid_import(xml)
+
+#     def test_invalid_encoded_video_attr(self):
+#         xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_FISH,
+#             encoded_video_dicts=[{
+#                 "url": "http://example.com/dummy",
+#                 "file_size": -1,
+#                 "bitrate": 0,
+#                 "profile": "mobile"
+#             }]
+#         )
+#         self.assert_invalid_import(xml)
+
+#     def test_invalid_course_id(self):
+#         """
+#         Test the video xml import raises `ValCannotCreateError` on invalid course id.
+#         """
+#         xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_FISH,
+#             encoded_video_dicts=[
+#                 constants.ENCODED_VIDEO_DICT_STAR,
+#                 constants.ENCODED_VIDEO_DICT_FISH_HLS
+#             ]
+#         )
+#         self.assert_invalid_import(xml, "x" * 300)
+
+#     def test_video_not_linked_to_course_if_no_encodes(self):
+#         """
+#         Test that an imported video is not linked to the corresponding course if it has no
+#         playable encodings.
+#         """
+#         course_id = 'existing_course_id'
+#         video_data = dict(constants.VIDEO_DICT_FISH, edx_video_id='video_with_no_encoding')
+
+#         xml = self.make_import_xml(
+#             video_dict=video_data,
+#             encoded_video_dicts=[]
+#         )
+
+#         api.import_from_xml(
+#             xml=xml,
+#             course_id=course_id,
+#             resource_fs=self.file_system,
+#             edx_video_id=video_data['edx_video_id'],
+#             static_dir=constants.EXPORT_IMPORT_STATIC_DIR,
+#         )
+
+#         # Assert that the video has been created and its status is external.
+#         video = Video.objects.get(edx_video_id=video_data['edx_video_id'])
+#         self.assertEqual(video.status, 'external')
+
+#         # Assert that the created video is not linked to any course
+#         with self.assertRaises(CourseVideo.DoesNotExist):
+#             CourseVideo.objects.get(video=video)
+
+#     def test_external_video_not_imported(self):
+#         """
+#         Verify that external videos are not imported into a course.
+#         """
+#         # Setup an external Video.
+#         Video.objects.create(**constants.EXTERNAL_VIDEO_DICT_FISH)
+#         xml = self.make_import_xml(video_dict=constants.EXTERNAL_VIDEO_DICT_FISH)
+#         api.import_from_xml(
+#             xml,
+#             constants.EXTERNAL_VIDEO_DICT_FISH['edx_video_id'],
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             course_id='test_course_id'
+#         )
+#         # Assert that the existing video is not imported into the course.
+#         self.assertFalse(CourseVideo.objects.filter(
+#             course_id='test_course_id',
+#             video__edx_video_id=constants.EXTERNAL_VIDEO_DICT_FISH['edx_video_id']
+#         ).exists())
+
+#     def test_external_no_video_transcript(self):
+#         """
+#         Verify that transcript import for external video working as expected when there is no transcript.
+#         """
+#         api.import_from_xml(
+#             etree.fromstring('<video_asset/>'),
+#             '',
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+#         self.assertEqual(
+#             VideoTranscript.objects.count(),
+#             0
+#         )
+
+#     @data(
+#         ('external-transcript.srt', constants.VIDEO_TRANSCRIPT_CUSTOM_SRT),
+#         ('external-transcript.sjson', constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON)
+#     )
+#     @unpack
+#     def test_external_video_transcript(self, transcript_file_name, transcript_data):
+#         """
+#         Verify that transcript import for external video working as expected when there is transcript present.
+#         """
+#         # First create external transcript.
+#         utils.create_file_in_fs(
+#             transcript_data['file_data'],
+#             transcript_file_name,
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         # Verify that one video is present before import.
+#         self.assertEqual(Video.objects.count(), 1)
+
+#         # Verify that no transript was present before import.
+#         self.assertEqual(VideoTranscript.objects.count(), 0)
+
+#         # Import xml with empty edx video id.
+#         edx_video_id = api.import_from_xml(
+#             etree.fromstring('<video_asset/>'),
+#             '',
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {
+#                 'en': [transcript_file_name]
+#             }
+#         )
+
+#         # Verify that a new video is created.
+#         self.assertIsNotNone(edx_video_id)
+
+#         # Verify transcript record is created with correct data.
+#         self.assert_transcripts(
+#             edx_video_id,
+#             [dict(transcript_data, video_id=edx_video_id)]
+#         )
+
+#     def test_multiple_external_transcripts_different_langauges(self):
+#         """
+#         Verify that transcript import for external video working as expected when multiple transcripts are imported.
+#         """
+#         # First create external transcripts.
+#         en_transcript_file_name = 'external-transcript-en.srt'
+#         utils.create_file_in_fs(
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'],
+#             en_transcript_file_name,
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         es_transcript_file_name = 'external-transcript-es.srt'
+#         utils.create_file_in_fs(
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SRT['file_data'],
+#             es_transcript_file_name,
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         # Verify that one video is present before import.
+#         self.assertEqual(Video.objects.count(), 1)
+
+#         # Verify that no transript was present before import.
+#         self.assertEqual(VideoTranscript.objects.count(), 0)
+
+#         # Import xml with empty edx video id.
+#         edx_video_id = api.import_from_xml(
+#             etree.fromstring('<video_asset/>'),
+#             '',
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {
+#                 'en': [en_transcript_file_name],
+#                 'es': [es_transcript_file_name]
+#             }
+#         )
+
+#         # Verify that new video is created.
+#         self.assertIsNotNone(edx_video_id)
+
+#         # Verify transcript records are created with correct data.
+#         expected_transcripts = [
+#             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='en'),
+#             dict(constants.VIDEO_TRANSCRIPT_CUSTOM_SRT, video_id=edx_video_id, language_code='es')
+#         ]
+
+#         self.assert_transcripts(
+#             edx_video_id,
+#             expected_transcripts
+#         )
+
+#     @data(
+#         (
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
+#             False,
+#         ),
+#         (
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SRT,
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             True,
+#         ),
+#     )
+#     @unpack
+#     def test_multiple_external_transcripts_for_language(
+#         self,
+#         sub_transcript_data,
+#         ext_transcript_data,
+#         expected_transcript_data,
+#         enable_override_existing_transcripts,
+#     ):
+#         """
+#         Verify that transcript import for external video working as expected when multiple transcripts present against
+#         a language e.g. external english transcript is imported through sub and transcripts field.
+
+#         There are two different cases here, based on whether **overriding existing transcripts is enabled**.
+
+#         If overriding existing transcripts is **disabled**:
+#             If a transcript was already uploaded/imported for a certain video, then importing that same video with
+#             a new transcript does not overwrite it.
+#             In this case:
+#                 1. Import `sub_transcript_file_name`
+#                 1. Import `ext_transcript_file_name`
+#             Since both have the same video id, then `ext_transcript_file_name` would not be imported, so the transcript
+#             would be the `sub_transcript_file_name`.
+
+#         If overriding existing transcripts is **enabled**:
+#             If a transcript was already uploaded/imported for a certain video, then importing the same video with a new
+#             transcript will overwrite it, if and only if the content is different.
+#             In this case,
+#                 1. Import `sub_transcript_file_name`
+#                 1. Import `ext_transcript_file_name`
+#             Since both have the same video id, and `ext_transcript_file_name` has different content, it would get
+#             imported, so the transcript would be the `ext_transcript_file_name`.
+#         """
+#         with override_waffle_flag(OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS, active=enable_override_existing_transcripts):
+#             # First create external transcripts.
+#             sub_transcript_file_name = 'external-transcript-sub.srt'
+#             utils.create_file_in_fs(
+#                 sub_transcript_data['file_data'],
+#                 sub_transcript_file_name,
+#                 self.file_system,
+#                 constants.EXPORT_IMPORT_STATIC_DIR
+#             )
+
+#             ext_transcript_file_name = 'external-transcript-ext.sjson'
+#             utils.create_file_in_fs(
+#                 ext_transcript_data['file_data'],
+#                 ext_transcript_file_name,
+#                 self.file_system,
+#                 constants.EXPORT_IMPORT_STATIC_DIR
+#             )
+
+#             # Verify that one video is present before import.
+#             self.assertEqual(Video.objects.count(), 1)
+
+#             # Verify that no transript was present before import.
+#             self.assertEqual(VideoTranscript.objects.count(), 0)
+
+#             # Import xml with empty edx video id.
+#             # Please note that the ext_transcript would be imported after the sub_transcript
+#             edx_video_id = api.import_from_xml(
+#                 etree.fromstring('<video_asset/>'),
+#                 '',
+#                 self.file_system,
+#                 constants.EXPORT_IMPORT_STATIC_DIR,
+#                 {
+#                     'en': [sub_transcript_file_name, ext_transcript_file_name]
+#                 }
+#             )
+
+#             # Verify that new video is created.
+#             self.assertIsNotNone(edx_video_id)
+
+#             # Verify transcript record is created with correct data i.e sjson transcript.
+#             expected_transcripts = [
+#                 dict(expected_transcript_data, video_id=edx_video_id, language_code='en')
+#             ]
+
+#             self.assert_transcripts(
+#                 edx_video_id,
+#                 expected_transcripts
+#             )
+
+#     @data(
+#         (
+#             constants.VIDEO_TRANSCRIPT_CIELO24,
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             constants.VIDEO_TRANSCRIPT_CIELO24,
+#             False,
+#         ),
+#         (
+#             constants.VIDEO_TRANSCRIPT_CIELO24,
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             True,
+#         ),
+#     )
+#     @unpack
+#     def test_external_internal_transcripts_conflict(
+#         self,
+#         internal_transcript_data,
+#         external_transcript_data,
+#         expected_transcript_data,
+#         enable_override_existing_transcripts,
+#     ):
+#         """
+#         Tests that when importing both external and internal (VAL) transcripts, which transcript is imported.
+
+#         There are two different cases here, based on whether **overriding existing transcripts is enabled**.
+
+#         If overriding existing transcripts is **disabled**:
+#             If a transcript was already uploaded/imported for a certain video, then importing that same video with
+#             a new transcript does not overwrite it. So in this case, since same video id, and internal transcripts
+#             are imported first; meanwhile, the external transcript doesn't get imported.
+
+#         If overriding existing transcripts is **enabled**:
+#             If a transcript was already uploaded/imported for a certain video, then importing the same video with
+#             a new transcript will overwrite it if the content is different. So, in this case, since same video id,
+#             internal transcripts are imported first, and the external transcript has different content, it gets
+#             imported, and the previous transcript gets overridden with the external one.
+#         """
+#         video_dict = constants.VIDEO_DICT_STAR
+
+#         with override_waffle_flag(OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS, active=enable_override_existing_transcripts):
+#             # First create external transcript in sjson format.
+#             external_transcript_file_name = 'external-transcript-en.sjson'
+#             utils.create_file_in_fs(
+#                 external_transcript_data['file_data'],
+#                 external_transcript_file_name,
+#                 self.file_system,
+#                 constants.EXPORT_IMPORT_STATIC_DIR
+#             )
+
+#             internal_transcript_import_xml = self.make_import_xml(
+#                 video_dict=video_dict,
+#                 video_transcripts=[internal_transcript_data]
+#             )
+
+#             # Verify that one video is present before import.
+#             self.assertEqual(Video.objects.count(), 1)
+
+#             # Verify that no transript was present before import.
+#             self.assertEqual(VideoTranscript.objects.count(), 0)
+
+#             # Note that we have an external en transcript as well as internal en transcript.
+#             # Note that the external transcript, in this case, gets imported after the internal one.
+#             edx_video_id = api.import_from_xml(
+#                 internal_transcript_import_xml,
+#                 video_dict['edx_video_id'],
+#                 self.file_system,
+#                 constants.EXPORT_IMPORT_STATIC_DIR,
+#                 {
+#                     'en': [external_transcript_file_name]
+#                 }
+#             )
+
+#             # Verify that new video is created.
+#             self.assertIsNotNone(edx_video_id)
+
+#             # Verify transcript record is created with the external transcript data.
+#             self.assert_transcripts(
+#                 video_dict['edx_video_id'],
+#                 [dict(expected_transcript_data, video_id=edx_video_id)]
+#             )
+
+#     def test_external_internal_transcripts_different_languages(self):
+#         """
+#         Tests that when importing both external and internal (VAL) transcripts for different langauges, all transcripts
+#         are imported correctly.
+#         """
+#         edx_video_id = constants.VIDEO_DICT_STAR['edx_video_id']
+#         # First create external es transcript.
+#         es_transcript_file_name = 'external-transcript-es.sjson'
+#         es_external_transcript = dict(
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             video_id=edx_video_id,
+#             language_code='es'
+#         )
+#         utils.create_file_in_fs(
+#             es_external_transcript['file_data'],
+#             es_transcript_file_name,
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         # Let's create en internal transcript.
+#         import_xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_STAR,
+#             video_transcripts=[self.transcript_data1]
+#         )
+
+#         # Verify that one video is present before import.
+#         self.assertEqual(Video.objects.count(), 1)
+
+#         # Verify that no transript was present before import.
+#         self.assertEqual(VideoTranscript.objects.count(), 0)
+
+#         # Note that we have an external 'es' language transcript as well as an internal 'es' language transcript.
+#         edx_video_id = api.import_from_xml(
+#             import_xml,
+#             edx_video_id,
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {
+#                 'es': [es_transcript_file_name]
+#             }
+#         )
+
+#         # Verify all transcript records are created correctly.
+#         self.assert_transcripts(
+#             constants.VIDEO_DICT_STAR['edx_video_id'],
+#             [self.transcript_data1, es_external_transcript]
+#         )
+
+#     @patch('edxval.api.logger')
+#     def test_import_transcript_from_fs_resource_not_found(self, mock_logger):
+#         """
+#         Test that `import_transcript_from_fs` correctly logs if transcript file is not found in file system.
+#         """
+#         language_code = 'en'
+#         edx_video_id = 'test-edx-video-id'
+#         file_name = 'file-not-found.srt'
+#         api.import_transcript_from_fs(
+#             edx_video_id=edx_video_id,
+#             language_code=language_code,
+#             file_name=file_name,
+#             provider=TranscriptProviderType.CUSTOM,
+#             resource_fs=self.file_system,
+#             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+#         mock_logger.warning.assert_called_with(
+#             '[edx-val] "%s" transcript "%s" for video "%s" is not found.',
+#             language_code,
+#             file_name,
+#             edx_video_id
+#         )
+
+#     @patch('edxval.api.create_or_update_video_transcript')
+#     @patch('edxval.api.get_transcript_format', Mock())
+#     def test_import_transcript_from_fs_created_transcript_content_encoding(
+#         self,
+#         mock_create_or_update_video_transcript
+#     ):
+#         """
+#         Test that `import_transcript_from_fs` correctly calls `create_video_transcript` with `utf-8` file content.
+#         """
+#         language_code = 'en'
+#         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+
+#         # First create utf-8 encoded transcript file in the file system.
+#         # Make sure to include utf-8 characters to chardet recognizes it is utf-8 and not ascii
+#         transcript_file_name = 'transcript.txt'
+#         video_transcript = dict(
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             video_id=edx_video_id,
+#             file_data='Hello, edX greets you. random utf-8 characters: éâô'
+#         )
+
+#         utils.create_file_in_fs(
+#             video_transcript['file_data'],
+#             transcript_file_name,
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         api.import_transcript_from_fs(
+#             edx_video_id=edx_video_id,
+#             language_code=language_code,
+#             file_name=transcript_file_name,
+#             provider=TranscriptProviderType.CUSTOM,
+#             resource_fs=self.file_system,
+#             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         transcript_content = mock_create_or_update_video_transcript.call_args.kwargs['file_data']
+#         content_encoding = chardet.detect(transcript_content.read())['encoding']
+
+#         self.assertEqual(content_encoding, 'utf-8')
+
+#     @patch('edxval.api.logger')
+#     def test_import_transcript_from_fs_invalid_format(self, mock_logger):
+#         """
+#         Test that `import_transcript_from_fs` correctly logs if we get error while retrieving transcript file format.
+#         """
+#         language_code = 'en'
+#         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+#         # First create transcript file.
+#         invalid_transcript_file_name = 'invalid-transcript.txt'
+#         invalid_transcript = dict(
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             video_id=edx_video_id,
+#             file_data='This is an invalid transcript file data.'
+#         )
+#         utils.create_file_in_fs(
+#             invalid_transcript['file_data'],
+#             invalid_transcript_file_name,
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+
+#         api.import_transcript_from_fs(
+#             edx_video_id=edx_video_id,
+#             language_code=language_code,
+#             file_name=invalid_transcript_file_name,
+#             provider=TranscriptProviderType.CUSTOM,
+#             resource_fs=self.file_system,
+#             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+#         mock_logger.warning.assert_called_with(
+#             '[edx-val] Error while getting transcript format for video=%s -- language_code=%s --file_name=%s',
+#             edx_video_id,
+#             language_code,
+#             invalid_transcript_file_name
+#         )
+
+#     @patch('edxval.api.logger')
+#     def test_import_transcript_from_fs_bad_content(self, mock_logger):
+#         """
+#         Test that `import_transcript_from_fs` correctly logs if we get error while decoding transcript content.
+#         """
+#         language_code = 'en'
+#         edx_video_id = constants.VIDEO_DICT_FISH['edx_video_id']
+
+#         # First create non utf-8 encoded transcript file in the file system.
+#         transcript_file_name = 'invalid-transcript.txt'
+#         invalid_transcript = dict(
+#             constants.VIDEO_TRANSCRIPT_CUSTOM_SJSON,
+#             video_id=edx_video_id,
+#             file_data='Привіт, edX вітає вас.'
+#         )
+
+#         with self.file_system.open(combine(constants.EXPORT_IMPORT_STATIC_DIR, transcript_file_name), 'wb') as f:
+#             f.write(invalid_transcript['file_data'].encode('cp1251'))
+
+#         api.import_transcript_from_fs(
+#             edx_video_id=edx_video_id,
+#             language_code=language_code,
+#             file_name=transcript_file_name,
+#             provider=TranscriptProviderType.CUSTOM,
+#             resource_fs=self.file_system,
+#             static_dir=constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+#         mock_logger.warning.assert_called_with(
+#             '[edx-val] "%s" transcript "%s" for video "%s" contains a non-utf8 file content.',
+#             language_code,
+#             transcript_file_name,
+#             edx_video_id
+#         )
+
+#     def test_import_existing_video_transcript(self):
+#         """
+#         Verify that transcript import for existing video with transcript attached is working as expected.
+#         """
+#         expected_video_transcripts = [self.transcript_data3]
+
+#         import_xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_FISH,
+#             video_transcripts=expected_video_transcripts
+#         )
+
+#         # Verify video is present before.
+#         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
+#         self.assertIsNotNone(video)
+
+#         # Create internal video transcripts
+#         transcript_data = dict(constants.VIDEO_TRANSCRIPT_3PLAY, video=video)
+#         transcript_data = omit_attrs(transcript_data, ['video_id', 'file_data'])
+#         VideoTranscript.objects.create(**transcript_data)
+
+#         # Verify that video has expected transcripts before import.
+#         self.assert_transcripts(
+#             constants.VIDEO_DICT_FISH['edx_video_id'],
+#             expected_video_transcripts
+#         )
+
+#         api.import_from_xml(
+#             import_xml,
+#             constants.VIDEO_DICT_FISH['edx_video_id'],
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {},
+#             'test_course_id'
+#         )
+
+#         # Verify that video has expected transcripts after import.
+#         self.assert_transcripts(
+#             constants.VIDEO_DICT_FISH['edx_video_id'],
+#             expected_video_transcripts
+#         )
+
+#     def test_import_transcript_attached_existing_video(self):
+#         """
+#         Verify that transcript import for existing video with no transcript attached is working as expected.
+#         """
+#         exported_video_transcripts = [
+#             dict(constants.VIDEO_TRANSCRIPT_CIELO24, video_id=constants.VIDEO_DICT_FISH['edx_video_id']),
+#             dict(constants.VIDEO_TRANSCRIPT_3PLAY, video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
+#         ]
+
+#         # Verify video is present before.
+#         video = Video.objects.get(edx_video_id=constants.VIDEO_DICT_FISH['edx_video_id'])
+#         self.assertIsNotNone(video)
+
+#         import_xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_FISH,
+#             video_transcripts=exported_video_transcripts
+#         )
+
+#         # There must not be any transcript before import.
+#         self.assert_transcripts(constants.VIDEO_DICT_FISH['edx_video_id'], [])
+
+#         api.import_from_xml(
+#             import_xml,
+#             constants.VIDEO_DICT_FISH['edx_video_id'],
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {},
+#             'test_course_id'
+#         )
+
+#         # Verify that transcripts record are created correctly.
+#         self.assert_transcripts(
+#             constants.VIDEO_DICT_FISH['edx_video_id'],
+#             exported_video_transcripts,
+#         )
+
+#     def test_import_transcript_new_video(self):
+#         """
+#         Verify that transcript import for new video is working as expected when transcript is present in XML.
+#         """
+#         expected_video_transcripts = [self.transcript_data1, self.transcript_data2]
+
+#         import_xml = self.make_import_xml(
+#             video_dict=constants.VIDEO_DICT_STAR,
+#             video_transcripts=expected_video_transcripts
+#         )
+
+#         # Verify video is not present before.
+#         with self.assertRaises(Video.DoesNotExist):
+#             Video.objects.get(edx_video_id=constants.VIDEO_DICT_STAR['edx_video_id'])
+
+#         # There must not be any transcript before import.
+#         self.assert_transcripts(constants.VIDEO_DICT_STAR['edx_video_id'], [])
+
+#         api.import_from_xml(
+#             import_xml,
+#             constants.VIDEO_DICT_STAR['edx_video_id'],
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR,
+#             {},
+#             'test_course_id'
+#         )
+
+#         # Verify that transcript record is created with correct data.
+#         self.assert_transcripts(
+#             constants.VIDEO_DICT_STAR['edx_video_id'],
+#             expected_video_transcripts
+#         )
+
+#     @patch('edxval.api.logger')
+#     def test_video_transcript_missing_attribute(self, mock_logger):
+#         """
+#         Verify that video transcript import working as expected if transcript xml data is missing.
+#         """
+#         video_id = 'super-soaker'
+#         transcript_xml = '<transcript file_format="srt" provider="Cielo24"/>'
+#         xml = etree.fromstring("""
+#             <video_asset>
+#                 <transcripts>
+#                     {transcript_xml}
+#                     <transcript language_code="de" file_format="sjson" provider="3PlayMedia"/>
+#                 </transcripts>
+#             </video_asset>
+#         """.format(transcript_xml=transcript_xml))
+
+#         # There should be no video transcript before import
+#         with self.assertRaises(VideoTranscript.DoesNotExist):
+#             VideoTranscript.objects.get(video__edx_video_id=video_id)
+
+#         # Create transcript files
+#         utils.create_file_in_fs(
+#             constants.TRANSCRIPT_DATA['wow'],
+#             'super-soaker-de.sjson',
+#             self.file_system,
+#             constants.EXPORT_IMPORT_STATIC_DIR
+#         )
+#         api.create_transcript_objects(xml, video_id, self.file_system, constants.EXPORT_IMPORT_STATIC_DIR, {})
+
+#         mock_logger.warning.assert_called_with(
+#             "VAL: Required attributes are missing from xml, xml=[%s]",
+#             transcript_xml.encode('utf8')
+#         )
+
+#         self.assert_transcripts(video_id, [self.transcript_data3])
 
 
 class GetCourseVideoRemoveTest(TestCase):
