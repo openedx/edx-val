@@ -29,13 +29,13 @@ click==8.1.7
     #   edx-django-utils
     #   pact-python
     #   uvicorn
-code-annotations==1.8.2
+code-annotations==2.0.0
     # via edx-toggles
-coverage[toml]==7.6.7
+coverage[toml]==7.6.8
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==43.0.3
+cryptography==44.0.0
     # via pyjwt
 ddt==1.7.2
     # via -r requirements/test.in
@@ -108,7 +108,7 @@ mock==5.1.0
     # via -r requirements/test.in
 multidict==6.1.0
     # via yarl
-newrelic==10.3.0
+newrelic==10.3.1
     # via edx-django-utils
 packaging==24.2
     # via pytest
@@ -128,11 +128,11 @@ psutil==6.1.0
     #   pact-python
 pycparser==2.22
     # via cffi
-pydantic==2.10.1
+pydantic==2.10.2
     # via fastapi
 pydantic-core==2.27.1
     # via pydantic
-pyjwt[crypto]==2.10.0
+pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
