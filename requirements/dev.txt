@@ -44,20 +44,20 @@ click==8.1.7
     #   uvicorn
 click-log==0.4.0
     # via edx-lint
-code-annotations==1.8.2
+code-annotations==2.0.0
     # via
     #   edx-lint
     #   edx-toggles
 colorama==0.4.6
     # via tox
-coverage[toml]==7.6.7
+coverage[toml]==7.6.8
     # via
     #   -r requirements/test.in
     #   coveralls
     #   pytest-cov
 coveralls==4.0.1
     # via -r requirements/ci.in
-cryptography==43.0.3
+cryptography==44.0.0
     # via
     #   pyjwt
     #   secretstorage
@@ -183,7 +183,7 @@ more-itertools==10.5.0
     #   jaraco-functools
 multidict==6.1.0
     # via yarl
-newrelic==10.3.0
+newrelic==10.3.1
     # via edx-django-utils
 nh3==0.2.18
     # via readme-renderer
@@ -220,7 +220,7 @@ pycodestyle==2.12.1
     # via -r requirements/quality.in
 pycparser==2.22
     # via cffi
-pydantic==2.10.1
+pydantic==2.10.2
     # via fastapi
 pydantic-core==2.27.1
     # via pydantic
@@ -231,7 +231,7 @@ pygments==2.18.0
     #   diff-cover
     #   readme-renderer
     #   rich
-pyjwt[crypto]==2.10.0
+pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
@@ -334,7 +334,7 @@ urllib3==2.2.3
     #   twine
 uvicorn==0.32.1
     # via pact-python
-virtualenv==20.27.1
+virtualenv==20.28.0
     # via tox
 yarl==1.18.0
     # via pact-python
