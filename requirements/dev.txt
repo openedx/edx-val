@@ -6,7 +6,7 @@
 #
 annotated-types==0.7.0
     # via pydantic
-anyio==4.6.2.post1
+anyio==4.7.0
     # via starlette
 appdirs==1.4.4
     # via fs
@@ -69,7 +69,7 @@ dill==0.3.9
     # via pylint
 distlib==0.3.9
     # via virtualenv
-django==4.2.16
+django==4.2.17
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -110,7 +110,7 @@ drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.4.0
     # via -r requirements/base.in
-edx-django-utils==7.0.1
+edx-django-utils==7.1.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -124,7 +124,7 @@ edx-opaque-keys==2.11.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.115.5
+fastapi==0.115.6
     # via pact-python
 filelock==3.16.1
     # via
@@ -140,9 +140,7 @@ idna==3.10
     #   requests
     #   yarl
 importlib-metadata==8.5.0
-    # via
-    #   keyring
-    #   twine
+    # via keyring
 iniconfig==2.0.0
     # via pytest
 isort==5.13.2
@@ -185,20 +183,21 @@ multidict==6.1.0
     # via yarl
 newrelic==10.3.1
     # via edx-django-utils
-nh3==0.2.18
+nh3==0.2.19
     # via readme-renderer
 packaging==24.2
     # via
     #   pyproject-api
     #   pytest
     #   tox
+    #   twine
 pact-python==2.2.2
     # via -r requirements/test.in
 pbr==6.1.0
     # via stevedore
 pillow==11.0.0
     # via -r requirements/base.in
-pkginfo==1.10.0
+pkginfo==1.12.0
     # via twine
 platformdirs==4.3.6
     # via
@@ -210,7 +209,7 @@ pluggy==1.5.0
     #   diff-cover
     #   pytest
     #   tox
-propcache==0.2.0
+propcache==0.2.1
     # via yarl
 psutil==6.1.0
     # via
@@ -220,7 +219,7 @@ pycodestyle==2.12.1
     # via -r requirements/quality.in
 pycparser==2.22
     # via cffi
-pydantic==2.10.2
+pydantic==2.10.3
     # via fastapi
 pydantic-core==2.27.1
     # via pydantic
@@ -235,7 +234,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==3.3.1
+pylint==3.3.2
     # via
     #   edx-lint
     #   pylint-celery
@@ -257,7 +256,7 @@ pyproject-api==1.8.0
     # via tox
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==8.3.3
+pytest==8.3.4
     # via
     #   pytest-cov
     #   pytest-django
@@ -294,7 +293,7 @@ secretstorage==3.3.3
     # via keyring
 semantic-version==2.10.0
     # via edx-drf-extensions
-six==1.16.0
+six==1.17.0
     # via
     #   edx-django-release-util
     #   edx-lint
@@ -319,10 +318,11 @@ tomlkit==0.13.2
     # via pylint
 tox==4.23.2
     # via -r requirements/ci.in
-twine==5.1.1
+twine==6.0.1
     # via -r requirements/quality.in
 typing-extensions==4.12.2
     # via
+    #   anyio
     #   edx-opaque-keys
     #   fastapi
     #   pydantic
@@ -336,7 +336,7 @@ uvicorn==0.32.1
     # via pact-python
 virtualenv==20.28.0
     # via tox
-yarl==1.18.0
+yarl==1.18.3
     # via pact-python
 zipp==3.21.0
     # via importlib-metadata
