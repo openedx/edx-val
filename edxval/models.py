@@ -378,11 +378,18 @@ class TranscriptProviderType:
     CUSTOM = 'Custom'
     THREE_PLAY_MEDIA = '3PlayMedia'
     CIELO24 = 'Cielo24'
+    EDX_AI_TRANSLATIONS = 'edx_ai_translations'
 
     CHOICES = (
         (CUSTOM, CUSTOM),
         (THREE_PLAY_MEDIA, THREE_PLAY_MEDIA),
         (CIELO24, CIELO24),
+    )
+
+    # Choices specififcally for only the VideoTranscript model
+    TRANSCRIPT_MODEL_CHOICES = (
+        *CHOICES,
+        (EDX_AI_TRANSLATIONS, EDX_AI_TRANSLATIONS),
     )
 
 
@@ -425,7 +432,7 @@ class VideoTranscript(TimeStampedModel):
     language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(
         max_length=30,
-        choices=TranscriptProviderType.CHOICES,
+        choices=TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES,
         default=TranscriptProviderType.CUSTOM,
     )
     file_format = models.CharField(max_length=20, db_index=True, choices=TranscriptFormat.CHOICES)
