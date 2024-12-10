@@ -8,13 +8,19 @@ import logging
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+from edx_rest_framework_extensions.permissions import IsStaff
 from rest_framework import generics, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from edxval.api import create_or_update_video_transcript
+from edxval.api import (
+    create_or_update_video_transcript,
+    delete_video_transcript,
+    get_transcript_details_for_course,
+    get_video_ids_for_course,
+)
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -119,7 +125,11 @@ class VideoTranscriptView(APIView):
     """
     authentication_classes = (JwtAuthentication, SessionAuthentication)
 
-    # noinspection PyMethodMayBeStatic
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            return [IsAuthenticated(), IsStaff()]
+        return []
+
     def post(self, request):
         """
         Creates a video transcript instance with the given information.
@@ -173,6 +183,70 @@ class VideoTranscriptView(APIView):
             response = Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
         return response
+
+    def delete(self, request):
+        """
+        Delete a video transcript instance with the given information.
+
+        Arguments:
+            request: A WSGI request.
+        """
+        params = ('video_id', 'language_code')
+        missing = [param for param in params if param not in request.query_params]
+        if missing:
+            LOGGER.warning(
+                '[VAL] Required transcript params are missing. %s', ' and '.join(missing)
+            )
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=dict(message='{missing} must be specified.'.format(missing=' and '.join(missing)))
+            )
+
+        video_id = request.query_params.get('video_id')
+        language_code = request.query_params.get('language_code')
+
+        try:
+            delete_video_transcript(video_id=video_id, language_code=language_code)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={'message': str(e)}
+            )
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+class CourseTranscriptsDetailView(APIView):
+    """
+    A view to get the details for all the course transcripts related to a course_id.
+    """
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
+
+    def get(self, _request, course_id):
+        """
+        Returns all transcript data for a course when given a course_id.
+        """
+        if not course_id:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': 'course_id param required'})
+
+        course_data = get_transcript_details_for_course(course_id)
+        return Response(status=status.HTTP_200_OK, data=course_data)
+
+
+class CourseVideoIDsView(APIView):
+    """
+    A view to get video ids related to a course_id.
+    """
+    authentication_classes = (JwtAuthentication, SessionAuthentication)
+
+    def get(self, _, course_id):
+        """
+        Returns all video_ids for a course when given a course_id.
+        """
+        video_ids = get_video_ids_for_course(course_id)
+        return Response(status=status.HTTP_200_OK, data=video_ids)
 
 
 class VideoStatusView(APIView):
@@ -252,7 +326,7 @@ class VideoImagesView(APIView):
 
         try:
             validate_generated_images(generated_images, LIST_MAX_ITEMS)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # pylint: disable=broad-exception-caught
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={'message': str(e)}

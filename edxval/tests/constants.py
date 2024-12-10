@@ -386,6 +386,13 @@ VIDEO_DICT_NEW_LINE = dict(
     status="test",
 )
 
+VIDEO_DICT_SIMPSONS = dict(
+    client_video_id="TheSimpsons",
+    duration=100.00,
+    edx_video_id="simpson-id",
+    status="test",
+)
+
 TRANSCRIPT_DATA = {
     "overwatch": """
 1
@@ -451,4 +458,31 @@ TRANSCRIPT_PREFERENCES_3PLAY = dict(
     three_play_turnaround=ThreePlayTurnaround.SAME_DAY,
     preferred_languages=['ar', 'en'],
     video_source_language='en',
+)
+
+VIDEO_TRANSCRIPT_SIMPSON_ES = dict(
+    video_id='simpson-id',
+    language_code='es',
+    transcript='edxval/tests/data/The_Flash.srt',
+    provider=TranscriptProviderType.CIELO24,
+    file_format=TranscriptFormat.SRT,
+    file_data=TRANSCRIPT_DATA['flash']
+)
+
+VIDEO_TRANSCRIPT_SIMPSON_KO = dict(
+    video_id='simpson-id',
+    language_code='ko',
+    transcript='edxval/tests/data/The_Flash.srt',
+    provider=TranscriptProviderType.CIELO24,
+    file_format=TranscriptFormat.SRT,
+    file_data=TRANSCRIPT_DATA['flash']
+)
+
+VIDEO_TRANSCRIPT_SIMPSON_RU = dict(
+    video_id='simpson-id',
+    language_code='ru',
+    transcript='edxval/tests/data/The_Flash.srt',
+    provider=TranscriptProviderType.CIELO24,
+    file_format=TranscriptFormat.SRT,
+    file_data=TRANSCRIPT_DATA['flash']
 )

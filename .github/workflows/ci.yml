@@ -13,9 +13,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04]
-        python-version: ['3.8']
-        toxenv: [django32, django42, quality]
+        os: [ubuntu-latest]
+        python-version: ['3.11']
+        toxenv: [django42, quality]
 
     steps:
     - uses: actions/checkout@v2
@@ -36,16 +36,17 @@ jobs:
       run: tox
 
     - name: Run Coverage
-      if: matrix.python-version == '3.8' && matrix.toxenv=='django42'
-      uses: codecov/codecov-action@v2
+      if: matrix.python-version == '3.11' && matrix.toxenv=='django42'
+      uses: codecov/codecov-action@v4
       with:
         flags: unittests
         fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
 
 
   provider-verification:
     name: Pact Provider Verification
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: run_tests
 
     steps:
@@ -55,14 +56,14 @@ jobs:
     - name: setup python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.11
 
     - name: Install pip
       run: pip install -r requirements/pip.txt
 
     - name: Install Dependencies
       run: |
-        pip install "Django<4.0"
+        pip install "Django>=4.2,<4.3"
         pip install -r requirements/ci.txt
         pip install -r requirements/test.txt
 

@@ -19,11 +19,20 @@ urlpatterns = [
     path('videos/missing-hls/', views.HLSMissingVideoView.as_view(),
          name='hls-missing-video'
          ),
+    path('videos/course-transcripts/<str:course_id>/', views.CourseTranscriptsDetailView.as_view(),
+         name='course-transcripts'
+         ),
     path('videos/video-transcripts/create/', views.VideoTranscriptView.as_view(),
          name='create-video-transcript'
          ),
+    path('videos/video-transcripts/', views.VideoTranscriptView.as_view(),
+         name='video-transcripts'
+         ),
     path('videos/video-images/update/', views.VideoImagesView.as_view(),
          name='update-video-images'
+         ),
+    path('videos/courses/<str:course_id>/video-ids', views.CourseVideoIDsView.as_view(),
+         name='course-video-ids'
          ),
 ]
 

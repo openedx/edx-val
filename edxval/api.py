@@ -733,6 +733,64 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
     )
 
 
+def get_transcript_details_for_course(course_id):
+    """
+    Get all the transcripts for a course and return details.
+
+    Args:
+        course_id (String)
+
+    Returns:
+        (dict): Returns all the edx_video_id's and related transcript details for a course
+        {
+        'edx_video_id': {
+            'lang_code': {
+                'provider': 'What the provider is',
+                'file_format': 'file format',
+                'url': 'location of the file',
+                'name': 'name of the file',
+                'size': size of the file
+            }
+        }
+    """
+    course_transcripts_data = {}
+
+    course_videos = CourseVideo.objects.filter(course_id=course_id).select_related('video')
+    for course_video in course_videos:
+
+        edx_video_id = course_video.video.edx_video_id
+        transcript_data = {}
+
+        video_transcripts = VideoTranscript.objects.filter(video=course_video.video)
+        for video_transcript in video_transcripts:
+            transcript_data[video_transcript.language_code] = {
+                'provider': video_transcript.provider,
+                'file_format': video_transcript.file_format,
+                'url': video_transcript.transcript.url,
+                'name': video_transcript.transcript.name,
+                'size': video_transcript.transcript.size,
+            }
+
+        course_transcripts_data[edx_video_id] = transcript_data
+
+    return course_transcripts_data
+
+
+def get_video_ids_for_course(course_id):
+    """
+    Gets video_ids for a course.
+
+    Args:
+        course_id (String)
+
+    Returns:
+        (list): Returns all the edx_video_id's for a course
+    """
+    course_videos = CourseVideo.objects.filter(course_id=course_id).select_related('video')
+    video_ids = [cv.video.edx_video_id for cv in course_videos]
+    return video_ids
+
+
 def remove_video_for_course(course_id, edx_video_id):
     """
     Soft deletes video for particular course.
@@ -1018,7 +1076,7 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
             continue
 
         SubElement(
-            transcripts_el,
+            transcripts_el,  # pylint: disable=possibly-used-before-assignment
             'transcript',
             {
                 'language_code': language_code,
@@ -1030,7 +1088,9 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     return dict(xml=video_el, transcripts=transcript_files_map)
 
 
-def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=None, course_id=None):
+def import_from_xml(
+        xml, edx_video_id, resource_fs, static_dir, external_transcripts=None, course_id=None
+):  # pylint: disable=too-many-positional-arguments
     """
     Imports data from a video_asset element about the given video_id.
     If the edx_video_id already exists, then no changes are made. If an unknown
@@ -1147,7 +1207,9 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
     return edx_video_id
 
 
-def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, resource_fs, static_dir):
+def import_transcript_from_fs(
+        edx_video_id, language_code, file_name, provider, resource_fs, static_dir
+):  # pylint: disable=too-many-positional-arguments
     """
     Imports transcript file from file system and creates transcript record in DS.
 

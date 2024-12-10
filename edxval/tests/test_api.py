@@ -749,6 +749,18 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
             return videos
         self.check_sort_params_of_api(api_func)
 
+    def test_get_video_ids_for_course(self):
+
+        course_transcript = api.get_video_ids_for_course(self.course_id)
+
+        self.assertEqual(len(course_transcript), 1)
+
+    def test_get_video_ids_for_course_no_course_videos(self):
+
+        course_transcript = api.get_video_ids_for_course('this-is-not-a-course-id')
+
+        self.assertEqual(len(course_transcript), 0)
+
 
 @ddt
 class GetYouTubeProfileVideosTest(TestCase):
@@ -2684,6 +2696,12 @@ class TranscriptTest(TestCase):
         self.v2_transcript1 = video_and_transcripts['transcripts']['de']
         self.v2_transcript2 = video_and_transcripts['transcripts']['zh']
 
+        # Add the videos to courses
+        self.course_id1 = 'test-course-1'
+        self.course_id2 = 'test-course-2'
+        CourseVideo.objects.create(video=self.video1, course_id=self.course_id1)
+        CourseVideo.objects.create(video=self.video2, course_id=self.course_id2)
+
         self.temp_dir = mkdtemp()
         self.addCleanup(shutil.rmtree, self.temp_dir)
 
@@ -2822,7 +2840,9 @@ class TranscriptTest(TestCase):
         },
     )
     @unpack
-    def test_create_or_update_video_transcript(self, file_data, file_name, file_format, language_code, provider):
+    def test_create_or_update_video_transcript(
+            self, file_data, file_name, file_format, language_code, provider
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_or_update_video_transcript` api function updates existing transcript as expected.
         """
@@ -2879,7 +2899,9 @@ class TranscriptTest(TestCase):
         },
     )
     @unpack
-    def test_create_or_update_video_exceptions(self, video_id, file_format, provider, exception, exception_message):
+    def test_create_or_update_video_exceptions(
+            self, video_id, file_format, provider, exception, exception_message
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_or_update_video_transcript` api function raise exceptions on invalid values.
         """
@@ -2997,7 +3019,9 @@ class TranscriptTest(TestCase):
         }
     )
     @unpack
-    def test_create_video_transcript_exceptions(self, video_id, language_code, file_format, provider, exception_msg):
+    def test_create_video_transcript_exceptions(
+            self, video_id, language_code, file_format, provider, exception_msg
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_video_transcript` api function raise exceptions on invalid values.
         """
@@ -3132,6 +3156,31 @@ class TranscriptTest(TestCase):
 
         # Verify no file is created.
         self.assertEqual(file_system.listdir(constants.EXPORT_IMPORT_STATIC_DIR), [])
+
+    def test_get_transcript_details_for_course(self):
+        """
+        Verify that `get_transcript_details_for_course` api function works as expected.
+        """
+
+        course_transcript = api.get_transcript_details_for_course(self.course_id1)
+
+        self.assertEqual(course_transcript['super-soaker']['en']['provider'], TranscriptProviderType.THREE_PLAY_MEDIA)
+        self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
+        self.assertIn('url', course_transcript['super-soaker']['en'])
+        self.assertIn('name', course_transcript['super-soaker']['en'])
+        self.assertIn('size', course_transcript['super-soaker']['en'])
+
+        self.assertEqual(course_transcript['super-soaker']['fr']['provider'], TranscriptProviderType.CIELO24)
+        self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
+        self.assertIn('url', course_transcript['super-soaker']['fr'])
+        self.assertIn('name', course_transcript['super-soaker']['fr'])
+        self.assertIn('size', course_transcript['super-soaker']['fr'])
+
+    def test_get_transcript_details_for_course_no_course_videos(self):
+
+        course_transcript = api.get_transcript_details_for_course('this-is-not-a-course-id')
+
+        self.assertEqual(len(course_transcript), 0)
 
 
 @ddt
