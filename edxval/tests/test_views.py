@@ -8,7 +8,9 @@ from unittest.mock import patch
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
+from edx_rest_framework_extensions.permissions import IsStaff
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptProviderType, Video, VideoTranscript
 from edxval.serializers import TranscriptSerializer
@@ -1152,3 +1154,70 @@ class CourseVideoIDsViewTest(APIAuthTestCase):
             mock_video_ids.assert_called_once_with(course_id)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+@ddt
+class VideoTranscriptDeleteTest(APIAuthTestCase):
+    """
+    Tests for transcript bulk deletion handler.
+    """
+    def setUp(self):
+        """
+        Tests setup.
+        """
+        self.url = reverse('video-transcripts')
+        self.patcher = patch.object(IsAuthenticated, "has_permission", return_value=True)
+        self.patcher = patch.object(IsStaff, "has_permission", return_value=True)
+        self.patcher.start()
+
+        self.video_1 = Video.objects.create(**constants.VIDEO_DICT_SIMPSONS)
+        self.transcript_data_es = constants.VIDEO_TRANSCRIPT_SIMPSON_ES
+        self.transcript_data_ko = constants.VIDEO_TRANSCRIPT_SIMPSON_KO
+        self.transcript_data_ru = constants.VIDEO_TRANSCRIPT_SIMPSON_RU
+        super().setUp()
+
+    def tearDown(self):
+        self.patcher.stop()
+
+    def test_transcript_fail_authorized(self):
+        with patch.object(IsAuthenticated, "has_permission", return_value=False):
+            response = self.client.delete(self.url)
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_transcript_delete_fail_no_staff(self):
+        with patch.object(IsStaff, "has_permission", return_value=False):
+            response = self.client.delete(self.url)
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_transcript_delete_success(self):
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_es['language_code'],
+            file_format=self.transcript_data_es['file_format'],
+            provider=self.transcript_data_es['provider'],
+        )
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_ko['language_code'],
+            file_format=self.transcript_data_ko['file_format'],
+            provider=self.transcript_data_ko['provider'],
+        )
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_ru['language_code'],
+            file_format=self.transcript_data_ru['file_format'],
+            provider=self.transcript_data_ru['provider'],
+        )
+
+        response1 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=es')
+        self.assertEqual(response1.status_code, status.HTTP_204_NO_CONTENT)
+
+        response2 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=ko')
+        self.assertEqual(response2.status_code, status.HTTP_204_NO_CONTENT)
+
+        response3 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=ru')
+        self.assertEqual(response3.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_transcript_delete_fail_bad_request(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

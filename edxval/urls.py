@@ -25,6 +25,9 @@ urlpatterns = [
     path('videos/video-transcripts/create/', views.VideoTranscriptView.as_view(),
          name='create-video-transcript'
          ),
+    path('videos/video-transcripts/', views.VideoTranscriptView.as_view(),
+         name='video-transcripts'
+         ),
     path('videos/video-images/update/', views.VideoImagesView.as_view(),
          name='update-video-images'
          ),
