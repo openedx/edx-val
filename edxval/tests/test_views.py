@@ -882,7 +882,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
                 'file_format': TranscriptFormat.SRT
             },
             'message': '"xyz" provider is not supported. Supported transcription providers are "{}"'.format(
-                sorted(dict(TranscriptProviderType.CHOICES).keys())
+                sorted(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys())
             )
         },
     )
