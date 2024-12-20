@@ -20,7 +20,7 @@ backports-tarfile==1.2.0
     # via jaraco-context
 cachetools==5.5.0
     # via tox
-certifi==2024.8.30
+certifi==2024.12.14
     # via requests
 cffi==1.17.1
     # via
@@ -63,7 +63,7 @@ cryptography==44.0.0
     #   secretstorage
 ddt==1.7.2
     # via -r requirements/test.in
-diff-cover==9.2.0
+diff-cover==9.2.1
     # via -r requirements/dev.in
 dill==0.3.9
     # via pylint
@@ -183,7 +183,7 @@ multidict==6.1.0
     # via yarl
 newrelic==10.4.0
     # via edx-django-utils
-nh3==0.2.19
+nh3==0.2.20
     # via readme-renderer
 packaging==24.2
     # via
@@ -211,7 +211,7 @@ pluggy==1.5.0
     #   tox
 propcache==0.2.1
     # via yarl
-psutil==6.1.0
+psutil==6.1.1
     # via
     #   edx-django-utils
     #   pact-python
@@ -219,9 +219,9 @@ pycodestyle==2.12.1
     # via -r requirements/quality.in
 pycparser==2.22
     # via cffi
-pydantic==2.10.3
+pydantic==2.10.4
     # via fastapi
-pydantic-core==2.27.1
+pydantic-core==2.27.2
     # via pydantic
 pydocstyle==6.3.0
     # via -r requirements/quality.in
@@ -332,7 +332,7 @@ urllib3==2.2.3
     #   requests
     #   responses
     #   twine
-uvicorn==0.32.1
+uvicorn==0.34.0
     # via pact-python
 virtualenv==20.28.0
     # via tox
