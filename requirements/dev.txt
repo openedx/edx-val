@@ -12,7 +12,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-astroid==3.3.6
+astroid==3.3.8
     # via
     #   pylint
     #   pylint-celery
@@ -32,9 +32,9 @@ chardet==5.2.0
     #   diff-cover
     #   pysrt
     #   tox
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
-click==8.1.7
+click==8.1.8
     # via
     #   click-log
     #   code-annotations
@@ -50,7 +50,7 @@ code-annotations==2.1.0
     #   edx-toggles
 colorama==0.4.6
     # via tox
-coverage[toml]==7.6.9
+coverage[toml]==7.6.10
     # via
     #   -r requirements/test.in
     #   coveralls
@@ -157,11 +157,11 @@ jeepney==0.8.0
     # via
     #   keyring
     #   secretstorage
-jinja2==3.1.4
+jinja2==3.1.5
     # via
     #   code-annotations
     #   diff-cover
-keyring==25.5.0
+keyring==25.6.0
     # via twine
 lxml==5.3.0
     # via -r requirements/base.in
@@ -234,7 +234,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==3.3.2
+pylint==3.3.3
     # via
     #   edx-lint
     #   pylint-celery
@@ -327,7 +327,7 @@ typing-extensions==4.12.2
     #   fastapi
     #   pydantic
     #   pydantic-core
-urllib3==2.2.3
+urllib3==2.3.0
     # via
     #   requests
     #   responses
