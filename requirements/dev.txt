@@ -191,11 +191,11 @@ packaging==24.2
     #   pytest
     #   tox
     #   twine
-pact-python==2.2.2
+pact-python==2.3.0
     # via -r requirements/test.in
 pbr==6.1.0
     # via stevedore
-pillow==11.0.0
+pillow==11.1.0
     # via -r requirements/base.in
 pkginfo==1.12.0
     # via twine
@@ -334,7 +334,7 @@ urllib3==2.3.0
     #   twine
 uvicorn==0.34.0
     # via pact-python
-virtualenv==20.28.0
+virtualenv==20.28.1
     # via tox
 yarl==1.18.3
     # via pact-python

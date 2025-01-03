@@ -112,11 +112,11 @@ newrelic==10.4.0
     # via edx-django-utils
 packaging==24.2
     # via pytest
-pact-python==2.2.2
+pact-python==2.3.0
     # via -r requirements/test.in
 pbr==6.1.0
     # via stevedore
-pillow==11.0.0
+pillow==11.1.0
     # via -r requirements/base.in
 pluggy==1.5.0
     # via pytest

@@ -167,11 +167,11 @@ packaging==24.2
     # via
     #   pytest
     #   twine
-pact-python==2.2.2
+pact-python==2.3.0
     # via -r requirements/test.in
 pbr==6.1.0
     # via stevedore
-pillow==11.0.0
+pillow==11.1.0
     # via -r requirements/base.in
 pkginfo==1.12.0
     # via twine
