@@ -6,7 +6,7 @@
 #
 annotated-types==0.7.0
     # via pydantic
-anyio==4.7.0
+anyio==4.8.0
     # via starlette
 appdirs==1.4.4
     # via fs
@@ -219,13 +219,13 @@ pycodestyle==2.12.1
     # via -r requirements/quality.in
 pycparser==2.22
     # via cffi
-pydantic==2.10.4
+pydantic==2.10.5
     # via fastapi
 pydantic-core==2.27.2
     # via pydantic
 pydocstyle==6.3.0
     # via -r requirements/quality.in
-pygments==2.18.0
+pygments==2.19.1
     # via
     #   diff-cover
     #   readme-renderer
@@ -327,8 +327,9 @@ typing-extensions==4.12.2
     #   fastapi
     #   pydantic
     #   pydantic-core
-urllib3==2.3.0
+urllib3==2.2.3
     # via
+    #   -c requirements/common_constraints.txt
     #   requests
     #   responses
     #   twine
