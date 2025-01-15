@@ -733,6 +733,18 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
     )
 
 
+def get_course_videos_qset(course_id):
+    """
+    Get a QuerySet of CourseVideos for a given course.
+
+    This assumes that the caller can further filter as necessary.
+    """
+    return CourseVideo.objects.select_related('video').filter(
+        course_id=str(course_id),
+        is_hidden=False,
+    )
+
+
 def get_transcript_details_for_course(course_id):
     """
     Get all the transcripts for a course and return details.
