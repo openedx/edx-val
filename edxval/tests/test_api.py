@@ -761,6 +761,13 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
 
         self.assertEqual(len(course_transcript), 0)
 
+    def test_get_course_videos_qset(self):
+        """Test getting a minimal queryset."""
+        with self.assertNumQueries(1):
+            course_videos_qset = api.get_course_videos_qset(self.course_id)
+            course_video = course_videos_qset.get(video__edx_video_id="super-soaker")
+            self.assertEqual(course_video.video.client_video_id, "Shallow Swordfish")
+
 
 @ddt
 class GetYouTubeProfileVideosTest(TestCase):
