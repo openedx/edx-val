@@ -6,13 +6,13 @@
 #
 annotated-types==0.7.0
     # via pydantic
-anyio==4.6.2.post1
+anyio==4.8.0
     # via starlette
 appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-certifi==2024.8.30
+certifi==2024.12.14
     # via requests
 cffi==1.17.1
     # via
@@ -21,17 +21,17 @@ cffi==1.17.1
     #   pynacl
 chardet==5.2.0
     # via pysrt
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
-click==8.1.7
+click==8.1.8
     # via
     #   code-annotations
     #   edx-django-utils
     #   pact-python
     #   uvicorn
-code-annotations==2.0.0
+code-annotations==2.1.0
     # via edx-toggles
-coverage[toml]==7.6.8
+coverage[toml]==7.6.10
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -75,7 +75,7 @@ drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.4.0
     # via -r requirements/base.in
-edx-django-utils==7.0.1
+edx-django-utils==7.1.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -85,7 +85,7 @@ edx-opaque-keys==2.11.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.115.5
+fastapi==0.115.6
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
@@ -98,7 +98,7 @@ idna==3.10
     #   yarl
 iniconfig==2.0.0
     # via pytest
-jinja2==3.1.4
+jinja2==3.1.5
     # via code-annotations
 lxml==5.3.0
     # via -r requirements/base.in
@@ -108,29 +108,29 @@ mock==5.1.0
     # via -r requirements/test.in
 multidict==6.1.0
     # via yarl
-newrelic==10.3.1
+newrelic==10.4.0
     # via edx-django-utils
 packaging==24.2
     # via pytest
-pact-python==2.2.2
+pact-python==2.3.0
     # via -r requirements/test.in
 pbr==6.1.0
     # via stevedore
-pillow==11.0.0
+pillow==11.1.0
     # via -r requirements/base.in
 pluggy==1.5.0
     # via pytest
-propcache==0.2.0
+propcache==0.2.1
     # via yarl
-psutil==6.1.0
+psutil==6.1.1
     # via
     #   edx-django-utils
     #   pact-python
 pycparser==2.22
     # via cffi
-pydantic==2.10.2
+pydantic==2.10.5
     # via fastapi
-pydantic-core==2.27.1
+pydantic-core==2.27.2
     # via pydantic
 pyjwt[crypto]==2.10.1
     # via
@@ -142,7 +142,7 @@ pynacl==1.5.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==8.3.3
+pytest==8.3.4
     # via
     #   pytest-cov
     #   pytest-django
@@ -166,14 +166,14 @@ responses==0.25.3
     # via -r requirements/test.in
 semantic-version==2.10.0
     # via edx-drf-extensions
-six==1.16.0
+six==1.17.0
     # via
     #   edx-django-release-util
     #   fs
     #   pact-python
 sniffio==1.3.1
     # via anyio
-sqlparse==0.5.2
+sqlparse==0.5.3
     # via django
 starlette==0.41.3
     # via fastapi
@@ -186,17 +186,19 @@ text-unidecode==1.3
     # via python-slugify
 typing-extensions==4.12.2
     # via
+    #   anyio
     #   edx-opaque-keys
     #   fastapi
     #   pydantic
     #   pydantic-core
 urllib3==2.2.3
     # via
+    #   -c requirements/common_constraints.txt
     #   requests
     #   responses
-uvicorn==0.32.1
+uvicorn==0.34.0
     # via pact-python
-yarl==1.18.0
+yarl==1.18.3
     # via pact-python
 
 # The following packages are considered to be unsafe in a requirements file:

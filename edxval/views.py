@@ -161,7 +161,7 @@ class VideoTranscriptView(APIView):
             ).format(format=file_format, supported_formats=supported_formats)
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
-        supported_providers = sorted(dict(TranscriptProviderType.CHOICES).keys())
+        supported_providers = sorted(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys())
         if provider not in supported_providers:
             message = (
                 '"{provider}" provider is not supported. Supported transcription providers are "{supported_providers}"'

@@ -382,7 +382,7 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
         raise InvalidTranscriptFormat(f'{file_format} transcript format is not supported')
 
     provider = metadata.get('provider')
-    if provider and provider not in list(dict(TranscriptProviderType.CHOICES).keys()):
+    if provider and provider not in list(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys()):
         raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
 
     try:
