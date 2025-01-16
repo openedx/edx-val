@@ -29,7 +29,7 @@ click==8.1.8
     #   edx-django-utils
     #   pact-python
     #   uvicorn
-code-annotations==2.1.0
+code-annotations==2.2.0
     # via edx-toggles
 coverage[toml]==7.6.10
     # via
@@ -162,7 +162,7 @@ requests==2.32.3
     #   edx-drf-extensions
     #   pact-python
     #   responses
-responses==0.25.3
+responses==0.25.6
     # via -r requirements/test.in
 semantic-version==2.10.0
     # via edx-drf-extensions
