@@ -44,7 +44,7 @@ click==8.1.8
     #   uvicorn
 click-log==0.4.0
     # via edx-lint
-code-annotations==2.1.0
+code-annotations==2.2.0
     # via
     #   edx-lint
     #   edx-toggles
@@ -69,7 +69,7 @@ dill==0.3.9
     # via pylint
 distlib==0.3.9
     # via virtualenv
-django==4.2.17
+django==4.2.18
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -175,7 +175,7 @@ mdurl==0.1.2
     # via markdown-it-py
 mock==5.1.0
     # via -r requirements/test.in
-more-itertools==10.5.0
+more-itertools==10.6.0
     # via
     #   jaraco-classes
     #   jaraco-functools
@@ -283,7 +283,7 @@ requests==2.32.3
     #   twine
 requests-toolbelt==1.0.0
     # via twine
-responses==0.25.3
+responses==0.25.6
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
@@ -335,7 +335,7 @@ urllib3==2.2.3
     #   twine
 uvicorn==0.34.0
     # via pact-python
-virtualenv==20.28.1
+virtualenv==20.29.0
     # via tox
 yarl==1.18.3
     # via pact-python
