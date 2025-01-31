@@ -20,7 +20,7 @@ backports-tarfile==1.2.0
     # via jaraco-context
 cachetools==5.5.1
     # via tox
-certifi==2024.12.14
+certifi==2025.1.31
     # via requests
 cffi==1.17.1
     # via
@@ -63,7 +63,7 @@ cryptography==44.0.0
     #   secretstorage
 ddt==1.7.2
     # via -r requirements/test.in
-diff-cover==9.2.1
+diff-cover==9.2.2
     # via -r requirements/dev.in
 dill==0.3.9
     # via pylint
@@ -124,7 +124,7 @@ edx-opaque-keys==2.11.0
     # via edx-drf-extensions
 edx-toggles==5.2.0
     # via -r requirements/base.in
-fastapi==0.115.7
+fastapi==0.115.8
     # via pact-python
 filelock==3.17.0
     # via
@@ -145,7 +145,7 @@ importlib-metadata==8.6.1
     # via keyring
 iniconfig==2.0.0
     # via pytest
-isort==5.13.2
+isort==6.0.0
     # via
     #   -r requirements/quality.in
     #   pylint
@@ -183,7 +183,7 @@ more-itertools==10.6.0
     #   jaraco-functools
 multidict==6.1.0
     # via yarl
-newrelic==10.4.0
+newrelic==10.5.0
     # via edx-django-utils
 nh3==0.2.20
     # via readme-renderer
@@ -234,7 +234,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==3.3.3
+pylint==3.3.4
     # via
     #   edx-lint
     #   pylint-celery
@@ -248,7 +248,7 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.10.1
+pymongo==4.11
     # via edx-opaque-keys
 pynacl==1.5.0
     # via edx-django-utils
@@ -306,7 +306,7 @@ snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.5.3
     # via django
-starlette==0.45.2
+starlette==0.45.3
     # via fastapi
 stevedore==5.4.0
     # via
