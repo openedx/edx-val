@@ -15,12 +15,20 @@ from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+
+
 from edxval.api import (
     create_or_update_video_transcript,
     delete_video_transcript,
     get_transcript_details_for_course,
     get_video_ids_for_course,
+    update_transcript_provider,
 )
+
+from edxval.exceptions import (
+    InvalidTranscriptProvider,
+)
+
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -217,6 +225,42 @@ class VideoTranscriptView(APIView):
             status=status.HTTP_204_NO_CONTENT,
         )
 
+    def patch(self, request):
+        """
+        Partially update a video transcript, only supporting updating the `provider` field.
+        """
+        video_id = request.data.get('video_id')
+        language_code = request.data.get('language_code')
+        provider = request.data.get('provider')
+
+        if not video_id or not language_code or not provider:
+            return Response(
+                {"message": "The params video_id, language_code, and provider are required for update."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            updated_transcript = update_transcript_provider(
+                video_id=video_id,
+                language_code=language_code,
+                provider=provider,
+            )
+            if updated_transcript:
+                return Response(status=status.HTTP_200_OK)
+
+        except InvalidTranscriptProvider:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': 'Invalid transcript provider.'}
+            )
+
+        except Exception as e: # pylint: disable=broad-exception-caught
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={'message': str(e)}
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class CourseTranscriptsDetailView(APIView):
     """
