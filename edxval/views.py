@@ -15,8 +15,6 @@ from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-
-
 from edxval.api import (
     create_or_update_video_transcript,
     delete_video_transcript,
@@ -254,13 +252,14 @@ class VideoTranscriptView(APIView):
                 data={'message': 'Invalid transcript provider.'}
             )
 
-        except Exception as e: # pylint: disable=broad-exception-caught
+        except Exception as e:  # pylint: disable=broad-exception-caught
             return Response(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 data={'message': str(e)}
             )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class CourseTranscriptsDetailView(APIView):
     """
