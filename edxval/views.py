@@ -22,11 +22,7 @@ from edxval.api import (
     get_video_ids_for_course,
     update_transcript_provider,
 )
-
-from edxval.exceptions import (
-    InvalidTranscriptProvider,
-)
-
+from edxval.exceptions import InvalidTranscriptProvider
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
