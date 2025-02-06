@@ -394,6 +394,7 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
 
     return video_transcript.url()
 
+
 def update_transcript_provider(video_id, language_code, provider):
     """
     Update transcript provider for an existing transcript.
@@ -415,6 +416,7 @@ def update_transcript_provider(video_id, language_code, provider):
     else:
         logger.info('Transcript does not exist for video id "%s" and language code "%s"', video_id, language_code)
         return video_transcript
+
 
 def delete_video_transcript(video_id, language_code):
     """
