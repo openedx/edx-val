@@ -3088,7 +3088,7 @@ class TranscriptTest(TestCase):
             provider=TranscriptProviderType.EDX_AI_TRANSLATIONS,
         )
         assert attempt is None
-   
+
     @patch('edxval.api.logger')
     def test_delete_video_transcript(self, mock_logger):
         """
