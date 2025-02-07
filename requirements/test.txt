@@ -108,13 +108,13 @@ mock==5.1.0
     # via -r requirements/test.in
 multidict==6.1.0
     # via yarl
-newrelic==10.5.0
+newrelic==10.6.0
     # via edx-django-utils
 packaging==24.2
     # via pytest
 pact-python==2.3.1
     # via -r requirements/test.in
-pbr==6.1.0
+pbr==6.1.1
     # via stevedore
 pillow==11.1.0
     # via -r requirements/base.in
