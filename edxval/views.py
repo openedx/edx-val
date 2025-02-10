@@ -229,7 +229,7 @@ class VideoTranscriptView(APIView):
 
         if not video_id or not language_code or not provider:
             return Response(
-                {"message": "The params video_id, language_code, and provider are required for update."},
+                {"message": "The params video_id, language_code, and provider are required."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
