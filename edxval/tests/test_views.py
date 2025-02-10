@@ -4,7 +4,6 @@ Tests for Video Abstraction Layer views
 
 
 import json
-from re import T
 from unittest.mock import patch
 
 from ddt import data, ddt, unpack
@@ -938,7 +937,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data['message'], 
+            response.data['message'],
             "The params video_id, language_code, and provider are required for update."
         )
 
@@ -970,6 +969,7 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         response = self.client.patch(url, patch_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
 
 @ddt
 class VideoStatusViewTest(APIAuthTestCase):
