@@ -961,14 +961,14 @@ class VideoTranscriptViewTest(APIAuthTestCase):
 
     def test_patch_transcript_not_found(self):
         """
-        Test PATCH request when the transcript doesn't exist.  Should return 204.
+        Test PATCH request when the transcript doesn't exist.  Should return 404.
         """
 
         url = reverse('video-transcripts')
         patch_data = {'video_id': 'nonexistent_video', 'language_code': 'en', 'provider': TranscriptProviderType.CUSTOM}
         response = self.client.patch(url, patch_data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 @ddt
