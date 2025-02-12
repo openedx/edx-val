@@ -406,7 +406,7 @@ def update_transcript_provider(video_id, language_code, provider):
     """
     video_transcript = VideoTranscript.get_or_none(video_id, language_code)
 
-    if provider and provider not in list(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys()):
+    if not provider or provider not in list(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys()):
         raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
 
     if video_transcript:
