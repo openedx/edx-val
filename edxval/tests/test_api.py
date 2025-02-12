@@ -3067,7 +3067,7 @@ class TranscriptTest(TestCase):
         transcript = VideoTranscript.objects.get(**query_filter)
         self.assertEqual(transcript.provider, TranscriptProviderType.EDX_AI_TRANSLATIONS)
 
-    def test_update_transcript_provider_exception(self):
+    def test_update_transcript_provider_exception_wrong_provider(self):
         video_id = 'super-soaker'
         language_code = 'en'
 
@@ -3077,6 +3077,17 @@ class TranscriptTest(TestCase):
                 language_code=language_code,
                 provider="Wrong Provider",
             )
+    def test_update_transcript_provider_exception_blank_provider(self):
+        video_id = 'super-soaker'
+        language_code = 'en'
+
+        with self.assertRaises(InvalidTranscriptProvider):
+            api.update_transcript_provider(
+                video_id=video_id,
+                language_code=language_code,
+                provider="",
+            )
+
 
     def test_update_transcript_provider_exception_no_transcript(self):
         video_id = 'not-a-video-in-there'
