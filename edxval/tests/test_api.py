@@ -3077,6 +3077,7 @@ class TranscriptTest(TestCase):
                 language_code=language_code,
                 provider="Wrong Provider",
             )
+
     def test_update_transcript_provider_exception_blank_provider(self):
         video_id = 'super-soaker'
         language_code = 'en'
@@ -3087,7 +3088,6 @@ class TranscriptTest(TestCase):
                 language_code=language_code,
                 provider="",
             )
-
 
     def test_update_transcript_provider_exception_no_transcript(self):
         video_id = 'not-a-video-in-there'
