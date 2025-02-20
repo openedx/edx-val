@@ -395,6 +395,29 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
     return video_transcript.url()
 
 
+def update_transcript_provider(video_id, language_code, provider):
+    """
+    Update transcript provider for an existing transcript.
+
+    Arguments:
+        video_id: id identifying the video to which the transcript is associated.
+        language_code: language code of a video transcript.
+        provider: transcript provider
+    """
+    video_transcript = VideoTranscript.get_or_none(video_id, language_code)
+
+    if not provider or provider not in list(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys()):
+        raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
+
+    if video_transcript:
+        video_transcript.provider = provider
+        video_transcript.save()
+        return video_transcript
+    else:
+        logger.info('Transcript does not exist for video id "%s" and language code "%s"', video_id, language_code)
+        return video_transcript
+
+
 def delete_video_transcript(video_id, language_code):
     """
     Delete transcript for an existing video.

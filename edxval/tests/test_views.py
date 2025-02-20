@@ -895,6 +895,81 @@ class VideoTranscriptViewTest(APIAuthTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['message'], message)
 
+    @data(
+        {'video_id': 'super-soaker', 'language_code': 'en', 'provider': TranscriptProviderType.EDX_AI_TRANSLATIONS},
+        {'video_id': 'super-soaker', 'language_code': 'fr', 'provider': TranscriptProviderType.EDX_AI_TRANSLATIONS},
+    )
+    @unpack
+    def test_patch_transcript_success(self, video_id, language_code, provider):
+        """
+        Test successful PATCH request to update the provider.
+        """
+        VideoTranscript.objects.create(
+            video=self.video,
+            language_code=language_code,
+            file_format=TranscriptFormat.SRT,
+            provider=TranscriptProviderType.CUSTOM
+        )
+
+        # Action: Send the PATCH request
+        url = reverse('video-transcripts')
+        patch_data = {'video_id': video_id, 'language_code': language_code, 'provider': provider}
+        response = self.client.patch(url, patch_data, format='json')
+
+        # Assertions
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Verify the transcript was updated in the database
+        updated_transcript = VideoTranscript.objects.get(video=self.video, language_code=language_code)
+        self.assertEqual(updated_transcript.provider, provider)
+
+    @data(
+        {'video_id': '', 'language_code': 'en', 'provider': ''},
+        {'video_id': 'super-soaker', 'language_code': '', 'provider': 'provider_a'},
+    )
+    @unpack
+    def test_patch_transcript_missing_params(self, video_id, language_code, provider):
+        """
+        Test PATCH request with missing parameters.
+        """
+        url = reverse('video-transcripts')
+        patch_data = {'video_id': video_id, 'language_code': language_code, 'provider': provider}
+        response = self.client.patch(url, patch_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data['message'],
+            "The params video_id, language_code, and provider are required."
+        )
+
+    def test_patch_transcript_invalid_provider(self):
+        """
+        Test PATCH request with an invalid provider.
+        """
+        VideoTranscript.objects.create(
+            video=self.video,
+            language_code="ar",
+            file_format=TranscriptFormat.SRT,
+            provider=TranscriptProviderType.CUSTOM,
+        )
+
+        url = reverse('video-transcripts')
+        patch_data = {'video_id': 'super-soaker', 'language_code': 'ar', 'provider': 'invalid_provider'}
+        response = self.client.patch(url, patch_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['message'], 'Invalid transcript provider.')
+
+    def test_patch_transcript_not_found(self):
+        """
+        Test PATCH request when the transcript doesn't exist.  Should return 404.
+        """
+
+        url = reverse('video-transcripts')
+        patch_data = {'video_id': 'nonexistent_video', 'language_code': 'en', 'provider': TranscriptProviderType.CUSTOM}
+        response = self.client.patch(url, patch_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 @ddt
 class VideoStatusViewTest(APIAuthTestCase):
