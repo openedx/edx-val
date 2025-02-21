@@ -1,12 +1,11 @@
 """
 The internal API for VAL.
 """
-
-
 import logging
 from enum import Enum
 from uuid import uuid4
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
@@ -18,6 +17,7 @@ from lxml import etree
 from lxml.etree import Element, SubElement
 from pysrt.srtexc import Error
 
+import cachetools.func
 from edxval.config.waffle import OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
 from edxval.exceptions import (
     InvalidTranscriptFormat,
@@ -731,6 +731,26 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
         sort_dir,
         pagination_conf,
     )
+
+
+@cachetools.func.ttl_cache(maxsize=None, ttl=settings.TRANSCRIPT_LANG_CACHE_TIMEOUT)
+def get_transcript_languages(course_id, provider_type):
+    """
+    Returns a list of languages for which transcripts are available for a course
+
+    Args:
+        course_id (str): course id
+        provider_type (str): transcript provider type
+
+    Returns:
+        (list): A list of language codes
+    """
+    course_video_ids = CourseVideo.objects.filter(course_id=course_id, is_hidden=False).values_list('video__id')
+    transcript_languages = (
+        VideoTranscript.objects.filter(video__id__in=course_video_ids, provider=provider_type)
+        .values_list("language_code", flat=True).distinct()
+    )
+    return list(transcript_languages)
 
 
 def get_course_videos_qset(course_id):

@@ -31,11 +31,11 @@ click==8.1.8
     #   uvicorn
 code-annotations==2.2.0
     # via edx-toggles
-coverage[toml]==7.6.10
+coverage[toml]==7.6.12
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==44.0.0
+cryptography==44.0.1
     # via pyjwt
 ddt==1.7.2
     # via -r requirements/test.in
@@ -100,7 +100,7 @@ iniconfig==2.0.0
     # via pytest
 jinja2==3.1.5
     # via code-annotations
-lxml==5.3.0
+lxml==5.3.1
     # via -r requirements/base.in
 markupsafe==3.0.2
     # via jinja2
@@ -108,13 +108,13 @@ mock==5.1.0
     # via -r requirements/test.in
 multidict==6.1.0
     # via yarl
-newrelic==10.5.0
+newrelic==10.6.0
     # via edx-django-utils
 packaging==24.2
     # via pytest
 pact-python==2.3.1
     # via -r requirements/test.in
-pbr==6.1.0
+pbr==6.1.1
     # via stevedore
 pillow==11.1.0
     # via -r requirements/base.in
@@ -136,7 +136,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.11
+pymongo==4.11.1
     # via edx-opaque-keys
 pynacl==1.5.0
     # via edx-django-utils
@@ -148,7 +148,7 @@ pytest==8.3.4
     #   pytest-django
 pytest-cov==6.0.0
     # via -r requirements/test.in
-pytest-django==4.9.0
+pytest-django==4.10.0
     # via -r requirements/test.in
 python-slugify==8.0.4
     # via code-annotations

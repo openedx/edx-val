@@ -3189,6 +3189,18 @@ class TranscriptTest(TestCase):
 
         self.assertEqual(len(course_transcript), 0)
 
+    @data(
+        (TranscriptProviderType.THREE_PLAY_MEDIA, ['en']),
+        (TranscriptProviderType.CIELO24, ['fr'])
+    )
+    @unpack
+    def test_get_transcript_languages_for_course(self, provider_type, expected_languages):
+        """
+        Verify that `get_transcript_languages` api function works as expected.
+        """
+        transcript_languages = api.get_transcript_languages(self.course_id1, provider_type)
+        self.assertEqual(transcript_languages, expected_languages)
+
 
 @ddt
 class TranscriptPreferencesTest(TestCase):
