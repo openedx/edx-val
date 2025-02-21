@@ -58,7 +58,7 @@ django-crum==0.7.9
     #   edx-toggles
 django-model-utils==5.0.0
     # via -r requirements/base.in
-django-storages==1.14.4
+django-storages==1.14.5
     # via -r requirements/base.in
 django-waffle==4.2.0
     # via
@@ -83,7 +83,7 @@ edx-drf-extensions==10.5.0
     # via -r requirements/base.in
 edx-opaque-keys==2.11.0
     # via edx-drf-extensions
-edx-toggles==5.2.0
+edx-toggles==5.3.0
     # via -r requirements/base.in
 fastapi==0.115.8
     # via pact-python
@@ -120,7 +120,7 @@ pillow==11.1.0
     # via -r requirements/base.in
 pluggy==1.5.0
     # via pytest
-propcache==0.2.1
+propcache==0.3.0
     # via yarl
 psutil==6.1.1
     # via
@@ -177,7 +177,7 @@ sqlparse==0.5.3
     # via django
 starlette==0.45.3
     # via fastapi
-stevedore==5.4.0
+stevedore==5.4.1
     # via
     #   code-annotations
     #   edx-django-utils
