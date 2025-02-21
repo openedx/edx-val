@@ -43,11 +43,11 @@ code-annotations==2.2.0
     # via
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.6.10
+coverage[toml]==7.6.12
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==44.0.0
+cryptography==44.0.1
     # via
     #   pyjwt
     #   secretstorage
@@ -55,7 +55,7 @@ ddt==1.7.2
     # via -r requirements/test.in
 dill==0.3.9
     # via pylint
-django==4.2.18
+django==4.2.19
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -75,7 +75,7 @@ django-crum==0.7.9
     #   edx-toggles
 django-model-utils==5.0.0
     # via -r requirements/base.in
-django-storages==1.14.4
+django-storages==1.14.5
     # via -r requirements/base.in
 django-waffle==4.2.0
     # via
@@ -106,7 +106,7 @@ edx-lint==5.3.7
     #   -r requirements/quality.in
 edx-opaque-keys==2.11.0
     # via edx-drf-extensions
-edx-toggles==5.2.0
+edx-toggles==5.3.0
     # via -r requirements/base.in
 fastapi==0.115.8
     # via pact-python
@@ -143,7 +143,7 @@ jinja2==3.1.5
     # via code-annotations
 keyring==25.6.0
     # via twine
-lxml==5.3.0
+lxml==5.3.1
     # via -r requirements/base.in
 markdown-it-py==3.0.0
     # via rich
@@ -161,7 +161,7 @@ more-itertools==10.6.0
     #   jaraco-functools
 multidict==6.1.0
     # via yarl
-newrelic==10.5.0
+newrelic==10.6.0
     # via edx-django-utils
 nh3==0.2.20
     # via readme-renderer
@@ -171,7 +171,7 @@ packaging==24.2
     #   twine
 pact-python==2.3.1
     # via -r requirements/test.in
-pbr==6.1.0
+pbr==6.1.1
     # via stevedore
 pillow==11.1.0
     # via -r requirements/base.in
@@ -179,7 +179,7 @@ platformdirs==4.3.6
     # via pylint
 pluggy==1.5.0
     # via pytest
-propcache==0.2.1
+propcache==0.3.0
     # via yarl
 psutil==6.1.1
     # via
@@ -217,7 +217,7 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.11
+pymongo==4.11.1
     # via edx-opaque-keys
 pynacl==1.5.0
     # via edx-django-utils
@@ -229,7 +229,7 @@ pytest==8.3.4
     #   pytest-django
 pytest-cov==6.0.0
     # via -r requirements/test.in
-pytest-django==4.9.0
+pytest-django==4.10.0
     # via -r requirements/test.in
 python-slugify==8.0.4
     # via code-annotations
@@ -274,7 +274,7 @@ sqlparse==0.5.3
     # via django
 starlette==0.45.3
     # via fastapi
-stevedore==5.4.0
+stevedore==5.4.1
     # via
     #   code-annotations
     #   edx-django-utils
