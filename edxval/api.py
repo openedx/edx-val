@@ -733,7 +733,7 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
     )
 
 
-@cachetools.func.ttl_cache(maxsize=None, ttl=settings.TRANSCRIPT_LANG_CACHE_TIMEOUT)
+@cachetools.func.ttl_cache(maxsize=None, ttl=getattr(settings, 'TRANSCRIPT_LANG_CACHE_TIMEOUT', 3600*24))
 def get_transcript_languages(course_id, provider_type):
     """
     Returns a list of languages for which transcripts are available for a course
