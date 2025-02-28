@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-cachetools==5.5.1
+cachetools==5.5.2
     # via tox
 certifi==2025.1.31
     # via requests
