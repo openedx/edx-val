@@ -18,8 +18,10 @@ astroid==3.3.8
     #   pylint-celery
 backports-tarfile==1.2.0
     # via jaraco-context
-cachetools==5.5.1
-    # via tox
+cachetools==5.5.2
+    # via
+    #   -r requirements/base.in
+    #   tox
 certifi==2025.1.31
     # via requests
 cffi==1.17.1
@@ -57,19 +59,19 @@ coverage[toml]==7.6.12
     #   pytest-cov
 coveralls==4.0.1
     # via -r requirements/ci.in
-cryptography==44.0.1
+cryptography==44.0.2
     # via
     #   pyjwt
     #   secretstorage
 ddt==1.7.2
     # via -r requirements/test.in
-diff-cover==9.2.2
+diff-cover==9.2.3
     # via -r requirements/dev.in
 dill==0.3.9
     # via pylint
 distlib==0.3.9
     # via virtualenv
-django==4.2.19
+django==4.2.20
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -89,7 +91,7 @@ django-crum==0.7.9
     #   edx-toggles
 django-model-utils==5.0.0
     # via -r requirements/base.in
-django-storages==1.14.4
+django-storages==1.14.5
     # via -r requirements/base.in
 django-waffle==4.2.0
     # via
@@ -110,7 +112,7 @@ drf-jwt==1.19.2
     # via edx-drf-extensions
 edx-django-release-util==1.4.0
     # via -r requirements/base.in
-edx-django-utils==7.1.0
+edx-django-utils==7.2.0
     # via
     #   edx-drf-extensions
     #   edx-toggles
@@ -122,9 +124,9 @@ edx-lint==5.3.7
     #   -r requirements/quality.in
 edx-opaque-keys==2.11.0
     # via edx-drf-extensions
-edx-toggles==5.2.0
+edx-toggles==5.3.0
     # via -r requirements/base.in
-fastapi==0.115.8
+fastapi==0.115.11
     # via pact-python
 filelock==3.17.0
     # via
@@ -145,7 +147,7 @@ importlib-metadata==8.6.1
     # via keyring
 iniconfig==2.0.0
     # via pytest
-isort==6.0.0
+isort==6.0.1
     # via
     #   -r requirements/quality.in
     #   pylint
@@ -155,11 +157,11 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
-jeepney==0.8.0
+jeepney==0.9.0
     # via
     #   keyring
     #   secretstorage
-jinja2==3.1.5
+jinja2==3.1.6
     # via
     #   code-annotations
     #   diff-cover
@@ -175,7 +177,7 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-mock==5.1.0
+mock==5.2.0
     # via -r requirements/test.in
 more-itertools==10.6.0
     # via
@@ -183,9 +185,9 @@ more-itertools==10.6.0
     #   jaraco-functools
 multidict==6.1.0
     # via yarl
-newrelic==10.6.0
+newrelic==10.7.0
     # via edx-django-utils
-nh3==0.2.20
+nh3==0.2.21
     # via readme-renderer
 packaging==24.2
     # via
@@ -209,7 +211,7 @@ pluggy==1.5.0
     #   diff-cover
     #   pytest
     #   tox
-propcache==0.2.1
+propcache==0.3.0
     # via yarl
 psutil==6.1.1
     # via
@@ -248,7 +250,7 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.11.1
+pymongo==4.11.2
     # via edx-opaque-keys
 pynacl==1.5.0
     # via edx-django-utils
@@ -256,7 +258,7 @@ pyproject-api==1.9.0
     # via tox
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==8.3.4
+pytest==8.3.5
     # via
     #   pytest-cov
     #   pytest-django
@@ -306,9 +308,9 @@ snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.5.3
     # via django
-starlette==0.45.3
+starlette==0.46.0
     # via fastapi
-stevedore==5.4.0
+stevedore==5.4.1
     # via
     #   code-annotations
     #   edx-django-utils
@@ -336,7 +338,7 @@ urllib3==2.2.3
     #   twine
 uvicorn==0.34.0
     # via pact-python
-virtualenv==20.29.2
+virtualenv==20.29.3
     # via tox
 yarl==1.18.3
     # via pact-python
