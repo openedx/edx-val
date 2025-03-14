@@ -12,7 +12,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.8.1
     # via django
-astroid==3.3.8
+astroid==3.3.9
     # via
     #   pylint
     #   pylint-celery
@@ -65,7 +65,7 @@ cryptography==44.0.2
     #   secretstorage
 ddt==1.7.2
     # via -r requirements/test.in
-diff-cover==9.2.3
+diff-cover==9.2.4
     # via -r requirements/dev.in
 dill==0.3.9
     # via pylint
@@ -236,7 +236,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pylint==3.3.4
+pylint==3.3.5
     # via
     #   edx-lint
     #   pylint-celery
@@ -286,7 +286,7 @@ requests==2.32.3
     #   twine
 requests-toolbelt==1.0.0
     # via twine
-responses==0.25.6
+responses==0.25.7
     # via -r requirements/test.in
 rfc3986==2.0.0
     # via twine
@@ -308,7 +308,7 @@ snowballstemmer==2.2.0
     # via pydocstyle
 sqlparse==0.5.3
     # via django
-starlette==0.46.0
+starlette==0.46.1
     # via fastapi
 stevedore==5.4.1
     # via
@@ -319,7 +319,7 @@ text-unidecode==1.3
     # via python-slugify
 tomlkit==0.13.2
     # via pylint
-tox==4.24.1
+tox==4.24.2
     # via -r requirements/ci.in
 twine==6.1.0
     # via -r requirements/quality.in
