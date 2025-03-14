@@ -164,7 +164,7 @@ requests==2.32.3
     #   edx-drf-extensions
     #   pact-python
     #   responses
-responses==0.25.6
+responses==0.25.7
     # via -r requirements/test.in
 semantic-version==2.10.0
     # via edx-drf-extensions
@@ -177,7 +177,7 @@ sniffio==1.3.1
     # via anyio
 sqlparse==0.5.3
     # via django
-starlette==0.46.0
+starlette==0.46.1
     # via fastapi
 stevedore==5.4.1
     # via
