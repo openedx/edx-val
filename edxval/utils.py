@@ -7,7 +7,8 @@ from contextlib import closing
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files.storage import get_storage_class
+from django.utils.module_loading import import_string
+
 from fs.path import combine
 from pysrt import SubRipFile
 
@@ -154,14 +155,17 @@ def get_video_image_storage():
     """
     Return the configured django storage backend.
     """
-    if hasattr(settings, 'VIDEO_IMAGE_SETTINGS'):
-        return get_storage_class(
-            settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_CLASS'),
-        )(**settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {}))
+    if hasattr(settings, 'VIDEO_IMAGE_SETTINGS') and 'STORAGE_CLASS' in settings.VIDEO_IMAGE_SETTINGS:
+        storage_class_path = settings.VIDEO_IMAGE_SETTINGS['STORAGE_CLASS']
+        options = settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {})
+    else:
+        storage_class_path = getattr(
+            settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
+        )
+        options = {}
 
-    # during edx-platform loading this method gets called but settings are not ready yet
-    # so in that case we will return default(FileSystemStorage) storage class instance
-    return get_storage_class()()
+    storage_class = import_string(storage_class_path)
+    return storage_class(**options)
 
 
 def video_transcript_path(video_transcript_instance, filename):  # pylint:disable=unused-argument
