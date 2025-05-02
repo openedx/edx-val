@@ -287,9 +287,14 @@ def get_storage_from_settings(storage_name):
     options = config.get('STORAGE_KWARGS', {})
 
     if not storage_class_path:
-        storage_class_path = getattr(
-            settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
-        )
+        if hasattr(settings, "STORAGES") and "default" in settings.STORAGES:
+            storage_class_path = settings.STORAGES["default"].get(
+                "BACKEND", "django.core.files.storage.FileSystemStorage"
+            )
+        else:
+            storage_class_path = getattr(
+                settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
+            )
 
     storage_class = import_string(storage_class_path)
     return storage_class(**options)
