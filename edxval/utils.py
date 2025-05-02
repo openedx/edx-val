@@ -155,17 +155,7 @@ def get_video_image_storage():
     """
     Return the configured django storage backend.
     """
-    if hasattr(settings, 'VIDEO_IMAGE_SETTINGS') and 'STORAGE_CLASS' in settings.VIDEO_IMAGE_SETTINGS:
-        storage_class_path = settings.VIDEO_IMAGE_SETTINGS['STORAGE_CLASS']
-        options = settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {})
-    else:
-        storage_class_path = getattr(
-            settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
-        )
-        options = {}
-
-    storage_class = import_string(storage_class_path)
-    return storage_class(**options)
+    return get_storage_from_settings('VIDEO_IMAGE_SETTINGS')
 
 
 def video_transcript_path(video_transcript_instance, filename):  # pylint:disable=unused-argument
@@ -183,14 +173,7 @@ def get_video_transcript_storage():
     """
     Return the configured django storage backend for video transcripts.
     """
-    if hasattr(settings, 'VIDEO_TRANSCRIPTS_SETTINGS'):
-        return get_storage_class(
-            settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_CLASS'),
-        )(**settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_KWARGS', {}))
-
-    # during edx-platform loading this method gets called but settings are not ready yet
-    # so in that case we will return default(FileSystemStorage) storage class instance
-    return get_storage_class()()
+    return get_storage_from_settings('VIDEO_TRANSCRIPTS_SETTINGS')
 
 
 def create_file_in_fs(file_data, file_name, file_system, static_dir):
@@ -286,3 +269,29 @@ def is_duplicate_file(uploaded_file_1, uploaded_file_2):
     uploaded_file_2_hash = generate_file_content_hash(uploaded_file_2)
 
     return uploaded_file_1_hash == uploaded_file_2_hash
+
+
+def get_storage_from_settings(storage_name, class_key='STORAGE_CLASS', options_key='STORAGE_KWARGS'):
+    """
+    Returns a Django storage instance based on a nested settings dictionary.
+
+    Args:
+        settings_dict_key (str): The attribute name on `settings` that contains the storage config dict.
+        class_key (str): The key used to retrieve the storage class path.
+        options_key (str): The key used to retrieve the kwargs for the storage class.
+
+    Returns:
+        An instance of the configured storage class.
+    """
+    config = getattr(settings, storage_name, {})
+    if isinstance(config, dict) and class_key in config:
+        storage_class_path = config[class_key]
+        options = config.get(options_key, {})
+    else:
+        storage_class_path = getattr(
+            settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
+        )
+        options = {}
+
+    storage_class = import_string(storage_class_path)
+    return storage_class(**options)
