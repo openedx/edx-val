@@ -271,27 +271,25 @@ def is_duplicate_file(uploaded_file_1, uploaded_file_2):
     return uploaded_file_1_hash == uploaded_file_2_hash
 
 
-def get_storage_from_settings(storage_name, class_key='STORAGE_CLASS', options_key='STORAGE_KWARGS'):
+def get_storage_from_settings(storage_name):
     """
     Returns a Django storage instance based on a nested settings dictionary.
 
     Args:
-        settings_dict_key (str): The attribute name on `settings` that contains the storage config dict.
-        class_key (str): The key used to retrieve the storage class path.
-        options_key (str): The key used to retrieve the kwargs for the storage class.
+        storage_name (str): The attribute name on `settings` that contains the storage config dict.
 
     Returns:
         An instance of the configured storage class.
     """
     config = getattr(settings, storage_name, {})
-    if isinstance(config, dict) and class_key in config:
-        storage_class_path = config[class_key]
-        options = config.get(options_key, {})
-    else:
+
+    storage_class_path = config.get('STORAGE_CLASS')
+    options = config.get('STORAGE_KWARGS', {})
+
+    if not storage_class_path:
         storage_class_path = getattr(
             settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
         )
-        options = {}
 
     storage_class = import_string(storage_class_path)
     return storage_class(**options)
