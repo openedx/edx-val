@@ -292,6 +292,7 @@ def get_storage_from_settings(storage_name):
                 "BACKEND", "django.core.files.storage.FileSystemStorage"
             )
         else:
+            # if new storages dict is missing, it will work. Also it works for # Django==4.2 only
             storage_class_path = getattr(
                 settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
             )
