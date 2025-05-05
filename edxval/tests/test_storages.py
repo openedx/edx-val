@@ -57,7 +57,6 @@ class S3Boto3TestCase(TestCase):
             f"{storage_class.__module__}.{storage_class.__name__}",
         )
 
-
     def test_video_transcript_backend(self):
         # settings file contains the `VIDEO_TRANSCRIPTS_SETTINGS` but dont'have STORAGE_CLASS
         # so it returns the default storage.
