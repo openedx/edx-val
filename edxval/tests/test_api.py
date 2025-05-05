@@ -761,6 +761,13 @@ class GetVideosForCourseTest(TestCase, SortedVideoTestMixin):
 
         self.assertEqual(len(course_transcript), 0)
 
+    def test_get_course_videos_qset(self):
+        """Test getting a minimal queryset."""
+        with self.assertNumQueries(1):
+            course_videos_qset = api.get_course_videos_qset(self.course_id)
+            course_video = course_videos_qset.get(video__edx_video_id="super-soaker")
+            self.assertEqual(course_video.video.client_video_id, "Shallow Swordfish")
+
 
 @ddt
 class GetYouTubeProfileVideosTest(TestCase):
@@ -2840,7 +2847,9 @@ class TranscriptTest(TestCase):
         },
     )
     @unpack
-    def test_create_or_update_video_transcript(self, file_data, file_name, file_format, language_code, provider):
+    def test_create_or_update_video_transcript(
+            self, file_data, file_name, file_format, language_code, provider
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_or_update_video_transcript` api function updates existing transcript as expected.
         """
@@ -2897,7 +2906,9 @@ class TranscriptTest(TestCase):
         },
     )
     @unpack
-    def test_create_or_update_video_exceptions(self, video_id, file_format, provider, exception, exception_message):
+    def test_create_or_update_video_exceptions(
+            self, video_id, file_format, provider, exception, exception_message
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_or_update_video_transcript` api function raise exceptions on invalid values.
         """
@@ -3015,7 +3026,9 @@ class TranscriptTest(TestCase):
         }
     )
     @unpack
-    def test_create_video_transcript_exceptions(self, video_id, language_code, file_format, provider, exception_msg):
+    def test_create_video_transcript_exceptions(
+            self, video_id, language_code, file_format, provider, exception_msg
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Verify that `create_video_transcript` api function raise exceptions on invalid values.
         """
@@ -3033,6 +3046,59 @@ class TranscriptTest(TestCase):
         # `super-soaker` has got 'en' and 'fr' transcripts
         transcript_languages = api.get_available_transcript_languages(video_id='super-soaker')
         self.assertEqual(transcript_languages, ['en', 'fr'])
+
+    def test_update_transcript_provider(self):
+        """
+        Verify that `update_transcript_provider` works as expected.
+        """
+        video_id = 'super-soaker'
+        language_code = 'en'
+        query_filter = {
+            'video__edx_video_id': video_id,
+            'language_code': language_code
+        }
+
+        api.update_transcript_provider(
+            video_id=video_id,
+            language_code=language_code,
+            provider=TranscriptProviderType.EDX_AI_TRANSLATIONS,
+        )
+
+        transcript = VideoTranscript.objects.get(**query_filter)
+        self.assertEqual(transcript.provider, TranscriptProviderType.EDX_AI_TRANSLATIONS)
+
+    def test_update_transcript_provider_exception_wrong_provider(self):
+        video_id = 'super-soaker'
+        language_code = 'en'
+
+        with self.assertRaises(InvalidTranscriptProvider):
+            api.update_transcript_provider(
+                video_id=video_id,
+                language_code=language_code,
+                provider="Wrong Provider",
+            )
+
+    def test_update_transcript_provider_exception_blank_provider(self):
+        video_id = 'super-soaker'
+        language_code = 'en'
+
+        with self.assertRaises(InvalidTranscriptProvider):
+            api.update_transcript_provider(
+                video_id=video_id,
+                language_code=language_code,
+                provider="",
+            )
+
+    def test_update_transcript_provider_exception_no_transcript(self):
+        video_id = 'not-a-video-in-there'
+        language_code = 'en'
+
+        attempt = api.update_transcript_provider(
+            video_id=video_id,
+            language_code=language_code,
+            provider=TranscriptProviderType.EDX_AI_TRANSLATIONS,
+        )
+        assert attempt is None
 
     @patch('edxval.api.logger')
     def test_delete_video_transcript(self, mock_logger):
@@ -3159,14 +3225,12 @@ class TranscriptTest(TestCase):
         course_transcript = api.get_transcript_details_for_course(self.course_id1)
 
         self.assertEqual(course_transcript['super-soaker']['en']['provider'], TranscriptProviderType.THREE_PLAY_MEDIA)
-        self.assertIn('content', course_transcript['super-soaker']['en'])
         self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
         self.assertIn('url', course_transcript['super-soaker']['en'])
         self.assertIn('name', course_transcript['super-soaker']['en'])
         self.assertIn('size', course_transcript['super-soaker']['en'])
 
         self.assertEqual(course_transcript['super-soaker']['fr']['provider'], TranscriptProviderType.CIELO24)
-        self.assertIn('content', course_transcript['super-soaker']['fr'])
         self.assertEqual(course_transcript['super-soaker']['en']['file_format'], utils.TranscriptFormat.SRT)
         self.assertIn('url', course_transcript['super-soaker']['fr'])
         self.assertIn('name', course_transcript['super-soaker']['fr'])
@@ -3177,6 +3241,18 @@ class TranscriptTest(TestCase):
         course_transcript = api.get_transcript_details_for_course('this-is-not-a-course-id')
 
         self.assertEqual(len(course_transcript), 0)
+
+    @data(
+        (TranscriptProviderType.THREE_PLAY_MEDIA, ['en']),
+        (TranscriptProviderType.CIELO24, ['fr'])
+    )
+    @unpack
+    def test_get_transcript_languages_for_course(self, provider_type, expected_languages):
+        """
+        Verify that `get_transcript_languages` api function works as expected.
+        """
+        transcript_languages = api.get_transcript_languages(self.course_id1, provider_type)
+        self.assertEqual(transcript_languages, expected_languages)
 
 
 @ddt
