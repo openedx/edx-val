@@ -73,6 +73,8 @@ class Profile(models.Model):
 
     The profile_name has a regex validator because in case this field will be
     used in a url.
+
+    .. no_pii:
     """
     profile_name = models.CharField(
         max_length=50,
@@ -100,6 +102,8 @@ class Video(models.Model):
     Attributes:
         status: Used to keep track of the processing video as it goes through
             the video pipeline, e.g., "Uploading", "File Complete"...
+
+    .. no_pii:
     """
     created = models.DateTimeField(auto_now_add=True)
     edx_video_id = models.CharField(
@@ -157,6 +161,8 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
 
     Every course-semester has a unique course_id. A video can be paired with
     multiple course_id's but each pair is unique together.
+
+    .. no_pii:
     """
     course_id = models.CharField(max_length=255)
     video = models.ForeignKey(Video, related_name='courses', on_delete=models.CASCADE)
@@ -184,6 +190,8 @@ class CourseVideo(models.Model, ModelFactoryWithValidation):
 class EncodedVideo(models.Model):
     """
     Video/encoding pair
+
+    .. no_pii:
     """
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -300,6 +308,8 @@ class ListField(models.TextField):
 class VideoImage(TimeStampedModel):
     """
     Image model for course video.
+
+    .. no_pii:
     """
     course_video = models.OneToOneField(CourseVideo, related_name="video_image", on_delete=models.CASCADE)
     image = CustomizableImageField()
@@ -378,11 +388,18 @@ class TranscriptProviderType:
     CUSTOM = 'Custom'
     THREE_PLAY_MEDIA = '3PlayMedia'
     CIELO24 = 'Cielo24'
+    EDX_AI_TRANSLATIONS = 'edx_ai_translations'
 
     CHOICES = (
         (CUSTOM, CUSTOM),
         (THREE_PLAY_MEDIA, THREE_PLAY_MEDIA),
         (CIELO24, CIELO24),
+    )
+
+    # Choices specififcally for only the VideoTranscript model
+    TRANSCRIPT_MODEL_CHOICES = (
+        *CHOICES,
+        (EDX_AI_TRANSLATIONS, EDX_AI_TRANSLATIONS),
     )
 
 
@@ -419,13 +436,15 @@ class CustomizableFileField(models.FileField):
 class VideoTranscript(TimeStampedModel):
     """
     Transcript for a video
+
+    .. no_pii:
     """
     video = models.ForeignKey(Video, related_name='video_transcripts', null=True, on_delete=models.CASCADE)
     transcript = CustomizableFileField()
     language_code = models.CharField(max_length=50, db_index=True)
     provider = models.CharField(
         max_length=30,
-        choices=TranscriptProviderType.CHOICES,
+        choices=TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES,
         default=TranscriptProviderType.CUSTOM,
     )
     file_format = models.CharField(max_length=20, db_index=True, choices=TranscriptFormat.CHOICES)
@@ -485,7 +504,9 @@ class VideoTranscript(TimeStampedModel):
         return transcript
 
     @classmethod
-    def create(cls, video, language_code, file_format, content, provider):
+    def create(
+            cls, video, language_code, file_format, content, provider
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Create a Video Transcript.
 
@@ -610,6 +631,8 @@ class ThreePlayTurnaround:
 class TranscriptPreference(TimeStampedModel):
     """
     Third Party Transcript Preferences for a Course
+
+    .. no_pii:
     """
     course_id = models.CharField(verbose_name='Course ID', max_length=255, unique=True)
     provider = models.CharField(
@@ -654,6 +677,8 @@ class TranscriptPreference(TimeStampedModel):
 class ThirdPartyTranscriptCredentialsState(TimeStampedModel):
     """
     State of transcript credentials for a course organization
+
+    .. no_pii:
     """
 
     class Meta:

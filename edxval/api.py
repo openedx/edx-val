@@ -1,12 +1,11 @@
 """
 The internal API for VAL.
 """
-
-
 import logging
 from enum import Enum
 from uuid import uuid4
 
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
@@ -18,6 +17,7 @@ from lxml import etree
 from lxml.etree import Element, SubElement
 from pysrt.srtexc import Error
 
+import cachetools.func
 from edxval.config.waffle import OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
 from edxval.exceptions import (
     InvalidTranscriptFormat,
@@ -382,7 +382,7 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
         raise InvalidTranscriptFormat(f'{file_format} transcript format is not supported')
 
     provider = metadata.get('provider')
-    if provider and provider not in list(dict(TranscriptProviderType.CHOICES).keys()):
+    if provider and provider not in list(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys()):
         raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
 
     try:
@@ -393,6 +393,29 @@ def create_or_update_video_transcript(video_id, language_code, metadata, file_da
         return None
 
     return video_transcript.url()
+
+
+def update_transcript_provider(video_id, language_code, provider):
+    """
+    Update transcript provider for an existing transcript.
+
+    Arguments:
+        video_id: id identifying the video to which the transcript is associated.
+        language_code: language code of a video transcript.
+        provider: transcript provider
+    """
+    video_transcript = VideoTranscript.get_or_none(video_id, language_code)
+
+    if not provider or provider not in list(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys()):
+        raise InvalidTranscriptProvider(f'{provider} transcript provider is not supported')
+
+    if video_transcript:
+        video_transcript.provider = provider
+        video_transcript.save()
+        return video_transcript
+    else:
+        logger.info('Transcript does not exist for video id "%s" and language code "%s"', video_id, language_code)
+        return video_transcript
 
 
 def delete_video_transcript(video_id, language_code):
@@ -733,9 +756,41 @@ def get_videos_for_course(course_id, sort_field=None, sort_dir=SortDirection.asc
     )
 
 
+@cachetools.func.ttl_cache(maxsize=None, ttl=settings.TRANSCRIPT_LANG_CACHE_TIMEOUT)
+def get_transcript_languages(course_id, provider_type):
+    """
+    Returns a list of languages for which transcripts are available for a course
+
+    Args:
+        course_id (str): course id
+        provider_type (str): transcript provider type
+
+    Returns:
+        (list): A list of language codes
+    """
+    course_video_ids = CourseVideo.objects.filter(course_id=course_id, is_hidden=False).values_list('video__id')
+    transcript_languages = (
+        VideoTranscript.objects.filter(video__id__in=course_video_ids, provider=provider_type)
+        .values_list("language_code", flat=True).distinct()
+    )
+    return list(transcript_languages)
+
+
+def get_course_videos_qset(course_id):
+    """
+    Get a QuerySet of CourseVideos for a given course.
+
+    This assumes that the caller can further filter as necessary.
+    """
+    return CourseVideo.objects.select_related('video').filter(
+        course_id=str(course_id),
+        is_hidden=False,
+    )
+
+
 def get_transcript_details_for_course(course_id):
     """
-    Gets all the transcript for a course and bundles up data.
+    Get all the transcripts for a course and return details.
 
     Args:
         course_id (String)
@@ -746,7 +801,6 @@ def get_transcript_details_for_course(course_id):
         'edx_video_id': {
             'lang_code': {
                 'provider': 'What the provider is',
-                'content': 'Content of the transcript',
                 'file_format': 'file format',
                 'url': 'location of the file',
                 'name': 'name of the file',
@@ -766,7 +820,6 @@ def get_transcript_details_for_course(course_id):
         for video_transcript in video_transcripts:
             transcript_data[video_transcript.language_code] = {
                 'provider': video_transcript.provider,
-                'content': video_transcript.transcript.file.read(),
                 'file_format': video_transcript.file_format,
                 'url': video_transcript.transcript.url,
                 'name': video_transcript.transcript.name,
@@ -1078,7 +1131,7 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
             continue
 
         SubElement(
-            transcripts_el,
+            transcripts_el,  # pylint: disable=possibly-used-before-assignment
             'transcript',
             {
                 'language_code': language_code,
@@ -1090,7 +1143,9 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
     return dict(xml=video_el, transcripts=transcript_files_map)
 
 
-def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcripts=None, course_id=None):
+def import_from_xml(
+        xml, edx_video_id, resource_fs, static_dir, external_transcripts=None, course_id=None
+):  # pylint: disable=too-many-positional-arguments
     """
     Imports data from a video_asset element about the given video_id.
     If the edx_video_id already exists, then no changes are made. If an unknown
@@ -1207,7 +1262,9 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
     return edx_video_id
 
 
-def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, resource_fs, static_dir):
+def import_transcript_from_fs(
+        edx_video_id, language_code, file_name, provider, resource_fs, static_dir
+):  # pylint: disable=too-many-positional-arguments
     """
     Imports transcript file from file system and creates transcript record in DS.
 

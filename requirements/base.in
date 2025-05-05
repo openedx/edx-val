@@ -11,3 +11,4 @@ pillow                              # for reserved keywords linter
 edx-toggles>=2.0.0
 lxml
 pysrt
+cachetools

@@ -8,13 +8,21 @@ import logging
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
+from edx_rest_framework_extensions.permissions import IsStaff
 from rest_framework import generics, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.permissions import DjangoModelPermissions, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from edxval.api import create_or_update_video_transcript, get_transcript_details_for_course, get_video_ids_for_course
+from edxval.api import (
+    create_or_update_video_transcript,
+    delete_video_transcript,
+    get_transcript_details_for_course,
+    get_video_ids_for_course,
+    update_transcript_provider,
+)
+from edxval.exceptions import InvalidTranscriptProvider
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -119,7 +127,11 @@ class VideoTranscriptView(APIView):
     """
     authentication_classes = (JwtAuthentication, SessionAuthentication)
 
-    # noinspection PyMethodMayBeStatic
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            return [IsAuthenticated(), IsStaff()]
+        return []
+
     def post(self, request):
         """
         Creates a video transcript instance with the given information.
@@ -151,7 +163,7 @@ class VideoTranscriptView(APIView):
             ).format(format=file_format, supported_formats=supported_formats)
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
-        supported_providers = sorted(dict(TranscriptProviderType.CHOICES).keys())
+        supported_providers = sorted(dict(TranscriptProviderType.TRANSCRIPT_MODEL_CHOICES).keys())
         if provider not in supported_providers:
             message = (
                 '"{provider}" provider is not supported. Supported transcription providers are "{supported_providers}"'
@@ -173,6 +185,76 @@ class VideoTranscriptView(APIView):
             response = Response(status=status.HTTP_400_BAD_REQUEST, data={'message': message})
 
         return response
+
+    def delete(self, request):
+        """
+        Delete a video transcript instance with the given information.
+
+        Arguments:
+            request: A WSGI request.
+        """
+        params = ('video_id', 'language_code')
+        missing = [param for param in params if param not in request.query_params]
+        if missing:
+            LOGGER.warning(
+                '[VAL] Required transcript params are missing. %s', ' and '.join(missing)
+            )
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data=dict(message='{missing} must be specified.'.format(missing=' and '.join(missing)))
+            )
+
+        video_id = request.query_params.get('video_id')
+        language_code = request.query_params.get('language_code')
+
+        try:
+            delete_video_transcript(video_id=video_id, language_code=language_code)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={'message': str(e)}
+            )
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+    def patch(self, request):
+        """
+        Partially update a video transcript, only supporting updating the `provider` field.
+        """
+        video_id = request.data.get('video_id')
+        language_code = request.data.get('language_code')
+        provider = request.data.get('provider')
+
+        if not video_id or not language_code or not provider:
+            return Response(
+                {"message": "The params video_id, language_code, and provider are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            updated_transcript = update_transcript_provider(
+                video_id=video_id,
+                language_code=language_code,
+                provider=provider,
+            )
+            if updated_transcript:
+                return Response(status=status.HTTP_200_OK)
+
+        except InvalidTranscriptProvider:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={'message': 'Invalid transcript provider.'}
+            )
+
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            return Response(
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                data={'message': str(e)}
+            )
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class CourseTranscriptsDetailView(APIView):
@@ -283,7 +365,7 @@ class VideoImagesView(APIView):
 
         try:
             validate_generated_images(generated_images, LIST_MAX_ITEMS)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={'message': str(e)}
