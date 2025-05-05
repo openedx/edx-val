@@ -7,7 +7,8 @@ from contextlib import closing
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files.storage import get_storage_class
+from django.core.files.storage import FileSystemStorage
+from django.utils.module_loading import import_string
 from fs.path import combine
 from pysrt import SubRipFile
 
@@ -148,6 +149,20 @@ def video_image_path(video_image_instance, filename):  # pylint:disable=unused-a
         filename (str): name of image file
     """
     return '{}{}'.format(settings.VIDEO_IMAGE_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
+
+
+def get_storage_class(storage_class_path=None):
+    """
+    Return the configured Django storage backend.
+
+    Arguments:
+        storage_class_path (str): The path to the storage class.
+    """
+    if storage_class_path:
+        return import_string(storage_class_path)
+
+    # Fallback to default FileSystemStorage
+    return FileSystemStorage
 
 
 def get_video_image_storage():
