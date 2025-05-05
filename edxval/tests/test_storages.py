@@ -7,8 +7,8 @@ from unittest import TestCase
 from django.conf import settings
 from django.test.utils import override_settings
 
-from storages.backends.s3boto3 import S3Boto3Storage  # pylint: disable=wrong-import-order
 from edxval.utils import get_video_image_storage, get_video_transcript_storage
+from storages.backends.s3boto3 import S3Boto3Storage  # pylint: disable=wrong-import-order
 
 
 class S3Boto3TestCase(TestCase):
