@@ -275,22 +275,30 @@ def is_duplicate_file(uploaded_file_1, uploaded_file_2):
 
 def get_storage_from_settings(storage_name):
     """
-    Returns a Django storage instance based on a nested settings dictionary.
+    Returns a Django storage instance based on a settings dictionary.
 
-    Args:
-        storage_name (str): The attribute name on `settings` that contains the storage config dict.
-
-    Returns:
-        An instance of the configured storage class.
+    Supports both Django 4.x-style custom settings (STORAGE_CLASS, STORAGE_KWARGS)
+    and Django 5.x STORAGES dict structure.
+    `
     """
-    # Get the storage config (for both Django 4.x and 5.x, use the same pattern)
-
     config = getattr(settings, storage_name, {})
     # Retrieve the storage class path and kwargs from the settings
-    storage_class_path = config.get('STORAGE_CLASS', 'django.core.files.storage.FileSystemStorage')
+    storage_class_path = config.get('STORAGE_CLASS')
     options = config.get('STORAGE_KWARGS', {})
+
+    # following code only runs for default storages
+    if not storage_class_path:
+        # Use the new STORAGES setting if available in django5.
+        if VERSION[0] >= 5 and hasattr(settings, 'STORAGES') and 'default' in settings.STORAGES:
+            config = settings.STORAGES['default']
+            storage_class_path = config.get('BACKEND', 'django.core.files.storage.FileSystemStorage')
+            options = config.get('OPTIONS', {})
+        else:
+            storage_class_path = getattr(
+                settings, 'DEFAULT_FILE_STORAGE',
+                'django.core.files.storage.FileSystemStorage'
+            )
 
     # Import the storage class dynamically
     storage_class = import_string(storage_class_path)
-
     return storage_class(**options)
