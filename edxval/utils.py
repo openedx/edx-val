@@ -7,10 +7,9 @@ from contextlib import closing
 
 from django import VERSION
 from django.conf import settings
-from django.core.files.storage import storages
 from django.core.exceptions import ValidationError
+from django.core.files.storage import storages
 from django.utils.module_loading import import_string
-
 from fs.path import combine
 from pysrt import SubRipFile
 
@@ -290,9 +289,7 @@ def get_storage_from_settings(storage_name):
     if not storage_class_path:
         # Use the new STORAGES setting if available in django5.
         if VERSION[0] >= 5 and hasattr(settings, 'STORAGES') and 'default' in settings.STORAGES:
-            config = settings.STORAGES['default']
-            storage_class_path = config.get('BACKEND', 'django.core.files.storage.FileSystemStorage')
-            options = config.get('OPTIONS', {})
+            return storages['default']
         else:
             storage_class_path = getattr(
                 settings, 'DEFAULT_FILE_STORAGE',
