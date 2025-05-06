@@ -5,6 +5,7 @@ import hashlib
 import json
 from contextlib import closing
 
+from django import VERSION
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.module_loading import import_string
@@ -286,17 +287,16 @@ def get_storage_from_settings(storage_name):
     storage_class_path = config.get('STORAGE_CLASS')
     options = config.get('STORAGE_KWARGS', {})
 
-    if not storage_class_path:
-        # For Django 5.2+, use STORAGES if defined
-        if hasattr(settings, "STORAGES") and "default" in settings.STORAGES:
-            storage_class_path = settings.STORAGES["default"].get(
-                "BACKEND", "django.core.files.storage.FileSystemStorage"
-            )
-        else:
-            # for Django==4.2 only
+    if not storage_class_path:  # get default storage now.
+        if VERSION[0] < 5:
             storage_class_path = getattr(
                 settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage'
             )
-
+        else:
+            # if hasattr(settings, "STORAGES") and "default" in settings.STORAGES:
+            storage_class_path = settings.STORAGES["default"].get(
+                "BACKEND", "django.core.files.storage.FileSystemStorage"
+            )
+        
     storage_class = import_string(storage_class_path)
     return storage_class(**options)
