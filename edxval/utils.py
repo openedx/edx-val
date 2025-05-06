@@ -282,7 +282,7 @@ def get_storage_from_settings(storage_name):
     """
     config = getattr(settings, storage_name, {})
     # Retrieve the storage class path and kwargs from the settings
-    storage_class_path = config.get('STORAGE_CLASS')
+    storage_class_path = config.get('STORAGE_CLASS', {})
     options = config.get('STORAGE_KWARGS', {})
 
     # following code only runs for default storages
