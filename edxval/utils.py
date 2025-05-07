@@ -7,7 +7,7 @@ from contextlib import closing
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files.storage import get_storage_class
+from django.utils.module_loading import import_string
 from fs.path import combine
 from pysrt import SubRipFile
 
@@ -150,18 +150,37 @@ def video_image_path(video_image_instance, filename):  # pylint:disable=unused-a
     return '{}{}'.format(settings.VIDEO_IMAGE_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
 
 
+def get_configured_storage(settings_key):
+    """
+    Generic function to return a configured Django storage backend
+    based on the settings dictionary at `settings_key`.
+    """
+    config = getattr(settings, settings_key, {})
+    # Retrieve the storage class path and kwargs from the settings
+    storage_class_path = config.get('STORAGE_CLASS', {})
+    options = config.get('STORAGE_KWARGS', {})
+
+    # following code only runs for default storages
+    if not storage_class_path:
+        storage_class_path = (
+                getattr(settings, 'DEFAULT_FILE_STORAGE', None) or
+                getattr(settings, 'STORAGES', {}).get('default', {}).get('BACKEND') or
+                'django.core.files.storage.FileSystemStorage'
+        )
+
+        # For Django 5.x, pick options if available
+        options = getattr(settings, 'STORAGES', {}).get('default', {}).get('OPTIONS', {})
+
+    # Import the storage class dynamically
+    storage_class = import_string(storage_class_path)
+    return storage_class(**options)
+
+
 def get_video_image_storage():
     """
     Return the configured django storage backend.
     """
-    if hasattr(settings, 'VIDEO_IMAGE_SETTINGS'):
-        return get_storage_class(
-            settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_CLASS'),
-        )(**settings.VIDEO_IMAGE_SETTINGS.get('STORAGE_KWARGS', {}))
-
-    # during edx-platform loading this method gets called but settings are not ready yet
-    # so in that case we will return default(FileSystemStorage) storage class instance
-    return get_storage_class()()
+    return get_configured_storage('VIDEO_IMAGE_SETTINGS')
 
 
 def video_transcript_path(video_transcript_instance, filename):  # pylint:disable=unused-argument
@@ -179,14 +198,7 @@ def get_video_transcript_storage():
     """
     Return the configured django storage backend for video transcripts.
     """
-    if hasattr(settings, 'VIDEO_TRANSCRIPTS_SETTINGS'):
-        return get_storage_class(
-            settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_CLASS'),
-        )(**settings.VIDEO_TRANSCRIPTS_SETTINGS.get('STORAGE_KWARGS', {}))
-
-    # during edx-platform loading this method gets called but settings are not ready yet
-    # so in that case we will return default(FileSystemStorage) storage class instance
-    return get_storage_class()()
+    return get_configured_storage('VIDEO_TRANSCRIPTS_SETTINGS')
 
 
 def create_file_in_fs(file_data, file_name, file_system, static_dir):

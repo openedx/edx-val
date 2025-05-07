@@ -23,7 +23,7 @@ DATABASES = {
 }
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
-# See https://docs.djangoproject.com/en/1.4/ref/settings/#allowed-hosts
+# See https://docs.djangoproject.com/en/5.2/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
 
 # Local time zone for this installation. Choices can be found here:
@@ -41,10 +41,6 @@ SITE_ID = 1
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
-
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
-USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
@@ -179,6 +175,15 @@ VIDEO_TRANSCRIPTS_SETTINGS = dict(
     DIRECTORY_PREFIX='video-transcripts/',
 )
 
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # Required by Django 2.2 to run management commands.
 TEMPLATES = [

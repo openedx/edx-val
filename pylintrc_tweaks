@@ -7,5 +7,4 @@ max-line-length = 120
 
 
 [MESSAGES CONTROL]
-# Disable unicode-format-string
-disable+ = ,unicode-format-string, consider-using-with, consider-using-dict-items, django-not-configured, consider-iterating-dictionary, arguments-renamed, no-name-in-module, c-extension-no-member, use-dict-literal
+disable+ = ,consider-using-with, consider-using-dict-items, django-not-configured, consider-iterating-dictionary, arguments-renamed, no-name-in-module, c-extension-no-member, use-dict-literal
