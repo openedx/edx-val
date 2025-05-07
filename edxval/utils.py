@@ -153,11 +153,13 @@ def video_image_path(video_image_instance, filename):  # pylint:disable=unused-a
 def get_configured_storage(settings_key):
     """
     Generic function to return a configured Django storage backend
-    based on the settings dictionary at `settings_key`.
+    based on the settings dictionary at `settings_key`.  This function falls
+    back to the `default` storage class if there is no `STORAGE_CLASS` entry
+    under the `setting_key` object.
     """
     config = getattr(settings, settings_key, {})
     # Retrieve the storage class path and kwargs from the settings
-    storage_class_path = config.get('STORAGE_CLASS', {})
+    storage_class_path = config.get('STORAGE_CLASS')
     options = config.get('STORAGE_KWARGS', {})
 
     # following code only runs for default storages

@@ -175,16 +175,6 @@ VIDEO_TRANSCRIPTS_SETTINGS = dict(
     DIRECTORY_PREFIX='video-transcripts/',
 )
 
-
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
-
 # Required by Django 2.2 to run management commands.
 TEMPLATES = [
     {
