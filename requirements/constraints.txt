@@ -10,8 +10,3 @@
 
 # Common constraints for edx repos
 -c common_constraints.txt
-
-# 5.4.0 is breaking for Python 3.8 and 3.11 CI checks with error
-# importlib.resources' has no attribute 'files'
-# To be unpinned once edx-val moves to Python 3.12
-edx-lint==5.3.7

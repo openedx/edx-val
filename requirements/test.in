@@ -2,6 +2,7 @@
 
 -c constraints.txt
 
+boto3
 coverage
 ddt
 fs
