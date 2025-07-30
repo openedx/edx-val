@@ -4,17 +4,17 @@
 #
 #    make upgrade
 #
-cachetools==5.5.0
+cachetools==5.5.2
     # via tox
-certifi==2024.8.30
+certifi==2025.4.26
     # via requests
 chardet==5.2.0
     # via tox
-charset-normalizer==3.4.0
+charset-normalizer==3.4.2
     # via requests
 colorama==0.4.6
     # via tox
-coverage[toml]==7.6.8
+coverage[toml]==7.8.0
     # via coveralls
 coveralls==4.0.1
     # via -r requirements/ci.in
@@ -22,29 +22,31 @@ distlib==0.3.9
     # via virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.16.1
+filelock==3.18.0
     # via
     #   tox
     #   virtualenv
 idna==3.10
     # via requests
-packaging==24.2
+packaging==25.0
     # via
     #   pyproject-api
     #   tox
-platformdirs==4.3.6
+platformdirs==4.3.7
     # via
     #   tox
     #   virtualenv
 pluggy==1.5.0
     # via tox
-pyproject-api==1.8.0
+pyproject-api==1.9.0
     # via tox
 requests==2.32.3
     # via coveralls
-tox==4.23.2
+tox==4.25.0
     # via -r requirements/ci.in
 urllib3==2.2.3
-    # via requests
-virtualenv==20.28.0
+    # via
+    #   -c requirements/common_constraints.txt
+    #   requests
+virtualenv==20.30.0
     # via tox
