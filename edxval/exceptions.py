@@ -58,6 +58,12 @@ class InvalidTranscriptProvider(ValError):
     """
 
 
+class TranscriptNotFoundError(ValError):
+    """
+    This error is raised when a transcript matching provided criteria is not found
+    """
+
+
 class TranscriptsGenerationException(ValError):
     """
     This error is raised when a transcript content is not parse-able in specified format.

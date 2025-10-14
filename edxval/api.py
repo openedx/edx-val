@@ -22,6 +22,7 @@ from edxval.config.waffle import OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
 from edxval.exceptions import (
     InvalidTranscriptFormat,
     InvalidTranscriptProvider,
+    TranscriptNotFoundError,
     TranscriptsGenerationException,
     ValCannotCreateError,
     ValCannotUpdateError,
@@ -418,16 +419,20 @@ def update_transcript_provider(video_id, language_code, provider):
         return video_transcript
 
 
-def delete_video_transcript(video_id, language_code):
+def delete_video_transcript(video_id, language_code, provider=None):
     """
     Delete transcript for an existing video.
 
     Arguments:
         video_id: id identifying the video to which the transcript is associated.
         language_code: language code of a video transcript.
+        provider: (optional) transcript provider, if provided, transcript will be deleted only if it matches the provider.
     """
     video_transcript = VideoTranscript.get_or_none(video_id, language_code)
     if video_transcript:
+        if provider and video_transcript.provider != provider:
+            logger.info('Transcript provider "%s" does not match for video "%s" and language code "%s"', provider, video_id, language_code)
+            raise TranscriptNotFoundError('Transcript provider does not match, cannot delete the transcript.')
         # delete the transcript content from storage.
         video_transcript.transcript.delete()
         # delete the transcript metadata from db.
