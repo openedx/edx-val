@@ -1310,9 +1310,11 @@ class VideoTranscriptDeleteTest(APIAuthTestCase):
             file_format=self.transcript_data_es['file_format'],
             provider=self.transcript_data_es['provider'],
         )
-        
+
         # When I try to delete with a supplied provider (that matches)
-        response = self.client.delete(f'{self.url}?video_id={video_id}&language_code={language_code}&provider={provider}')
+        response = self.client.delete(
+            f'{self.url}?video_id={video_id}&language_code={language_code}&provider={provider}'
+        )
 
         # Then I should get a 204 no content response
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -1329,9 +1331,11 @@ class VideoTranscriptDeleteTest(APIAuthTestCase):
             file_format=self.transcript_data_es['file_format'],
             provider=self.transcript_data_es['provider'],
         )
-        
-        # When I try to delete with same language code but different provider
-        response = self.client.delete(f'{self.url}?video_id={video_id}&language_code={language_code}&provider={bad_provider}')
 
+        # When I try to delete with same language code but different provider
+        # When I try to delete with a supplied provider (that matches)
+        response = self.client.delete(
+            f'{self.url}?video_id={video_id}&language_code={language_code}&provider={bad_provider}'
+        )
         # Then I should get a 404 not found response
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
