@@ -22,7 +22,7 @@ from edxval.api import (
     get_video_ids_for_course,
     update_transcript_provider,
 )
-from edxval.exceptions import InvalidTranscriptProvider
+from edxval.exceptions import InvalidTranscriptProvider, TranscriptNotFoundError
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -193,8 +193,8 @@ class VideoTranscriptView(APIView):
         Arguments:
             request: A WSGI request.
         """
-        params = ('video_id', 'language_code')
-        missing = [param for param in params if param not in request.query_params]
+        required_params = ('video_id', 'language_code')
+        missing = [param for param in required_params if param not in request.query_params]
         if missing:
             LOGGER.warning(
                 '[VAL] Required transcript params are missing. %s', ' and '.join(missing)
@@ -206,9 +206,15 @@ class VideoTranscriptView(APIView):
 
         video_id = request.query_params.get('video_id')
         language_code = request.query_params.get('language_code')
+        provider = request.query_params.get('provider')
 
         try:
-            delete_video_transcript(video_id=video_id, language_code=language_code)
+            delete_video_transcript(video_id, language_code, provider=provider)
+        except TranscriptNotFoundError as e:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND,
+                data={'message': str(e)}
+            )
         except Exception as e:  # pylint: disable=broad-exception-caught
             return Response(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

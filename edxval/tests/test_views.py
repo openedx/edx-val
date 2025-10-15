@@ -1246,6 +1246,7 @@ class VideoTranscriptDeleteTest(APIAuthTestCase):
         self.patcher.start()
 
         self.video_1 = Video.objects.create(**constants.VIDEO_DICT_SIMPSONS)
+        self.video_1_id = self.video_1.edx_video_id
         self.transcript_data_es = constants.VIDEO_TRANSCRIPT_SIMPSON_ES
         self.transcript_data_ko = constants.VIDEO_TRANSCRIPT_SIMPSON_KO
         self.transcript_data_ru = constants.VIDEO_TRANSCRIPT_SIMPSON_RU
@@ -1284,15 +1285,57 @@ class VideoTranscriptDeleteTest(APIAuthTestCase):
             provider=self.transcript_data_ru['provider'],
         )
 
-        response1 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=es')
+        response1 = self.client.delete(f'{self.url}?video_id={self.video_1_id}&language_code=es')
         self.assertEqual(response1.status_code, status.HTTP_204_NO_CONTENT)
 
-        response2 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=ko')
+        response2 = self.client.delete(f'{self.url}?video_id={self.video_1_id}&language_code=ko')
         self.assertEqual(response2.status_code, status.HTTP_204_NO_CONTENT)
 
-        response3 = self.client.delete(f'{self.url}?video_id=simpson-id&language_code=ru')
+        response3 = self.client.delete(f'{self.url}?video_id={self.video_1_id}&language_code=ru')
         self.assertEqual(response3.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_transcript_delete_fail_bad_request(self):
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_transcript_delete_success_with_provider(self):
+        # Given transcript with language code 'es' and provider 'cielo24'
+        video_id = self.video_1.edx_video_id
+        language_code = 'es'
+        provider = TranscriptProviderType.CIELO24
+
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_es['language_code'],
+            file_format=self.transcript_data_es['file_format'],
+            provider=self.transcript_data_es['provider'],
+        )
+
+        # When I try to delete with a supplied provider (that matches)
+        response = self.client.delete(
+            f'{self.url}?video_id={video_id}&language_code={language_code}&provider={provider}'
+        )
+
+        # Then I should get a 204 no content response
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_transcript_delete_fail_mismatched_provider(self):
+        # Given transcript with language code 'es' and provider 'cielo24'
+        video_id = self.video_1.edx_video_id
+        language_code = 'es'
+        bad_provider = 'bad_provider'
+
+        VideoTranscript.objects.create(
+            video=self.video_1,
+            language_code=self.transcript_data_es['language_code'],
+            file_format=self.transcript_data_es['file_format'],
+            provider=self.transcript_data_es['provider'],
+        )
+
+        # When I try to delete with same language code but different provider
+        # When I try to delete with a supplied provider (that matches)
+        response = self.client.delete(
+            f'{self.url}?video_id={video_id}&language_code={language_code}&provider={bad_provider}'
+        )
+        # Then I should get a 404 not found response
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
