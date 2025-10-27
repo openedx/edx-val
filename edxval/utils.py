@@ -170,8 +170,9 @@ def get_configured_storage(settings_key):
                 'django.core.files.storage.FileSystemStorage'
         )
 
-        # For Django 5.x, pick options if available
-        options = getattr(settings, 'STORAGES', {}).get('default', {}).get('OPTIONS', {})
+        if not options:
+            # For Django 5.x, pick options if available
+            options = getattr(settings, 'STORAGES', {}).get('default', {}).get('OPTIONS', {})
 
     # Import the storage class dynamically
     storage_class = import_string(storage_class_path)
