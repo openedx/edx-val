@@ -97,3 +97,44 @@ class S3Boto3TestCase(TestCase):
             'django.core.files.storage.filesystem.FileSystemStorage',
             f"{storage_class.__module__}.{storage_class.__name__}",
         )
+
+    @override_settings(VIDEO_TRANSCRIPTS_SETTINGS={
+        'STORAGE_KWARGS': {
+            'location': 'only/kwargs/'
+        }
+    })
+    def test_video_transcript_with_storage_kwargs_only(self):
+        """
+        Test case where STORAGE_CLASS is not defined but STORAGE_KWARGS is defined.
+        """
+        storage = get_video_transcript_storage()
+        storage_class = storage.__class__
+
+        self.assertEqual(
+            'django.core.files.storage.filesystem.FileSystemStorage',
+            f"{storage_class.__module__}.{storage_class.__name__}",
+        )
+
+        self.assertEqual(storage.base_location, 'only/kwargs/')
+
+    @override_settings(
+        VIDEO_TRANSCRIPTS_SETTINGS={
+            'STORAGE_KWARGS': {
+                'bucket_name': 'test-bucket',
+                'default_acl': 'private',
+                'location': 'only/kwargs/',
+            }
+        },
+        DEFAULT_FILE_STORAGE='storages.backends.s3boto3.S3Boto3Storage'
+    )
+    def test_video_transcript_with_storage_kwargs_only_and_default_storage(self):
+        """
+        Test case where STORAGE_CLASS is not defined but STORAGE_KWARGS is defined
+        and DEFAULT_FILE_STORAGE is set to S3Boto3Storage in settings.
+        """
+        storage = get_video_transcript_storage()
+
+        self.assertIsInstance(storage, S3Boto3Storage)
+        self.assertEqual(storage.default_acl, 'private')
+        self.assertEqual(storage.bucket_name, 'test-bucket')
+        self.assertEqual(storage.location, 'only/kwargs/')
