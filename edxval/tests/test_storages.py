@@ -99,7 +99,7 @@ class S3Boto3TestCase(TestCase):
         )
 
     @override_settings(STORAGES={
-        'video_transcripts_settings': {
+        'video_transcripts_storage': {
             'BACKEND': "storages.backends.s3boto3.S3Boto3Storage",
             "OPTIONS": {
                 'bucket_name': 'test',

@@ -159,7 +159,8 @@ def get_configured_storage(settings_key):
     """
 
     storages_config = getattr(settings, 'STORAGES', {})
-    storage_settings = storages_config.get(settings_key.lower(), {})
+    storage_key = settings_key.replace("SETTINGS", "storage")
+    storage_settings = storages_config.get(storage_key.lower(), {})
 
     if storage_settings:
         storage_class_path = storage_settings.get('BACKEND')
