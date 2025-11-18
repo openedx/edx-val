@@ -107,8 +107,7 @@ class S3Boto3TestCase(TestCase):
                 'location': 'abc/'
             }
         }
-    },
-    VIDEO_TRANSCRIPTS_SETTINGS={
+    }, VIDEO_TRANSCRIPTS_SETTINGS={
         'STORAGE_CLASS': 'storages.backends.s3boto3.S3Boto3Storage',
         'STORAGE_KWARGS': {
             'bucket_name': 'custom-bucket',

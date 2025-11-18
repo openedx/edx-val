@@ -157,7 +157,6 @@ def get_configured_storage(settings_key):
     Django 5.2's STORAGES dictionary over custom settings with the same key,
     falling back to legacy settings if no STORAGES entry exists.
     """
-
     storages_config = getattr(settings, 'STORAGES', {})
     storage_key = settings_key.replace("SETTINGS", "storage")
     storage_settings = storages_config.get(storage_key.lower(), {})
