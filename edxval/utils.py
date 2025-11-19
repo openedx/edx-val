@@ -158,7 +158,7 @@ def get_configured_storage(settings_key):
     falling back to legacy settings if no STORAGES entry exists.
     """
     storages_config = getattr(settings, 'STORAGES', {})
-    storage_key = settings_key.replace("SETTINGS", "storage")
+    storage_key = settings_key.replace("_SETTINGS", "")
     storage_settings = storages_config.get(storage_key.lower(), {})
 
     if storage_settings:
