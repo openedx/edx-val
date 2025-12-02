@@ -153,25 +153,31 @@ def video_image_path(video_image_instance, filename):  # pylint:disable=unused-a
 def get_configured_storage(settings_key):
     """
     Generic function to return a configured Django storage backend
-    based on the settings dictionary at `settings_key`.  This function falls
-    back to the `default` storage class if there is no `STORAGE_CLASS` entry
-    under the `setting_key` object.
+    based on the settings dictionary at `settings_key`.  This function prioritizes
+    Django 5.2's STORAGES dictionary over custom settings with the same key,
+    falling back to legacy settings if no STORAGES entry exists.
     """
-    config = getattr(settings, settings_key, {})
-    # Retrieve the storage class path and kwargs from the settings
-    storage_class_path = config.get('STORAGE_CLASS')
-    options = config.get('STORAGE_KWARGS', {})
+    storages_config = getattr(settings, 'STORAGES', {})
+    storage_key = settings_key.replace("_SETTINGS", "")
+    storage_settings = storages_config.get(storage_key.lower(), {})
 
-    # following code only runs for default storages
-    if not storage_class_path:
-        storage_class_path = (
-                getattr(settings, 'DEFAULT_FILE_STORAGE', None) or
-                getattr(settings, 'STORAGES', {}).get('default', {}).get('BACKEND') or
-                'django.core.files.storage.FileSystemStorage'
-        )
+    if storage_settings:
+        storage_class_path = storage_settings.get('BACKEND')
+        options = storage_settings.get('OPTIONS', {})
+    else:
+        # Fall back to custom settings configuration
+        config = getattr(settings, settings_key, {})
+        storage_class_path = config.get('STORAGE_CLASS')
+        options = config.get('STORAGE_KWARGS', {})
 
-        # For Django 5.x, pick options if available
-        options = getattr(settings, 'STORAGES', {}).get('default', {}).get('OPTIONS', {})
+        if not storage_class_path:
+            storage_class_path = (
+                    storages_config.get('default', {}).get('BACKEND') or
+                    getattr(settings, 'DEFAULT_FILE_STORAGE', None) or
+                    'django.core.files.storage.FileSystemStorage'
+            )
+
+            options = storages_config.get('default', {}).get('OPTIONS', {}) or options
 
     # Import the storage class dynamically
     storage_class = import_string(storage_class_path)

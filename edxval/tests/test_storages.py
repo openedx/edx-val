@@ -97,3 +97,28 @@ class S3Boto3TestCase(TestCase):
             'django.core.files.storage.filesystem.FileSystemStorage',
             f"{storage_class.__module__}.{storage_class.__name__}",
         )
+
+    @override_settings(STORAGES={
+        'video_transcripts': {
+            'BACKEND': "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {
+                'bucket_name': 'test',
+                'default_acl': 'private',
+                'location': 'abc/'
+            }
+        }
+    }, VIDEO_TRANSCRIPTS_SETTINGS={
+        'STORAGE_CLASS': 'storages.backends.s3boto3.S3Boto3Storage',
+        'STORAGE_KWARGS': {
+            'bucket_name': 'custom-bucket',
+            'default_acl': 'private',
+            'location': 'custom/abc/'
+        }
+    })
+    def test_django52_storages_takes_priority_over_custom(self):
+        #
+        storage = get_video_transcript_storage()
+        self.assertIsInstance(storage, S3Boto3Storage)
+        self.assertEqual(storage.bucket_name, "test")
+        self.assertEqual(storage.default_acl, 'private')
+        self.assertEqual(storage.location, 'abc/')
