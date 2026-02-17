@@ -571,7 +571,7 @@ def _get_video(edx_video_id):
         encoded_videos = EncodedVideo.objects.select_related("profile")
         return Video.objects \
                     .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
-                    .prefetch_related("courses") \
+                    .prefetch_related("courses__video_image") \
                     .get(edx_video_id=edx_video_id)
     except Video.DoesNotExist as no_video_error:
         error_message = f"Video not found for edx_video_id: {edx_video_id}"
@@ -678,7 +678,11 @@ def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection
     the given field and direction, with ties broken by edx_video_id to ensure a
     total order.
     """
-    videos = Video.objects.filter(**video_filter)
+    encoded_videos = EncodedVideo.objects.select_related("profile")
+    videos = Video.objects.filter(**video_filter).prefetch_related(
+        Prefetch("encoded_videos", queryset=encoded_videos),
+        "courses__video_image",
+    )
     paginator_context = {}
 
     if sort_field:

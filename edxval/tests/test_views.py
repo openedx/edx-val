@@ -700,11 +700,11 @@ class VideoDetailTest(APIAuthTestCase):
             self.client.get("/edxval/videos/")
         response = self.client.post(url, constants.COMPLETE_SET_FISH, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(7):
             self.client.get("/edxval/videos/")
         response = self.client.post(url, constants.COMPLETE_SET_STAR, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(7):
             self.client.get("/edxval/videos/")
 
 

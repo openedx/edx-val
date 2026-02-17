@@ -23,6 +23,7 @@ from edxval.api import (
     update_transcript_provider,
 )
 from edxval.exceptions import InvalidTranscriptProvider, TranscriptNotFoundError
+from django.db.models import Prefetch
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -91,12 +92,16 @@ class VideoList(generics.ListCreateAPIView):
     """
     authentication_classes = (JwtAuthentication, SessionAuthentication)
     permission_classes = (ReadRestrictedDjangoModelPermissions,)
-    queryset = Video.objects.all().prefetch_related("encoded_videos", "courses")
+    queryset = Video.objects.all()
     lookup_field = "edx_video_id"
     serializer_class = VideoSerializer
 
     def get_queryset(self):
-        qset = Video.objects.all().prefetch_related("encoded_videos", "courses")
+        encoded_videos = EncodedVideo.objects.select_related("profile")
+        qset = Video.objects.all().prefetch_related(
+            Prefetch("encoded_videos", queryset=encoded_videos),
+            "courses__video_image",
+        )
 
         args = self.request.GET
         course_id = args.get('course')
