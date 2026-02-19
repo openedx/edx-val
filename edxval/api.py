@@ -576,9 +576,10 @@ def _get_video(edx_video_id):
     """
     try:
         encoded_videos = EncodedVideo.objects.select_related("profile")
+        course_videos = CourseVideo.objects.select_related("video_image")
         return Video.objects \
                     .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
-                    .prefetch_related("courses") \
+                    .prefetch_related(Prefetch("courses", queryset=course_videos)) \
                     .get(edx_video_id=edx_video_id)
     except Video.DoesNotExist as no_video_error:
         error_message = f"Video not found for edx_video_id: {edx_video_id}"
