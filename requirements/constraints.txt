@@ -10,3 +10,8 @@
 
 # Common constraints for edx repos
 -c common_constraints.txt
+
+# setuptools 82+ removed pkg_resources, which fs (pyfilesystem2) uses for
+# namespace package declarations in fs/__init__.py. Pin until fs is updated.
+# See: https://github.com/PyFilesystem/pyfilesystem2/issues/577
+setuptools<82

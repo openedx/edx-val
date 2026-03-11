@@ -45,9 +45,15 @@ upgrade: $(COMMON_CONSTRAINTS_TXT)
 	pip-compile --rebuild --upgrade -o requirements/pip-tools.txt requirements/pip-tools.in
 	pip install -qr requirements/pip.txt
 	pip install -qr requirements/pip-tools.txt
-	pip-compile --rebuild --upgrade -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/ci.in
-	pip-compile --rebuild --upgrade -o requirements/quality.txt requirements/base.in requirements/quality.in requirements/test.in
-	pip-compile --rebuild --upgrade -o requirements/test.txt requirements/base.in requirements/test.in
+	# --allow-unsafe is required here because fs (pyfilesystem2) depends on setuptools
+	# (via pkg_resources for namespace package declarations). Without it, pip-compile
+	# silently omits setuptools from the output, causing ImportError at runtime.
+	# TODO: remove --allow-unsafe and the setuptools<82 constraint in constraints.txt
+	# once a version of fs is available that does not depend on pkg_resources.
+	# Track: https://github.com/PyFilesystem/pyfilesystem2/issues/577
+	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/ci.in
+	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/quality.txt requirements/base.in requirements/quality.in requirements/test.in
+	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/test.txt requirements/base.in requirements/test.in
 	pip-compile --rebuild --upgrade -o requirements/ci.txt requirements/ci.in
 	# Let tox control the Django version for tests
 	sed '/^[dD]jango==/d' requirements/test.txt > requirements/test.tmp

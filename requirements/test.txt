@@ -8,13 +8,13 @@ appdirs==1.4.4
     # via fs
 asgiref==3.11.1
     # via django
-boto3==1.42.62
+boto3==1.42.65
     # via -r requirements/test.in
-botocore==1.42.62
+botocore==1.42.65
     # via
     #   boto3
     #   s3transfer
-cachetools==7.0.3
+cachetools==7.0.5
     # via -r requirements/base.in
 certifi==2026.2.25
     # via requests
@@ -193,4 +193,7 @@ yarl==1.23.0
     # via pact-python
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools
+setuptools==81.0.0
+    # via
+    #   -c requirements/constraints.txt
+    #   fs
