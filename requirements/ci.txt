@@ -22,7 +22,7 @@ coveralls==4.1.0
     # via -r requirements/ci.in
 distlib==0.4.0
     # via virtualenv
-filelock==3.25.1
+filelock==3.25.2
     # via
     #   python-discovery
     #   tox

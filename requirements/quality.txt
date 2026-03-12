@@ -4,6 +4,12 @@
 #
 #    make upgrade
 #
+annotated-doc==0.0.4
+    # via fastapi
+annotated-types==0.7.0
+    # via pydantic
+anyio==4.12.1
+    # via starlette
 appdirs==1.4.4
     # via fs
 asgiref==3.11.1
@@ -12,9 +18,9 @@ astroid==4.0.4
     # via
     #   pylint
     #   pylint-celery
-boto3==1.42.65
+boto3==1.42.66
     # via -r requirements/test.in
-botocore==1.42.65
+botocore==1.42.66
     # via
     #   boto3
     #   s3transfer
@@ -22,12 +28,12 @@ cachetools==7.0.5
     # via -r requirements/base.in
 certifi==2026.2.25
     # via requests
-cffi==2.0.0
+cffi==1.17.1
     # via
     #   cryptography
-    #   pact-python-ffi
+    #   pact-python
     #   pynacl
-chardet==7.0.1
+chardet==7.1.0
     # via pysrt
 charset-normalizer==3.4.5
     # via requests
@@ -37,6 +43,8 @@ click==8.3.1
     #   code-annotations
     #   edx-django-utils
     #   edx-lint
+    #   pact-python
+    #   uvicorn
 click-log==0.4.0
     # via edx-lint
 code-annotations==2.3.2
@@ -47,7 +55,7 @@ coverage[toml]==7.13.4
     # via
     #   -r requirements/test.in
     #   pytest-cov
-cryptography==46.0.5
+cryptography==46.0.0
     # via
     #   pyjwt
     #   secretstorage
@@ -106,12 +114,17 @@ edx-opaque-keys==3.1.0
     # via edx-drf-extensions
 edx-toggles==5.4.1
     # via -r requirements/base.in
+fastapi==0.135.1
+    # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
+h11==0.16.0
+    # via uvicorn
 id==1.6.1
     # via twine
 idna==3.11
     # via
+    #   anyio
     #   requests
     #   yarl
 iniconfig==2.3.0
@@ -162,10 +175,10 @@ packaging==26.0
     # via
     #   pytest
     #   twine
-pact-python==3.2.1
-    # via -r requirements/test.in
-pact-python-ffi==0.4.28.2
-    # via pact-python
+pact-python==2.3.3
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/test.in
 pillow==12.1.1
     # via -r requirements/base.in
 platformdirs==4.9.4
@@ -177,11 +190,17 @@ pluggy==1.6.0
 propcache==0.4.1
     # via yarl
 psutil==7.2.2
-    # via edx-django-utils
+    # via
+    #   edx-django-utils
+    #   pact-python
 pycodestyle==2.14.0
     # via -r requirements/quality.in
 pycparser==3.0
     # via cffi
+pydantic==2.12.5
+    # via fastapi
+pydantic-core==2.41.5
+    # via pydantic
 pydocstyle==6.3.0
     # via -r requirements/quality.in
 pygments==2.19.2
@@ -209,7 +228,7 @@ pylint-plugin-utils==0.9.0
     #   pylint-django
 pymongo==4.16.0
     # via edx-opaque-keys
-pynacl==1.6.2
+pynacl==1.6.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
@@ -235,6 +254,7 @@ readme-renderer==44.0
 requests==2.32.5
     # via
     #   edx-drf-extensions
+    #   pact-python
     #   requests-toolbelt
     #   responses
     #   twine
@@ -257,11 +277,14 @@ six==1.17.0
     #   edx-django-release-util
     #   edx-lint
     #   fs
+    #   pact-python
     #   python-dateutil
 snowballstemmer==3.0.1
     # via pydocstyle
 sqlparse==0.5.5
     # via django
+starlette==0.52.1
+    # via fastapi
 stevedore==5.7.0
     # via
     #   code-annotations
@@ -275,8 +298,17 @@ twine==6.2.0
     # via -r requirements/quality.in
 typing-extensions==4.15.0
     # via
+    #   anyio
     #   edx-opaque-keys
-    #   pact-python
+    #   fastapi
+    #   pydantic
+    #   pydantic-core
+    #   starlette
+    #   typing-inspection
+typing-inspection==0.4.2
+    # via
+    #   fastapi
+    #   pydantic
 urllib3==2.6.3
     # via
     #   botocore
@@ -284,6 +316,8 @@ urllib3==2.6.3
     #   requests
     #   responses
     #   twine
+uvicorn==0.41.0
+    # via pact-python
 yarl==1.23.0
     # via pact-python
 
