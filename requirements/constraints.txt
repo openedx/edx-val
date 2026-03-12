@@ -15,3 +15,9 @@
 # namespace package declarations in fs/__init__.py. Pin until fs is updated.
 # See: https://github.com/PyFilesystem/pyfilesystem2/issues/577
 setuptools<82
+
+# pact-python 3.x has a completely different API from 2.x.
+# The verify_pact.py code uses the 2.x API (Verifier with provider/provider_base_url kwargs).
+# Pin until the code is updated to use the new API.
+# See: https://github.com/openedx/edx-val/issues/598
+pact-python<3

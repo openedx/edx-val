@@ -298,7 +298,7 @@ class ListField(models.TextField):
         return validate_generated_images(value, self.max_items)
 
     def deconstruct(self):
-        name, path, args, kwargs = super().deconstruct()
+        name, path, args, kwargs = super().deconstruct()  # pylint: disable=no-member
         # Only include kwarg if it's not the default
         if self.max_items != LIST_MAX_ITEMS:
             kwargs['max_items'] = self.max_items
