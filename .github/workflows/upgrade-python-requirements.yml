@@ -18,7 +18,6 @@ jobs:
       # user_reviewers: ""
       # team_reviewers: '2u-aurora'
       email_address: "aurora-requirements-update@2u-internal.opsgenie.net"
-      end_success_notification: true
     secrets:
       requirements_bot_github_token: ${{ secrets.REQUIREMENTS_BOT_GITHUB_TOKEN }}
       requirements_bot_github_email: ${{ secrets.REQUIREMENTS_BOT_GITHUB_EMAIL }}
