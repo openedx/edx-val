@@ -12,6 +12,7 @@ from .models import (
     ThirdPartyTranscriptCredentialsState,
     TranscriptPreference,
     Video,
+    VideoAudioDescription,
     VideoImage,
     VideoTranscript,
 )
@@ -108,6 +109,28 @@ class VideoTranscriptAdmin(admin.ModelAdmin):
     model = VideoTranscript
     verbose_name = 'Video Transcript'
     verbose_name_plural = 'Video Transcripts'
+
+
+@admin.register(VideoAudioDescription)
+class VideoAudioDescriptionAdmin(admin.ModelAdmin):
+    """ Admin for VideoAudioDescription """
+    raw_id_fields = ('video',)
+    list_display = ('get_video', 'file_name', 'file_format')
+    search_fields = ('id', 'video__edx_video_id', 'file_name')
+
+    @admin.display(
+        description='Video',
+        ordering='video',
+    )
+    def get_video(self, audio_description):
+        """ get video """
+        return (
+            audio_description.video.edx_video_id
+            if getattr(audio_description, 'video', False) else ''
+        )
+    model = VideoAudioDescription
+    verbose_name = 'Video Audio Description'
+    verbose_name_plural = 'Video Audio Descriptions'
 
 
 @admin.register(TranscriptPreference)

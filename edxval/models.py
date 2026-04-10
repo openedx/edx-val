@@ -24,7 +24,10 @@ from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
 from edxval.utils import (
+    AudioDescriptionFormat,
     TranscriptFormat,
+    audio_description_path,
+    get_audio_description_storage,
     get_video_image_storage,
     get_video_transcript_storage,
     validate_generated_images,
@@ -579,6 +582,118 @@ class VideoTranscript(TimeStampedModel):
 
     def __str__(self):
         return f'{self.language_code} Transcript for {self.video.edx_video_id}'
+
+
+class CustomizableAudioDescriptionFileField(models.FileField):
+    """
+    Subclass of FileField for audio description files.
+
+    Mirrors CustomizableFileField but uses audio-description-specific
+    storage settings so the storage class / bucket are not hard-coded
+    in migrations.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.update(dict(
+            upload_to=audio_description_path,
+            storage=get_audio_description_storage(),
+            max_length=500,
+            blank=True,
+            null=True
+        ))
+        super().__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        """
+        Remove `upload_to`, `storage`, and `max_length` to prevent unnecessary migrations.
+        """
+        name, path, args, kwargs = super().deconstruct()
+        del kwargs['upload_to']
+        del kwargs['storage']
+        del kwargs['max_length']
+        return name, path, args, kwargs
+
+
+class VideoAudioDescription(TimeStampedModel):
+    """
+    Audio description file for a video (one per video).
+
+    Mirrors VideoTranscript: the actual file is stored via Django's
+    storage abstraction (FileSystemStorage locally, S3 in prod).
+
+    .. no_pii:
+    """
+    video = models.OneToOneField(
+        Video,
+        related_name='audio_description',
+        on_delete=models.CASCADE,
+    )
+    audio_description_file = CustomizableAudioDescriptionFileField()
+    file_name = models.CharField(max_length=255)
+    file_format = models.CharField(max_length=16, choices=AudioDescriptionFormat.CHOICES)
+
+    def save_file(self, file_data, file_format, file_name=None):
+        """
+        Save audio description content to storage.
+        """
+        if not file_name:
+            file_name = f'{uuid4().hex}.{file_format}'
+
+        if file_data:
+            self.audio_description_file.save(file_name, file_data)
+        else:
+            self.audio_description_file.name = file_name
+
+        self.save()
+
+    @classmethod
+    def get_or_none(cls, video_id):
+        """
+        Return the audio description for a given edx_video_id, or None.
+        """
+        try:
+            return cls.objects.get(video__edx_video_id=video_id)
+        except cls.DoesNotExist:
+            return None
+
+    @classmethod
+    def create_or_update(cls, video, metadata, file_data=None):
+        """
+        Create or replace the audio description for a video.
+
+        Returns a tuple of (audio_description, created).
+        """
+        try:
+            audio_desc = cls.objects.get(video=video)
+            created = False
+        except cls.DoesNotExist:
+            audio_desc = cls(video=video)
+            created = True
+
+        for prop, value in metadata.items():
+            if prop in ['file_name', 'file_format'] and value:
+                setattr(audio_desc, prop, value)
+
+        try:
+            audio_desc.save_file(file_data, audio_desc.file_format, file_name=metadata.get('file_name'))
+        except Exception:
+            logger.exception(
+                '[VAL] Audio description save failed to storage for video_id "%s"',
+                video.edx_video_id,
+            )
+            raise
+
+        return audio_desc, created
+
+    def url(self):
+        """
+        Return the URL for this audio description file.
+        """
+        storage = get_audio_description_storage()
+        return storage.url(self.audio_description_file.name)
+
+    def __str__(self):
+        return f'Audio Description for {self.video.edx_video_id}'
 
 
 class Cielo24Turnaround:

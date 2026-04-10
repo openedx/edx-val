@@ -9,7 +9,16 @@ EncodedVideoSerializer which uses the profile_name as it's profile field.
 from rest_framework import serializers
 from rest_framework.fields import DateTimeField, IntegerField
 
-from edxval.models import CourseVideo, EncodedVideo, Profile, TranscriptPreference, Video, VideoImage, VideoTranscript
+from edxval.models import (
+    CourseVideo,
+    EncodedVideo,
+    Profile,
+    TranscriptPreference,
+    Video,
+    VideoAudioDescription,
+    VideoImage,
+    VideoTranscript,
+)
 
 
 class EncodedVideoSerializer(serializers.ModelSerializer):
@@ -92,6 +101,24 @@ class TranscriptSerializer(serializers.ModelSerializer):
         Create the video transcript.
         """
         return VideoTranscript.create(**validated_data)
+
+
+class AudioDescriptionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for VideoAudioDescription objects.
+    """
+    class Meta:
+        model = VideoAudioDescription
+        fields = ('video_id', 'url', 'file_name', 'file_format')
+
+    video_id = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+
+    def get_video_id(self, audio_description):
+        return audio_description.video.edx_video_id
+
+    def get_url(self, audio_description):
+        return audio_description.url()
 
 
 class CourseSerializer(serializers.RelatedField):

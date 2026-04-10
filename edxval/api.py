@@ -38,13 +38,20 @@ from edxval.models import (
     TranscriptPreference,
     TranscriptProviderType,
     Video,
+    VideoAudioDescription,
     VideoImage,
     VideoTranscript,
 )
-from edxval.serializers import TranscriptPreferenceSerializer, TranscriptSerializer, VideoSerializer
+from edxval.serializers import (
+    AudioDescriptionSerializer,
+    TranscriptPreferenceSerializer,
+    TranscriptSerializer,
+    VideoSerializer,
+)
 from edxval.transcript_utils import Transcript
 from edxval.utils import (
     THIRD_PARTY_TRANSCRIPTION_PLANS,
+    AudioDescriptionFormat,
     TranscriptFormat,
     create_file_in_fs,
     get_transcript_format,
@@ -439,6 +446,73 @@ def delete_video_transcript(video_id, language_code, provider=None):
         # delete the transcript metadata from db.
         video_transcript.delete()
         logger.info('Transcript is removed for video "%s" and language code "%s"', video_id, language_code)
+
+
+def create_or_update_video_audio_description(video_id, metadata, file_data=None):
+    """
+    Create or update the audio description for a video.
+
+    Arguments:
+        video_id(unicode): edx_video_id of an existing Video.
+        metadata(dict): Dict with 'file_name' and 'file_format'.
+        file_data(InMemoryUploadedFile): Audio description file content.
+
+    Returns:
+        unicode: URL of the saved audio description, or None if video not found.
+    """
+    file_format = metadata.get('file_format')
+    if file_format and file_format not in dict(AudioDescriptionFormat.CHOICES):
+        raise ValCannotCreateError(f'{file_format} is not a supported audio description format')
+
+    try:
+        video = Video.objects.get(edx_video_id=video_id)
+    except Video.DoesNotExist:
+        return None
+
+    audio_desc, __ = VideoAudioDescription.create_or_update(video, metadata, file_data)
+    return audio_desc.url()
+
+
+def get_video_audio_description(video_id):
+    """
+    Get audio description metadata for a video.
+
+    Returns:
+        dict: Serialized VideoAudioDescription data, or None.
+    """
+    audio_desc = VideoAudioDescription.get_or_none(video_id)
+    if audio_desc is None:
+        return None
+    return AudioDescriptionSerializer(audio_desc).data
+
+
+def get_video_audio_description_url(video_id):
+    """
+    Get the URL for a video's audio description.
+
+    Returns:
+        unicode: URL string, or None.
+    """
+    audio_desc = VideoAudioDescription.get_or_none(video_id)
+    if audio_desc:
+        return audio_desc.url()
+    return None
+
+
+def delete_video_audio_description(video_id):
+    """
+    Delete the audio description record and its file from storage.
+
+    Returns:
+        bool: True if deleted, False if nothing existed.
+    """
+    audio_desc = VideoAudioDescription.get_or_none(video_id)
+    if audio_desc is None:
+        return False
+    audio_desc.audio_description_file.delete()
+    audio_desc.delete()
+    logger.info('Audio description removed for video "%s"', video_id)
+    return True
 
 
 def get_3rd_party_transcription_plans():

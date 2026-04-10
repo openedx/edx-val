@@ -23,6 +23,23 @@ class TranscriptFormat:
     )
 
 
+class AudioDescriptionFormat:
+    """Supported audio description file formats."""
+    MP3 = 'mp3'
+    M4A = 'm4a'
+    WAV = 'wav'
+    AAC = 'aac'
+    OGG = 'ogg'
+
+    CHOICES = (
+        (MP3, 'MP3'),
+        (M4A, 'M4A'),
+        (WAV, 'WAV'),
+        (AAC, 'AAC'),
+        (OGG, 'OGG'),
+    )
+
+
 # 3rd Party Transcription Plans
 THIRD_PARTY_TRANSCRIPTION_PLANS = {
 
@@ -207,6 +224,20 @@ def get_video_transcript_storage():
     Return the configured django storage backend for video transcripts.
     """
     return get_configured_storage('VIDEO_TRANSCRIPTS_SETTINGS')
+
+
+def audio_description_path(audio_description_instance, filename):  # pylint:disable=unused-argument
+    """
+    Returns audio description file path.
+    """
+    return '{}{}'.format(settings.VIDEO_AUDIO_DESCRIPTION_SETTINGS.get('DIRECTORY_PREFIX', ''), filename)
+
+
+def get_audio_description_storage():
+    """
+    Return the configured django storage backend for audio descriptions.
+    """
+    return get_configured_storage('VIDEO_AUDIO_DESCRIPTION_SETTINGS')
 
 
 def create_file_in_fs(file_data, file_name, file_system, static_dir):
