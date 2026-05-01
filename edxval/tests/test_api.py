@@ -40,6 +40,7 @@ from edxval.api import (
     VideoSortField,
 )
 from edxval.config.waffle import OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
+from edxval.exceptions import TranscriptNotFoundError
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -2791,14 +2792,15 @@ class TranscriptTest(TestCase):
         """
         video_id = 'medium-soaker'
         language_code = 'zh'
-        with self.assertRaises(IOError):
+
+        with self.assertRaises(TranscriptNotFoundError):
             api.get_video_transcript_data(video_id, language_code)
 
-        mock_logger.exception.assert_called_with(
-            '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
-            video_id,
-            language_code,
-        )
+        args, _kwargs = mock_logger.error.call_args
+        logged_msg = args[0]
+        assert logged_msg.startswith("Transcript for video medium-soaker not found:")
+        # Exact path varies depending on how test settings config MEDIA
+        assert logged_msg.endswith("non/existent/transcript/path")
 
     def test_get_video_transcript_data_not_found(self):
         """
