@@ -40,6 +40,7 @@ from edxval.api import (
     VideoSortField,
 )
 from edxval.config.waffle import OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS
+from edxval.exceptions import TranscriptNotFoundError
 from edxval.models import (
     LIST_MAX_ITEMS,
     CourseVideo,
@@ -2791,7 +2792,7 @@ class TranscriptTest(TestCase):
         """
         video_id = 'medium-soaker'
         language_code = 'zh'
-        with self.assertRaises(IOError):
+        with self.assertRaises(TranscriptNotFoundError):
             api.get_video_transcript_data(video_id, language_code)
 
         mock_logger.exception.assert_called_with(

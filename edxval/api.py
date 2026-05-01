@@ -296,8 +296,9 @@ def get_video_transcript_data(video_id, language_code):
                 content=video_transcript.transcript.file.read()
             )
         except FileNotFoundError as f_err:
-            logger.error('Transcript for video %s not found: %s', video_id, f_err.filename)
-            return None
+            err_msg = f"Transcript for video {video_id} not found: {f_err.filename}"
+            logger.error(err_msg)
+            raise TranscriptNotFoundError(err_msg) from f_err
         except Exception:
             logger.exception(
                 '[edx-val] Error while retrieving transcript for video=%s -- language_code=%s',
@@ -1137,9 +1138,9 @@ def create_transcripts_xml(video_id, video_el, resource_fs, static_dir):
                 static_dir=static_file_dir
             )
             transcript_files_map[language_code] = transcript_filename
-        except TranscriptsGenerationException:
+        except (TranscriptsGenerationException, TranscriptNotFoundError):
             # we don't want to halt export in this case, just log and move to the next transcript.
-            logger.exception('[VAL] Error while generating "%s" transcript for video["%s"].', language_code, video_id)
+            logger.error('[VAL] Error while generating "%s" transcript for video["%s"].', language_code, video_id)
             continue
 
         SubElement(
