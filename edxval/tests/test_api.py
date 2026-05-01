@@ -2796,9 +2796,11 @@ class TranscriptTest(TestCase):
         with self.assertRaises(TranscriptNotFoundError):
             api.get_video_transcript_data(video_id, language_code)
 
-        mock_logger.error.assert_called_with(
-            "Transcript for video medium-soaker not found: /mnt/edx-val/non/existent/transcript/path"
-        )
+        args, _kwargs = mock_logger.error.call_args
+        logged_msg = args[0]
+        assert logged_msg.startswith("Transcript for video medium-soaker not found:")
+        # Exact path varies depending on how test settings config MEDIA
+        assert logged_msg.endswith("non/existent/transcript/path")
 
     def test_get_video_transcript_data_not_found(self):
         """
