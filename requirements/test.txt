@@ -8,40 +8,40 @@ annotated-doc==0.0.4
     # via fastapi
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.1
+anyio==4.13.0
     # via starlette
 appdirs==1.4.4
     # via fs
 asgiref==3.11.1
     # via django
-boto3==1.42.66
+boto3==1.43.8
     # via -r requirements/test.in
-botocore==1.42.66
+botocore==1.43.8
     # via
     #   boto3
     #   s3transfer
-cachetools==7.0.5
+cachetools==7.1.1
     # via -r requirements/base.in
-certifi==2026.2.25
+certifi==2026.4.22
     # via requests
 cffi==1.17.1
     # via
     #   cryptography
     #   pact-python
     #   pynacl
-chardet==7.1.0
+chardet==7.4.3
     # via pysrt
-charset-normalizer==3.4.5
+charset-normalizer==3.4.7
     # via requests
-click==8.3.1
+click==8.3.3
     # via
     #   code-annotations
     #   edx-django-utils
     #   pact-python
     #   uvicorn
-code-annotations==2.3.2
+code-annotations==3.0.0
     # via edx-toggles
-coverage[toml]==7.13.4
+coverage[toml]==7.14.0
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -75,7 +75,7 @@ django-waffle==5.0.0
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.16.1
+djangorestframework==3.17.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
@@ -91,17 +91,17 @@ edx-django-utils==8.0.1
     #   edx-toggles
 edx-drf-extensions==10.6.0
     # via -r requirements/base.in
-edx-opaque-keys==3.1.0
+edx-opaque-keys==4.0.0
     # via edx-drf-extensions
-edx-toggles==5.4.1
+edx-toggles==6.0.0
     # via -r requirements/base.in
-fastapi==0.135.1
+fastapi==0.136.1
     # via pact-python
 fs==2.4.16
     # via -r requirements/test.in
 h11==0.16.0
     # via uvicorn
-idna==3.11
+idna==3.15
     # via
     #   anyio
     #   requests
@@ -114,7 +114,7 @@ jmespath==1.1.0
     # via
     #   boto3
     #   botocore
-lxml==6.0.2
+lxml==6.1.0
     # via -r requirements/base.in
 markupsafe==3.0.3
     # via jinja2
@@ -122,19 +122,19 @@ mock==5.2.0
     # via -r requirements/test.in
 multidict==6.7.1
     # via yarl
-packaging==26.0
+packaging==26.2
     # via pytest
 pact-python==2.3.3
     # via
     #   -c requirements/constraints.txt
     #   -r requirements/test.in
-pillow==12.1.1
+pillow==12.2.0
     # via -r requirements/base.in
 pluggy==1.6.0
     # via
     #   pytest
     #   pytest-cov
-propcache==0.4.1
+propcache==0.5.2
     # via yarl
 psutil==7.2.2
     # via
@@ -142,27 +142,27 @@ psutil==7.2.2
     #   pact-python
 pycparser==3.0
     # via cffi
-pydantic==2.12.5
+pydantic==2.13.4
     # via fastapi
-pydantic-core==2.41.5
+pydantic-core==2.46.4
     # via pydantic
-pygments==2.19.2
+pygments==2.20.0
     # via pytest
-pyjwt[crypto]==2.11.0
+pyjwt[crypto]==2.12.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.16.0
+pymongo==4.17.0
     # via edx-opaque-keys
 pynacl==1.6.0
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==9.0.2
+pytest==9.0.3
     # via
     #   pytest-cov
     #   pytest-django
-pytest-cov==7.0.0
+pytest-cov==7.1.0
     # via -r requirements/test.in
 pytest-django==4.12.0
     # via -r requirements/test.in
@@ -175,14 +175,14 @@ pyyaml==6.0.3
     #   code-annotations
     #   edx-django-release-util
     #   responses
-requests==2.32.5
+requests==2.34.2
     # via
     #   edx-drf-extensions
     #   pact-python
     #   responses
 responses==0.26.0
     # via -r requirements/test.in
-s3transfer==0.16.0
+s3transfer==0.17.0
     # via boto3
 semantic-version==2.10.0
     # via edx-drf-extensions
@@ -194,7 +194,7 @@ six==1.17.0
     #   python-dateutil
 sqlparse==0.5.5
     # via django
-starlette==0.52.1
+starlette==1.0.0
     # via fastapi
 stevedore==5.7.0
     # via
@@ -216,12 +216,12 @@ typing-inspection==0.4.2
     # via
     #   fastapi
     #   pydantic
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   botocore
     #   requests
     #   responses
-uvicorn==0.41.0
+uvicorn==0.47.0
     # via pact-python
 yarl==1.23.0
     # via pact-python
