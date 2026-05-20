@@ -686,7 +686,12 @@ def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection
     the given field and direction, with ties broken by edx_video_id to ensure a
     total order.
     """
-    videos = Video.objects.filter(**video_filter)
+    video_image = CourseVideo.objects.select_related("video_image")
+    encoded_videos = EncodedVideo.objects.select_related("profile")
+    videos = Video.objects \
+        .prefetch_related(Prefetch("courses", queryset=video_image)) \
+        .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
+        .filter(**video_filter)
     paginator_context = {}
 
     if sort_field:
