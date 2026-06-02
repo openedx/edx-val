@@ -69,10 +69,15 @@ jobs:
         pip install -r requirements/test.txt
 
     - name: Verify Pacts
+      env:
+        PACT_BROKER_TOKEN: ${{ secrets.PACT_FLOW_ACCESS_TOKEN }}
       run: |
+        if [ -z "$PACT_BROKER_TOKEN" ]; then
+          echo "PACT_FLOW_ACCESS_TOKEN secret not configured, skipping Pact verification."
+          exit 0
+        fi
         export IS_MERGED=${{ github.event.pull_request.merged }}
         export PACT_BROKER_BASE_URL='https://edx.pactflow.io'
-        export PACT_BROKER_TOKEN=${{ secrets.PACT_FLOW_ACCESS_TOKEN }}
         export PUBLISH_VERSION=`git rev-parse --short HEAD`
         if [ $IS_MERGED == false ]
         then
