@@ -69,9 +69,8 @@ jobs:
         pip install -r requirements/test.txt
 
     - name: Verify Pacts
-      env:
-        PACT_BROKER_TOKEN: ${{ secrets.PACT_FLOW_ACCESS_TOKEN }}
       run: |
+        export PACT_BROKER_TOKEN=${{ secrets.PACT_FLOW_ACCESS_TOKEN }}
         if [ -z "$PACT_BROKER_TOKEN" ]; then
           echo "PACT_FLOW_ACCESS_TOKEN secret not configured, skipping Pact verification."
           exit 0
