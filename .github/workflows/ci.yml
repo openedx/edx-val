@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.12']
-        toxenv: [django42, django52, quality]
+        toxenv: [django52, quality]
 
     steps:
     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -36,7 +36,7 @@ jobs:
       run: tox
 
     - name: Run Coverage
-      if: matrix.python-version == '3.12' && matrix.toxenv=='django42'
+      if: matrix.python-version == '3.12' && matrix.toxenv=='django52'
       uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
       with:
         flags: unittests
@@ -64,7 +64,7 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        pip install "Django>=4.2,<5.0"
+        pip install "Django>=5.2,<6.0"
         pip install -r requirements/ci.txt
         pip install -r requirements/test.txt
 
