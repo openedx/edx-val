@@ -7,7 +7,6 @@ coverage
 ddt
 fs
 mock
-pact-python
 pytest-cov
 pytest-django
 responses
