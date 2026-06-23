@@ -1,7 +1,6 @@
 """
 Url file for django app edxval.
 """
-from django.conf import settings
 from django.urls import path, re_path
 
 from edxval import views
@@ -35,11 +34,3 @@ urlpatterns = [
          name='course-video-ids'
          ),
 ]
-
-if getattr(settings, 'PROVIDER_STATES_SETUP_VIEW_URL', None):
-    from edxval.pacts.views import provider_state
-    urlpatterns.append(re_path(
-        r'^pact/provider_states/$',
-        provider_state,
-        name='provider-state-view'
-    ))
