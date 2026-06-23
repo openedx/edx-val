@@ -8,9 +8,9 @@ appdirs==1.4.4
     # via fs
 asgiref==3.11.1
     # via django
-boto3==1.43.32
+boto3==1.43.36
     # via -r requirements/test.in
-botocore==1.43.32
+botocore==1.43.36
     # via
     #   boto3
     #   s3transfer
@@ -32,7 +32,7 @@ click==8.4.1
     #   edx-django-utils
 code-annotations==3.0.0
     # via edx-toggles
-coverage[toml]==7.14.1
+coverage[toml]==7.14.3
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -128,7 +128,7 @@ pynacl==1.6.2
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==9.1.0
+pytest==9.1.1
     # via
     #   pytest-cov
     #   pytest-django

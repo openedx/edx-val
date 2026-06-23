@@ -12,9 +12,9 @@ astroid==4.0.4
     # via
     #   pylint
     #   pylint-celery
-boto3==1.43.32
+boto3==1.43.36
     # via -r requirements/test.in
-botocore==1.43.32
+botocore==1.43.36
     # via
     #   boto3
     #   s3transfer
@@ -42,7 +42,7 @@ code-annotations==3.0.0
     # via
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.14.1
+coverage[toml]==7.14.3
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -151,7 +151,7 @@ more-itertools==11.1.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.3.5
+nh3==0.3.6
     # via readme-renderer
 packaging==26.2
     # via
@@ -202,7 +202,7 @@ pynacl==1.6.2
     # via edx-django-utils
 pysrt==1.1.2
     # via -r requirements/base.in
-pytest==9.1.0
+pytest==9.1.1
     # via
     #   pytest-cov
     #   pytest-django
