@@ -568,18 +568,15 @@ def create_profile(profile_name):
         raise ValCannotCreateError(err.message_dict) from err
 
 
-def _get_video_qset(prefetch_related=False):
+def _get_video_qset():
     """
     Get a Video queryset, optionally prefetching encoded video and course information.
     """
-    video_qset = Video.objects
-    if prefetch_related:
-        encoded_videos = EncodedVideo.objects.select_related("profile")
-        course_videos = CourseVideo.objects.select_related("video_image")
-        video_qset = video_qset \
-            .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
-            .prefetch_related(Prefetch("courses", queryset=course_videos))
-    return video_qset
+    encoded_videos = EncodedVideo.objects.select_related("profile")
+    course_videos = CourseVideo.objects.select_related("video_image")
+    return Video.objects \
+        .prefetch_related(Prefetch("encoded_videos", queryset=encoded_videos)) \
+        .prefetch_related(Prefetch("courses", queryset=course_videos))
 
 
 def _get_video(edx_video_id):
@@ -589,7 +586,7 @@ def _get_video(edx_video_id):
     Raises ValVideoNotFoundError if the video cannot be retrieved.
     """
     try:
-        return _get_video_qset(prefetch_related=True).get(edx_video_id=edx_video_id)
+        return _get_video_qset().get(edx_video_id=edx_video_id)
     except Video.DoesNotExist as no_video_error:
         error_message = f"Video not found for edx_video_id: {edx_video_id}"
         raise ValVideoNotFoundError(error_message) from no_video_error
@@ -695,7 +692,7 @@ def _get_videos_for_filter(video_filter, sort_field=None, sort_dir=SortDirection
     the given field and direction, with ties broken by edx_video_id to ensure a
     total order.
     """
-    videos = _get_video_qset(prefetch_related=True).filter(**video_filter)
+    videos = _get_video_qset().filter(**video_filter)
     paginator_context = {}
 
     if sort_field:
