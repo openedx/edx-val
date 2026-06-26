@@ -30,7 +30,7 @@ chardet==7.4.3
     # via pysrt
 charset-normalizer==3.4.7
     # via requests
-click==8.4.1
+click==8.4.2
     # via
     #   click-log
     #   code-annotations

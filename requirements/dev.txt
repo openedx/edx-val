@@ -36,7 +36,7 @@ chardet==7.4.3
     #   pysrt
 charset-normalizer==3.4.7
     # via requests
-click==8.4.1
+click==8.4.2
     # via
     #   click-log
     #   code-annotations
@@ -306,7 +306,7 @@ tomlkit==0.15.0
     # via
     #   edx-lint
     #   pylint
-tox==4.55.1
+tox==4.56.1
     # via -r requirements/ci.in
 twine==6.2.0
     # via -r requirements/quality.in
