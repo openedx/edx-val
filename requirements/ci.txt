@@ -58,7 +58,7 @@ shellingham==1.5.4
     # via typer
 tomli-w==1.2.0
     # via tox
-tox==4.55.1
+tox==4.56.1
     # via -r requirements/ci.in
 typer==0.26.7
     # via coveralls
