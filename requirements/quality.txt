@@ -12,9 +12,9 @@ astroid==4.0.4
     # via
     #   pylint
     #   pylint-celery
-boto3==1.43.36
+boto3==1.43.40
     # via -r requirements/test.in
-botocore==1.43.36
+botocore==1.43.40
     # via
     #   boto3
     #   s3transfer
@@ -30,7 +30,7 @@ chardet==7.4.3
     # via pysrt
 charset-normalizer==3.4.7
     # via requests
-click==8.4.1
+click==8.4.2
     # via
     #   click-log
     #   code-annotations
@@ -42,7 +42,7 @@ code-annotations==3.0.0
     # via
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.14.3
+coverage[toml]==7.15.0
     # via
     #   -r requirements/test.in
     #   pytest-cov
@@ -157,7 +157,7 @@ packaging==26.2
     # via
     #   pytest
     #   twine
-pillow==12.2.0
+pillow==12.3.0
     # via -r requirements/base.in
 platformdirs==4.10.0
     # via pylint
@@ -251,7 +251,7 @@ snowballstemmer==3.1.1
     # via pydocstyle
 sqlparse==0.5.5
     # via django
-stevedore==5.8.0
+stevedore==5.9.0
     # via
     #   code-annotations
     #   edx-django-utils
@@ -264,7 +264,7 @@ tomlkit==0.15.0
     #   pylint
 twine==6.2.0
     # via -r requirements/quality.in
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via edx-opaque-keys
 urllib3==2.7.0
     # via
