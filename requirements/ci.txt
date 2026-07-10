@@ -10,17 +10,17 @@ cachetools==7.1.4
     # via tox
 certifi==2026.6.17
     # via requests
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via requests
 colorama==0.4.6
     # via tox
-coverage[toml]==7.14.3
+coverage[toml]==7.15.0
     # via coveralls
 coveralls==4.1.0
     # via -r requirements/ci.in
 distlib==0.4.3
     # via virtualenv
-filelock==3.29.4
+filelock==3.29.7
     # via
     #   python-discovery
     #   tox
@@ -46,7 +46,7 @@ pygments==2.20.0
     # via rich
 pyproject-api==1.10.1
     # via tox
-python-discovery==1.4.2
+python-discovery==1.4.4
     # via
     #   tox
     #   virtualenv
@@ -58,11 +58,11 @@ shellingham==1.5.4
     # via typer
 tomli-w==1.2.0
     # via tox
-tox==4.55.1
+tox==4.56.4
     # via -r requirements/ci.in
-typer==0.26.7
+typer==0.26.8
     # via coveralls
 urllib3==2.7.0
     # via requests
-virtualenv==21.5.1
+virtualenv==21.6.0
     # via tox
