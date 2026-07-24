@@ -6,21 +6,21 @@
 #
 annotated-doc==0.0.4
     # via typer
-cachetools==7.1.4
+cachetools==7.1.6
     # via tox
-certifi==2026.6.17
+certifi==2026.7.22
     # via requests
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via requests
 colorama==0.4.6
     # via tox
-coverage[toml]==7.14.3
+coverage[toml]==7.15.2
     # via coveralls
 coveralls==4.1.0
     # via -r requirements/ci.in
 distlib==0.4.3
     # via virtualenv
-filelock==3.29.4
+filelock==3.32.0
     # via
     #   python-discovery
     #   tox
@@ -35,7 +35,7 @@ packaging==26.2
     # via
     #   pyproject-api
     #   tox
-platformdirs==4.10.0
+platformdirs==4.11.0
     # via
     #   python-discovery
     #   tox
@@ -44,9 +44,9 @@ pluggy==1.6.0
     # via tox
 pygments==2.20.0
     # via rich
-pyproject-api==1.10.1
+pyproject-api==1.11.0
     # via tox
-python-discovery==1.4.2
+python-discovery==1.5.0
     # via
     #   tox
     #   virtualenv
@@ -58,11 +58,11 @@ shellingham==1.5.4
     # via typer
 tomli-w==1.2.0
     # via tox
-tox==4.55.1
+tox==4.58.0
     # via -r requirements/ci.in
-typer==0.26.7
+typer==0.27.0
     # via coveralls
 urllib3==2.7.0
     # via requests
-virtualenv==21.5.1
+virtualenv==21.7.0
     # via tox
