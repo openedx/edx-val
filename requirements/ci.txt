@@ -17,7 +17,7 @@ colorama==0.4.6
 coverage[toml]==7.14.3
     # via coveralls
 coveralls==4.1.0
-    # via -r requirements/ci.in
+    # via -r ci.in
 distlib==0.4.3
     # via virtualenv
 filelock==3.29.4
@@ -59,10 +59,10 @@ shellingham==1.5.4
 tomli-w==1.2.0
     # via tox
 tox==4.55.1
-    # via -r requirements/ci.in
+    # via -r ci.in
 typer==0.26.7
     # via coveralls
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
 virtualenv==21.5.1
     # via tox
