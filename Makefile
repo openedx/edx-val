@@ -32,43 +32,24 @@ coverage: clean ## generate and view HTML coverage report
 	coverage report html
 	$(BROWSER) htmlcov/index.html
 
-COMMON_CONSTRAINTS_TXT=requirements/common_constraints.txt
-.PHONY: $(COMMON_CONSTRAINTS_TXT)
-$(COMMON_CONSTRAINTS_TXT):
-	wget -O "$(@)" https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt || touch "$(@)"
-
-upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
-upgrade: $(COMMON_CONSTRAINTS_TXT)
-	## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
-	pip install -qr requirements/pip-tools.txt
-	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/pip.txt requirements/pip.in
-	pip-compile --rebuild --upgrade -o requirements/pip-tools.txt requirements/pip-tools.in
-	pip install -qr requirements/pip.txt
-	pip install -qr requirements/pip-tools.txt
-	# --allow-unsafe is required here because fs (pyfilesystem2) depends on setuptools
-	# (via pkg_resources for namespace package declarations). Without it, pip-compile
-	# silently omits setuptools from the output, causing ImportError at runtime.
-	# TODO: remove --allow-unsafe and the setuptools<82 constraint in constraints.txt
-	# once a version of fs is available that does not depend on pkg_resources.
-	# Track: https://github.com/PyFilesystem/pyfilesystem2/issues/577
-	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/dev.txt requirements/base.in requirements/dev.in requirements/quality.in requirements/test.in requirements/ci.in
-	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/quality.txt requirements/base.in requirements/quality.in requirements/test.in
-	pip-compile --rebuild --upgrade --allow-unsafe -o requirements/test.txt requirements/base.in requirements/test.in
-	pip-compile --rebuild --upgrade -o requirements/ci.txt requirements/ci.in
-	# Let tox control the Django version for tests
-	sed '/^[dD]jango==/d' requirements/test.txt > requirements/test.tmp
-	mv requirements/test.tmp requirements/test.txt
+upgrade: ## update python dependencies
+	uv run --with edx-lint edx_lint write_uv_constraints pyproject.toml
+	uv lock --upgrade
 
 quality: ## check coding style with pycodestyle and pylint
-	tox -e quality
+	pylint src/edxval
+	pycodestyle src/edxval
+	pydocstyle src/edxval
+	isort --check-only src/edxval manage.py
+	make selfcheck
+	python -m build
+	twine check dist/*
 
 requirements: ## install development environment requirements
-	pip install -qr requirements/pip.txt
-	pip install -qr requirements/dev.txt --exists-action w
-	pip-sync requirements/dev.txt requirements/private.*
+	uv sync --locked --group dev
 
 test: clean ## run tests in the current virtualenv
-	python manage.py test
+	python -Wd -m pytest $(PYTEST_ARGS)
 
 diff_cover: test ## find diff lines that need test coverage
 	diff-cover coverage.xml
