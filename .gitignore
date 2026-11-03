@@ -68,7 +68,6 @@ log
 venv/
 venvs/
 
-src/
 video-images/
 video-transcripts/
 

@@ -35,12 +35,13 @@ Developing
 ----------
 
 
-First, create a virtual environment:
+First, create a virtual environment and install requirements (requires `uv <https://docs.astral.sh/uv/>`_):
 
 .. code-block:: bash
 
-    virtualenv venvs/val
-    source venvs/val/bin/activate
+    uv venv
+    source .venv/bin/activate
+    make requirements
 
 
 To run tests:
