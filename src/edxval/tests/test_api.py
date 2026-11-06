@@ -2420,8 +2420,8 @@ class CourseVideoImageTest(TestCase):
         self.edx_video_id = self.video.edx_video_id
         self.course_video = CourseVideo.objects.create(video=self.video, course_id=self.course_id)
         self.course_video2 = CourseVideo.objects.create(video=self.video, course_id=self.course_id2)
-        self.image_path1 = 'edxval/tests/data/image.jpg'
-        self.image_path2 = 'edxval/tests/data/edx.jpg'
+        self.image_path1 = 'src/edxval/tests/data/image.jpg'
+        self.image_path2 = 'src/edxval/tests/data/edx.jpg'
         self.image_url = api.update_video_image(
             self.edx_video_id, self.course_id, ImageFile(open(self.image_path1, 'rb')), 'image.jpg'
         )
@@ -2653,8 +2653,8 @@ class TranscriptTest(TestCase):
         Creates video and video transcript objects.
         """
         super().setUp()
-        self.flash_transcript_path = 'edxval/tests/data/The_Flash.srt'
-        self.arrow_transcript_path = 'edxval/tests/data/The_Arrow.srt'
+        self.flash_transcript_path = 'src/edxval/tests/data/The_Flash.srt'
+        self.arrow_transcript_path = 'src/edxval/tests/data/The_Arrow.srt'
 
         # Set up a video (video_id -> super-soaker) with 'en' and 'fr' transcripts.
         video_and_transcripts = self.setup_video_with_transcripts(
@@ -2810,8 +2810,8 @@ class TranscriptTest(TestCase):
         self.assertIsNone(transcript)
 
     @data(
-        ('super-soaker', 'en', 'Shallow Swordfish-en.srt', 'edxval/tests/data/The_Flash.srt'),
-        ('medium-soaker', 'de', 'Shallow Swordfish-de.srt', 'edxval/tests/data/The_Arrow.srt')
+        ('super-soaker', 'en', 'Shallow Swordfish-en.srt', 'src/edxval/tests/data/The_Flash.srt'),
+        ('medium-soaker', 'de', 'Shallow Swordfish-de.srt', 'src/edxval/tests/data/The_Arrow.srt')
     )
     @unpack
     def test_get_video_transcript_data(self, video_id, language_code, expected_file_name, expected_transcript_path):

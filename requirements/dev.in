@@ -1,5 +1,0 @@
-# Additional requirements for development of this application
-
--c constraints.txt
-
-diff-cover                # Changeset diff test coverage
