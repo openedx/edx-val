@@ -16,8 +16,8 @@ jobs:
     with:
       branch: ${{ github.event.inputs.branch }}
       # user_reviewers: ""
-      # team_reviewers: '2u-aurora'
-      email_address: "aurora-requirements-update@2u-internal.opsgenie.net"
+      # team_reviewers: ""
+      # email_address: ""
     secrets:
       requirements_bot_github_token: ${{ secrets.REQUIREMENTS_BOT_GITHUB_TOKEN }}
       requirements_bot_github_email: ${{ secrets.REQUIREMENTS_BOT_GITHUB_EMAIL }}
